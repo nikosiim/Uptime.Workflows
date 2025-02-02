@@ -20,7 +20,6 @@
 
   <ItemGroup>
     <Folder Include="Application\Queries\" />
-    <Folder Include="Presentation\Components\" />
     <Folder Include="Presentation\Forms\" />
   </ItemGroup>
 </Project>

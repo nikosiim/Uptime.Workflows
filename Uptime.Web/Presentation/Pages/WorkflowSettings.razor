@@ -87,7 +87,7 @@ else
 
     private async Task EditTemplate(WorkflowTemplate template)
     {
-        var parameters = new DialogParameters { { Constants.DialogParameters.TemplateId, template.Id } };
+        var parameters = new DialogParameters { { DialogParams.TemplateId, template.Id } };
 
         await ShowAssociationDialog(template.WorkflowBaseId, parameters, "Edit");
     }
@@ -114,8 +114,8 @@ else
             throw new Exception($"No association dialog defined for workflow {definition.Name}");
         }
 
-        parameters.Add(Constants.DialogParameters.WorkflowDefinition, definition);
-        parameters.Add(Constants.DialogParameters.LibraryId, LibraryId);
+        parameters.Add(DialogParams.WorkflowDefinition, definition);
+        parameters.Add(DialogParams.LibraryId, LibraryId);
 
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
         IDialogReference dialog = await DialogService.ShowAsync(definition.AssociationDialogResolved, $"{action} {definition.Name}", parameters, options);

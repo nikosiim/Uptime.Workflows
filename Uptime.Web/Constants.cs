@@ -2,7 +2,7 @@
 
 public static class Constants
 {
-    public static class DialogParameters
+    public static class DialogParams
     {
         public const string TemplateId = "TemplateId";
         public const string LibraryId = "LibraryId";
@@ -13,4 +13,13 @@ public static class Constants
     {
         { "Contracts", 1 }, { "Letters", 2 }
     };
+
+    public static class PageRoutes
+    {
+        public const string WorkflowSettings = "workflow-settings";
+        public const string LibraryWorkflows = "library-workflow";
+        public const string Workflows = "workflows";
+        public const string Contracts = "contracts";
+        public const string Letters = "letters";
+    }
 }

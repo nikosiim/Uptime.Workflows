@@ -6,7 +6,7 @@
     @if (ViewModel != null)
     {
         <MudGrid>
-            @foreach (WorkflowTemplate template in ViewModel)
+            @foreach (WorkflowTemplate template in ViewModel.Templates)
             {
                 <MudItem xs="12" sm="6" md="3">
                     <MudPaper Class="pa-4" Elevation="2">
@@ -14,7 +14,7 @@
                             <MudAvatar Size="Size.Large" Color="Color.Primary">
                                 <MudIcon Icon="@Icons.Material.Filled.Work" Size="Size.Large" />
                             </MudAvatar>
-                            <MudLink Href="@(GetInitiationFormUrl(template))" Target="_self">
+                            <MudLink Href="@(GetInitiationFormUrl(template, ViewModel.DocumentId))" Target="_self">
                                 @template.Name
                             </MudLink>
                         </MudStack>
@@ -31,14 +31,11 @@
 
 @code {
     [Parameter, EditorRequired] 
-    public int DocumentId { get; set; }
+    public TemplatesViewModel? ViewModel { get; set; }
 
-    [Parameter, EditorRequired] 
-    public List<WorkflowTemplate>? ViewModel { get; set; } = [];
-
-    private string GetInitiationFormUrl(WorkflowTemplate template)
+    private string GetInitiationFormUrl(WorkflowTemplate template, int documentId)
     {
         IWorkflowDefinition definition = WorkflowRegistry.GetWorkflowById(template.WorkflowBaseId);
-        return $"/{definition.InitiationPage}/{template.Id}/{DocumentId}";
+        return $"/{definition.InitiationPage}/{template.Id}/{documentId}";
     }
 }

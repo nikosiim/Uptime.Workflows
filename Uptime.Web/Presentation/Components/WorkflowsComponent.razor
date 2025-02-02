@@ -1,0 +1,57 @@
+﻿<!-- Active Workflow Instances -->
+<MudPaper Elevation="0">
+    <MudText Typo="Typo.h6" Class="mt-4 mb-4">Töötavad töövood</MudText>
+
+    @if (ViewModel != null)
+    {
+        <MudTable Items="ViewModel.ActiveInstances" Bordered="true">
+            <HeaderContent>
+                <MudTh>Nimi</MudTh>
+                <MudTh>Tähtaeg</MudTh>
+                <MudTh>Olek</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd><MudLink Href="@($"/workflow/{context.Id}")">@context.WorkflowTemplateName</MudLink></MudTd>
+                <MudTd>@context.DueDate</MudTd>
+                <MudTd>@context.Status</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else
+    {
+        <MudText>No active workflows for this document.</MudText>
+    }
+</MudPaper>
+<MudDivider />
+
+<!-- Completed or Canceled Workflow Instances -->
+<MudPaper Elevation="0" Class="mt-4">
+    <MudText Typo="Typo.h6" Class="mt-4 mb-4">Lõpule viidud töövood</MudText>
+
+    @if (ViewModel != null)
+    {
+        <MudTable Items="ViewModel.CompletedInstances" Bordered="true">
+            <HeaderContent>
+                <MudTh>Nimi</MudTh>
+                <MudTh>Tähtaeg</MudTh>
+                <MudTh>Lõpule viidud</MudTh>
+                <MudTh>Olek</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd><MudLink Href="@($"/workflow/{context.Id}")">@context.WorkflowTemplateName</MudLink></MudTd>
+                <MudTd>@context.DueDate</MudTd>
+                <MudTd>@context.EndDate</MudTd>
+                <MudTd>@context.Status</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else
+    {
+        <MudText>No completed or canceled workflows for this document.</MudText>
+    }
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired] 
+    public WorkflowsViewModel? ViewModel { get; set; }
+}

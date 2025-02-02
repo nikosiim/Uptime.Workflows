@@ -1,0 +1,58 @@
+﻿@page "/library-workflow/{listId:int}/{documentId:int}"
+
+@inject IMediator Mediator
+@inject ISnackbar Snackbar
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+}
+else
+{
+    <TemplatesComponent ViewModel="_templatesViewModel" />
+    <MudDivider />
+    <WorkflowsComponent ViewModel="_workflowsViewModel" />
+}
+
+@code {
+    private bool _loading;
+    private TemplatesViewModel? _templatesViewModel;
+    private WorkflowsViewModel? _workflowsViewModel;
+
+    [Parameter] public int ListId { get; set; }
+    [Parameter] public int DocumentId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _loading = true;
+
+        try
+        {
+            List<DocumentWorkflow> workflows = await Mediator.Send(new GetDocumentWorkflowsQuery(DocumentId));
+            List<WorkflowTemplate> templates = await Mediator.Send(new GetLibraryWorkflowTemplatesQuery(ListId));
+
+            PopulateViewModels(workflows, templates);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message);
+        }
+
+        _loading = false;
+    }
+
+    private void PopulateViewModels(List<DocumentWorkflow> workflows, List<WorkflowTemplate> templates)
+    {
+        _workflowsViewModel = new WorkflowsViewModel
+        {
+            ActiveInstances = workflows.Where(w => w.Status is WorkflowStatus.NotStarted or WorkflowStatus.InProgress).ToList(),
+            CompletedInstances = workflows.Where(w => w.Status is WorkflowStatus.Completed or WorkflowStatus.Cancelled).ToList()
+        };
+
+        _templatesViewModel = new TemplatesViewModel
+        {
+            DocumentId = DocumentId,
+            Templates = templates.Where(t => _workflowsViewModel.ActiveInstances.All(w => w.TemplateId != t.Id)).ToList()
+        };
+    }
+}

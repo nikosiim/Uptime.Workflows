@@ -30,7 +30,7 @@ else
 
 @code {
     [Parameter, EditorRequired]
-    public string ListName { get; set; } = null!;
+    public string Name { get; set; } = null!;
 
     private List<LibraryDocument> _documents = [];
     private bool _loading;
@@ -39,18 +39,18 @@ else
     {
         _loading = true;
 
-        _documents = await Mediator.Send(new GetLibraryDocumentsQuery(ListName));
+        _documents = await Mediator.Send(new GetLibraryDocumentsQuery(Name));
 
         _loading = false;
     }
 
     private void NavigateToWorkflowSettings()
     {
-        Navigation.NavigateTo($"/workflow-settings/{ListName.ToLower()}");
+        Navigation.NavigateTo($"/{PageRoutes.WorkflowSettings}/{Name.ToLower()}");
     }
 
     private void NavigateToWorkflows(LibraryDocument document)
     {
-        Navigation.NavigateTo($"/workflows/{document.LibraryId}/{document.Id}");
+        Navigation.NavigateTo($"/{PageRoutes.LibraryWorkflows}/{document.LibraryId}/{document.Id}");
     }
 }

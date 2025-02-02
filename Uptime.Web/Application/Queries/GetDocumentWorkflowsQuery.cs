@@ -29,7 +29,7 @@ public class GetDocumentWorkflowsQueryHandler(IHttpClientFactory httpClientFacto
                     Id = workflow.Id,
                     TemplateId = workflow.TemplateId,
                     WorkflowTemplateName = workflow.WorkflowTemplateName,
-                    StartDate = workflow.StartDate,
+                    DueDate = workflow.StartDate,
                     EndDate = workflow.EndDate,
                     Status = workflow.Status
                 });
