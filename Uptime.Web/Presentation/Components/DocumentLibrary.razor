@@ -1,0 +1,56 @@
+﻿@inject IMediator Mediator
+@inject NavigationManager Navigation
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+}
+else
+{
+    <MudTable Items="@_documents" Hover="true" Bordered="true" Striped="true">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Documents</MudText>
+            <MudSpacer />
+            <MudButton Variant="Variant.Filled" OnClick="@NavigateToWorkflowSettings">Workflow Settings</MudButton>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>Title</MudTh>
+            <MudTh>Description</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Title</MudTd>
+            <MudTd>@context.Description</MudTd>
+            <MudTd>
+                <MudButton Size="Size.Small" Variant="Variant.Filled" OnClick="() => NavigateToWorkflows(context)">Workflows</MudButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public string ListName { get; set; } = null!;
+
+    private List<LibraryDocument> _documents = [];
+    private bool _loading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _loading = true;
+
+        _documents = await Mediator.Send(new GetLibraryDocumentsQuery(ListName));
+
+        _loading = false;
+    }
+
+    private void NavigateToWorkflowSettings()
+    {
+        Navigation.NavigateTo($"/workflow-settings/{ListName.ToLower()}");
+    }
+
+    private void NavigateToWorkflows(LibraryDocument document)
+    {
+        Navigation.NavigateTo($"/workflows/{document.LibraryId}/{document.Id}");
+    }
+}

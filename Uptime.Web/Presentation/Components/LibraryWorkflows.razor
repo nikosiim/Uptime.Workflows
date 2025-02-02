@@ -1,0 +1,61 @@
+﻿<!-- Active Workflow Instances -->
+<MudPaper Elevation="0">
+    <MudText Typo="Typo.h6" Class="mt-4 mb-4">Active Workflows</MudText>
+    @if (ActiveInstances != null)
+    {
+        <MudTable Items="ActiveInstances" Bordered="true">
+            <HeaderContent>
+                <MudTh>Workflow Name</MudTh>
+                <MudTh>Start Date</MudTh>
+                <MudTh>Status</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.WorkflowTemplateName</MudTd>
+                <MudTd>@context.StartDate</MudTd>
+                <MudTd>@context.Status</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else
+    {
+        <MudText>No active workflows for this document.</MudText>
+    }
+</MudPaper>
+<MudDivider />
+
+<!-- Completed or Canceled Workflow Instances -->
+<MudPaper Elevation="0" Class="mt-4">
+    <MudText Typo="Typo.h6" Class="mt-4 mb-4">Completed or Canceled Workflows</MudText>
+    @if (CompletedInstances != null)
+    {
+        <MudTable Items="CompletedInstances" Bordered="true">
+            <HeaderContent>
+                <MudTh>Workflow Name</MudTh>
+                <MudTh>Start Date</MudTh>
+                <MudTh>End Date</MudTh>
+                <MudTh>Status</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.WorkflowTemplateName</MudTd>
+                <MudTd>@context.StartDate</MudTd>
+                <MudTd>@context.EndDate</MudTd>
+                <MudTd>@context.Status</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else
+    {
+        <MudText>No completed or canceled workflows for this document.</MudText>
+    }
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired] 
+    public int DocumentId { get; set; }
+
+    [Parameter, EditorRequired] 
+    public List<DocumentWorkflow>? ActiveInstances { get; set; } = [];
+
+    [Parameter, EditorRequired] 
+    public List<DocumentWorkflow>? CompletedInstances { get; set; } = [];
+}

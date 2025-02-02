@@ -1,0 +1,31 @@
+﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Uptime.Application.DTOs;
+using Uptime.Application.Interfaces;
+using Uptime.Domain.Entities;
+
+namespace Uptime.Application.Queries;
+
+public record GetDocumentWorkflowTasksQuery(int DocumentId) : IRequest<List<DocumentWorkflowTaskDto>>;
+
+public class GetDocumentWorkflowTasksQueryHandler(IWorkflowDbContext dbContext)
+    : IRequestHandler<GetDocumentWorkflowTasksQuery, List<DocumentWorkflowTaskDto>>
+{
+    public async Task<List<DocumentWorkflowTaskDto>> Handle(GetDocumentWorkflowTasksQuery request, CancellationToken cancellationToken)
+    {
+        return await dbContext.Workflows
+            .Where(wi => wi.DocumentId == request.DocumentId)
+            .SelectMany(wi => wi.WorkflowTasks ?? new List<WorkflowTask>())
+            .Select(task => new DocumentWorkflowTaskDto
+            {
+                TaskId = task.Id,
+                WorkflowId = task.WorkflowId,
+                AssignedTo = task.AssignedTo,
+                Status = task.Status,
+                TaskDescription = task.TaskDescription,
+                DueDate = task.DueDate,
+                EndDate = task.EndDate
+            })
+            .ToListAsync(cancellationToken);
+    }
+}

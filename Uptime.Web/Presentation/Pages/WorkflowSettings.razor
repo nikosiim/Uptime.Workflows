@@ -1,0 +1,129 @@
+﻿@page "/workflow-settings/{library}"
+@inject IMediator Mediator
+@inject IDialogService DialogService
+@inject WorkflowRegistry WorkflowRegistry
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+}
+else
+{
+    <MudTable Items="@WorkflowTemplates" Hover="true" Bordered="true" Striped="false">
+        <ToolBarContent>
+            <MudPaper Class="d-flex justify-space-between flex-grow-1 align-top gap-4" Elevation="0">
+                <MudText Typo="Typo.h6">Workflow Settings</MudText>
+                <MudStack Row="true">
+                    <MudSelect T="string" Label="Workflow Type" @bind-Value="_selectedWorkflowBaseId" Style="min-width: 200px;">
+                        @foreach (IWorkflowDefinition workflow in WorkflowRegistry.GetAllWorkflows())
+                        {
+                            <MudSelectItem T="string" Value="@workflow.Id">@workflow.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudButton Variant="Variant.Filled" Disabled="@string.IsNullOrWhiteSpace(_selectedWorkflowBaseId)" OnClick="@(async () => await AssignNewTemplate(_selectedWorkflowBaseId))">
+                        Assign New Template
+                    </MudButton>
+                </MudStack>
+            </MudPaper>
+        </ToolBarContent>
+
+        <HeaderContent>
+            <MudTh>Template Name</MudTh>
+            <MudTh>Type</MudTh>
+            <MudTh>Created</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Name</MudTd>
+            <MudTd>@context.WorkflowBaseId</MudTd>
+            <MudTd>@context.Created</MudTd>
+            <MudTd>
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" OnClick="() => EditTemplate(context)">Edit</MudButton>
+                <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Error" OnClick="() => DeleteTemplate(context.Id)">Delete</MudButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private bool _loading;
+    private string? _selectedWorkflowBaseId;
+
+    [Parameter]
+    public string Library { get; set; } = null!;
+
+    private int LibraryId
+    {
+        get
+        {
+            Constants.Libraries.TryGetValue(Library, out int libraryId);
+            return libraryId;
+        }
+    }
+
+    private List<WorkflowTemplate> WorkflowTemplates { get; set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadWorkflowTemplates();
+    }
+    
+    private async Task LoadWorkflowTemplates()
+    {
+        _loading = true;
+
+        WorkflowTemplates = await Mediator.Send(new GetLibraryWorkflowTemplatesQuery(LibraryId));
+
+        _loading = false;
+    }
+
+    private async Task AssignNewTemplate(string? workflowBaseId)
+    {
+        if (!string.IsNullOrWhiteSpace(workflowBaseId))
+        {
+            await ShowAssociationDialog(workflowBaseId, new DialogParameters(), "Create");
+        }
+    }
+
+    private async Task EditTemplate(WorkflowTemplate template)
+    {
+        var parameters = new DialogParameters { { Constants.DialogParameters.TemplateId, template.Id } };
+
+        await ShowAssociationDialog(template.WorkflowBaseId, parameters, "Edit");
+    }
+
+    private async Task DeleteTemplate(int templateId)
+    {
+        bool confirmed = await Mediator.Send(new DeleteWorkflowTemplateCommand(templateId));
+        if (confirmed)
+        {
+            _loading = true;
+
+            WorkflowTemplates.RemoveAll(t => t.Id == templateId);
+
+            _loading = false;
+        }
+    }
+
+    private async Task ShowAssociationDialog(string workflowBaseId, DialogParameters parameters, string action)
+    {
+        IWorkflowDefinition definition = WorkflowRegistry.GetWorkflowById(workflowBaseId);
+
+        if (definition.AssociationDialogResolved == null)
+        {
+            throw new Exception($"No association dialog defined for workflow {definition.Name}");
+        }
+
+        parameters.Add(Constants.DialogParameters.WorkflowDefinition, definition);
+        parameters.Add(Constants.DialogParameters.LibraryId, LibraryId);
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        IDialogReference dialog = await DialogService.ShowAsync(definition.AssociationDialogResolved, $"{action} {definition.Name}", parameters, options);
+
+        DialogResult? result = await dialog.Result;
+        if (result is { Canceled: false })
+        {
+            await LoadWorkflowTemplates();
+        }
+    }
+}

@@ -1,0 +1,17 @@
+﻿@inherits WorkflowAssocForm<ApprovalFormModel>
+
+<MudDialog>
+    <TitleContent>@MudDialog.Title</TitleContent>
+    <DialogContent>
+        <MudForm @ref="Form">
+            <MudTextField T="string" Label="Template Name" Variant="Variant.Outlined" @bind-Value="FormModel.TemplateName" Required="true" />
+            <MudTextField T="string" Label="Assigned To" Variant="Variant.Outlined" @bind-Value="FormModel.AssignedTo" Placeholder="Comma-separated usernames" />
+            <MudTextField T="string" Label="Task" Variant="Variant.Outlined" @bind-Value="FormModel.TaskDescription" Lines="4" />
+            <MudDatePicker Label="Due Date" Variant="Variant.Outlined" @bind-Date="FormModel.DueDate" DateFormat="dd.MM.yyyy" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" OnClick="SaveTemplate">Save</MudButton>
+        <MudButton Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>

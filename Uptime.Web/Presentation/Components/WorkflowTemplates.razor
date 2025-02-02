@@ -1,0 +1,44 @@
+﻿@inject WorkflowRegistry WorkflowRegistry
+
+<MudPaper Elevation="0" MinHeight="250px">
+    <MudText Typo="Typo.h6" Class="my-4">Available Workflows</MudText>
+
+    @if (ViewModel != null)
+    {
+        <MudGrid>
+            @foreach (WorkflowTemplate template in ViewModel)
+            {
+                <MudItem xs="12" sm="6" md="3">
+                    <MudPaper Class="pa-4" Elevation="2">
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                            <MudAvatar Size="Size.Large" Color="Color.Primary">
+                                <MudIcon Icon="@Icons.Material.Filled.Work" Size="Size.Large" />
+                            </MudAvatar>
+                            <MudLink Href="@(GetInitiationFormUrl(template))" Target="_self">
+                                @template.Name
+                            </MudLink>
+                        </MudStack>
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+    else
+    {
+        <MudText>No workflows available for this list.</MudText>
+    }
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired] 
+    public int DocumentId { get; set; }
+
+    [Parameter, EditorRequired] 
+    public List<WorkflowTemplate>? ViewModel { get; set; } = [];
+
+    private string GetInitiationFormUrl(WorkflowTemplate template)
+    {
+        IWorkflowDefinition definition = WorkflowRegistry.GetWorkflowById(template.WorkflowBaseId);
+        return $"/{definition.InitiationPage}/{template.Id}/{DocumentId}";
+    }
+}
