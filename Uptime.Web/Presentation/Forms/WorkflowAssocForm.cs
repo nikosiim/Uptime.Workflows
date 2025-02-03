@@ -1,10 +1,10 @@
-﻿using System.Text.Json;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Uptime.Shared.Models.WorkflowTemplates;
+using System.Text.Json;
 using Uptime.Web.Application.Commands;
 using Uptime.Web.Application.Definitions;
+using Uptime.Web.Application.DTOs;
 using Uptime.Web.Application.Models;
 using Uptime.Web.Application.Queries;
 namespace Uptime.Web.Presentation.Forms;
@@ -27,9 +27,9 @@ public abstract class WorkflowAssocForm<TFormModel> : ComponentBase where TFormM
     {
         if (TemplateId.HasValue)
         {
-            WorkflowTemplateResponse? template = await Mediator.Send(new GetWorkflowTemplateQuery(TemplateId.Value));
+            WorkflowTemplateDto template = await Mediator.Send(new GetWorkflowTemplateQuery(TemplateId.Value));
 
-            FormModel = !string.IsNullOrWhiteSpace(template?.AssociationDataJson)
+            FormModel = !string.IsNullOrWhiteSpace(template.AssociationDataJson)
                 ? JsonSerializer.Deserialize<TFormModel>(template.AssociationDataJson)!
                 : new TFormModel();
         }

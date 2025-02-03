@@ -2,12 +2,12 @@
 
 namespace Uptime.Web.Application.DTOs;
 
-public record DocumentWorkflow
+public record DocumentWorkflowDto
 {
     public int Id { get; init; }
     public int TemplateId { get; init; }
     public string? WorkflowTemplateName { get; init; }
-    public DateTime DueDate { get; init; }
+    public DateTime StartDate { get; init; }
     public DateTime? EndDate { get; init; }
     public WorkflowStatus Status { get; init; }
 }

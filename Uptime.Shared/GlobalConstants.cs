@@ -1,0 +1,12 @@
+﻿namespace Uptime.Shared;
+
+public static class GlobalConstants
+{
+    public static class TaskStorageKeys
+    {
+        public const string Comment = "TaskComment";
+        public const string Delegated = "TaskDelegated";
+        public const string Outcome = "TaskOutcome";
+        public const string Title = "TaskTitle";
+    }
+}

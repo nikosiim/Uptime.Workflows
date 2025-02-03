@@ -4,6 +4,6 @@ namespace Uptime.Web.Presentation.ViewModels;
 
 public class WorkflowsViewModel
 {
-    public List<DocumentWorkflow> ActiveInstances { get; set; } = [];
-    public List<DocumentWorkflow> CompletedInstances { get; set; } = [];
+    public List<DocumentWorkflowDto> ActiveInstances { get; set; } = [];
+    public List<DocumentWorkflowDto> CompletedInstances { get; set; } = [];
 }

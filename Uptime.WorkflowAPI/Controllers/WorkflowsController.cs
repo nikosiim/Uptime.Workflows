@@ -5,6 +5,7 @@ using Uptime.Application.DTOs;
 using Uptime.Application.Interfaces;
 using Uptime.Application.Models.Approval;
 using Uptime.Application.Queries;
+using Uptime.Shared.Enums;
 using Uptime.Shared.Models.Workflows;
 
 namespace Uptime.WorkflowAPI.Controllers;
@@ -13,10 +14,24 @@ namespace Uptime.WorkflowAPI.Controllers;
 [Route("api/[controller]")]
 public class WorkflowsController(IWorkflowService workflowService, IMediator mediator, IMapper mapper) : ControllerBase
 {
-    [HttpGet("{workflowId:int}/workflow-tasks")]
-    public async Task<ActionResult<List<WorkflowTasksResponse>>> GetWorkflowTasks(int workflowId)
+    [HttpGet("{workflowId:int}")]
+    public async Task<ActionResult<WorkflowResponse>> GetWorkflow(int workflowId)
     {
-        var query = new GetWorkflowTasksQuery(workflowId);
+        var query = new GetWorkflowQuery(workflowId);
+        WorkflowDto? workflow = await mediator.Send(query);
+        
+        if (workflow == null)
+        {
+            return NotFound($"No workflow found for ID {workflowId}.");
+        }
+
+        return Ok(mapper.Map<WorkflowResponse>(workflow));
+    }
+
+    [HttpGet("{workflowId:int}/workflow-tasks")]
+    public async Task<ActionResult<List<WorkflowTasksResponse>>> GetWorkflowTasks(int workflowId, [FromQuery] WorkflowTaskStatus? status = null)
+    {
+        var query = new GetWorkflowTasksQuery(workflowId, status);
 
         List<WorkflowTaskDto> tasks = await mediator.Send(query);
         if (!tasks.Any())
@@ -35,7 +50,7 @@ public class WorkflowsController(IWorkflowService workflowService, IMediator med
     }
 
     [HttpPost("complete-approval-task")]
-    public async Task<ActionResult> CompleteApprovalTask([FromBody] TaskCompletionPayload payload)
+    public async Task<ActionResult> CompleteApprovalTask([FromBody] AlterTaskPayload payload)
     {
         bool result = await workflowService.CompleteTaskAsync(payload);
 

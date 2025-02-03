@@ -1,14 +1,14 @@
 ﻿using MediatR;
 using System.Text.Json;
 using Uptime.Application.Commands;
+using Uptime.Application.DTOs;
 using Uptime.Application.Enums;
 using Uptime.Application.Interfaces;
 using Uptime.Application.Models.Approval;
 using Uptime.Application.Models.Common;
 using Uptime.Application.Queries;
 using Uptime.Application.Workflows;
-using Uptime.Domain.Entities;
-using Uptime.Domain.Enums;
+using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Services;
 
@@ -24,9 +24,9 @@ public class WorkflowService(ITaskService taskService, IMediator mediator) : IWo
         throw new InvalidOperationException("Unknown workflow type");
     }
 
-    public async Task<bool> CompleteTaskAsync(TaskCompletionPayload payload)
+    public async Task<bool> CompleteTaskAsync(AlterTaskPayload payload)
     {
-        Workflow? workflowInstance = await mediator.Send(new GetWorkflowQuery(payload.WorkflowId));
+        WorkflowDto? workflowInstance = await mediator.Send(new GetWorkflowQuery(payload.WorkflowId));
         if (workflowInstance == null)
             return false;
 
@@ -41,7 +41,11 @@ public class WorkflowService(ITaskService taskService, IMediator mediator) : IWo
             return false;
 
         // Persist updated workflow state
-        workflowInstance.InstanceDataJson = JsonSerializer.Serialize(workflow.WorkflowContext);
+        workflowInstance = workflowInstance with
+        {
+            InstanceDataJson = JsonSerializer.Serialize(workflow.WorkflowContext)
+        };
+
         await mediator.Send(new UpdateWorkflowStateCommand
         {
             WorkflowId = payload.WorkflowId,

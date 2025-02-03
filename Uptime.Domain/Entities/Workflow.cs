@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Uptime.Domain.Enums;
+using Uptime.Shared.Enums;
 
 namespace Uptime.Domain.Entities;
 
@@ -11,10 +11,11 @@ public class Workflow : BaseEntity
     [StringLength(128)]
     public string? Originator { get; set; }
     public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
+    public DateTime? EndDate { get; set; }
     public int DocumentId { get; set; }
-    public virtual Document? Document { get; set; }
+    public virtual Document Document { get; set; } = null!;
     public int WorkflowTemplateId { get; set; }
-    public virtual WorkflowTemplate? WorkflowTemplate { get; set; }
+    public virtual WorkflowTemplate WorkflowTemplate { get; set; } = null!;
     public virtual ICollection<WorkflowTask>? WorkflowTasks { get; set; }
+    public virtual ICollection<WorkflowHistory>? WorkflowHistories { get; set; }
 }

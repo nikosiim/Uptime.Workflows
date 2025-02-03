@@ -1,7 +1,7 @@
 ﻿using Stateless;
 using Uptime.Application.Enums;
 using Uptime.Application.Interfaces;
-using Uptime.Domain.Enums;
+using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Common;
 

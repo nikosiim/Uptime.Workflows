@@ -2,10 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using Uptime.Application.DTOs;
 using Uptime.Application.Interfaces;
+using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Queries;
 
-public record GetWorkflowTasksQuery(int WorkflowId) : IRequest<List<WorkflowTaskDto>>;
+public record GetWorkflowTasksQuery(int WorkflowId, WorkflowTaskStatus? Status) : IRequest<List<WorkflowTaskDto>>;
 
 public class GetWorkflowTasksQueryHandler(IWorkflowDbContext dbContext)
     : IRequestHandler<GetWorkflowTasksQuery, List<WorkflowTaskDto>>
@@ -13,16 +14,17 @@ public class GetWorkflowTasksQueryHandler(IWorkflowDbContext dbContext)
     public async Task<List<WorkflowTaskDto>> Handle(GetWorkflowTasksQuery request, CancellationToken cancellationToken)
     {
         return await dbContext.WorkflowTasks
-            .Where(task => task.WorkflowId == request.WorkflowId)
+            .Where(task => task.WorkflowId == request.WorkflowId && (request.Status == null || task.Status == request.Status))
             .Select(task => new WorkflowTaskDto
             {
-                TaskId = task.Id,
-                WorkflowId = task.WorkflowId,
+                Id = task.Id,
                 AssignedTo = task.AssignedTo,
+                AssignedBy = task.AssignedBy,
                 Status = task.Status,
-                TaskDescription = task.TaskDescription,
+                Description = task.TaskDescription,
                 DueDate = task.DueDate,
-                EndDate = task.EndDate
+                EndDate = task.EndDate,
+                StorageJson = task.StorageJson
             })
             .ToListAsync(cancellationToken);
     }

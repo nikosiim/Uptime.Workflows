@@ -1,6 +1,6 @@
 ﻿namespace Uptime.Web.Application.DTOs;
 
-public record LibraryDocument
+public record LibraryDocumentDto
 {
     public int Id { get; init; }
     public string? Title { get; init; }

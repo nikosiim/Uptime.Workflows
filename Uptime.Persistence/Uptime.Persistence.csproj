@@ -21,8 +21,4 @@
     <ProjectReference Include="..\Uptime.Domain\Uptime.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Migrations\" />
-  </ItemGroup>
-
 </Project>

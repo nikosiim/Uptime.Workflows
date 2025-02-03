@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Entities;
-using Uptime.Domain.Enums;
+using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Commands;
 

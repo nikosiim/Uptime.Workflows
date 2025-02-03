@@ -1,0 +1,44 @@
+﻿<MudText Typo="Typo.h5">Töövoo ajalugu</MudText>
+<MudText Typo="Typo.subtitle1">Selles töövoos ilmnesid järgmised sündmused.</MudText>
+
+<MudTable Items="@_historyItems" Dense="true" Outlined="true">
+    <HeaderContent>
+        <MudTh>Toimumise aeg</MudTh>
+        <MudTh>Sündmuse tüüp</MudTh>
+        <MudTh>Kirjeldus</MudTh>
+        <MudTh>Kasutaja</MudTh>
+        <MudTh>Kommentaar</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="entry">
+        <MudTd>@entry.EventDate.ToString("g")</MudTd>
+        <MudTd>@entry.Action</MudTd>
+        <MudTd>@entry.Description</MudTd>
+        <MudTd>@entry.Actor</MudTd>
+        <MudTd>@entry.Comments</MudTd>
+    </RowTemplate>
+</MudTable>
+
+
+@code {
+    public class WorkflowHistoryDto
+    {
+        public DateTime EventDate { get; set; } = DateTime.Now;
+        public string Action { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Actor { get; set; } = string.Empty;
+        public string? Comments { get; set; }
+    }
+
+    private List<WorkflowHistoryDto> _historyItems = [];
+
+    protected override void OnInitialized()
+    {
+        _historyItems =
+        [
+            new WorkflowHistoryDto { Action = "Töövoog on algatatud", Description = "Kinnitamine on alustatud.", Actor = "John Doe", EventDate = DateTime.Now.AddDays(-2), Comments = "Kinnitamiseks: Priit Siimo"},
+            new WorkflowHistoryDto { Action = "Tööülesanne on loodud", Description = "Tööülesanne Kinnitamine on loodud kasutajale Priit Siimo", Actor = "Priit Siimo", EventDate = DateTime.Now.AddDays(-1), Comments = "Tähtaeg: 18.02.2025. Ülesanne: Kinnita leping." },
+            new WorkflowHistoryDto { Action = "Tööülesanne on täidetud", Description = "Tööülesanne on täidetud", Actor = "Priit Siimo", EventDate = DateTime.Now, Comments = "OK" },
+            new WorkflowHistoryDto { Action = "Töövoog on lõpetatud", Description = "Töövoog on lõpetatud staatusega Kinnitatud", Actor = "Süsteemikonto", EventDate = DateTime.Now, Comments = "" }
+        ];
+    }
+}

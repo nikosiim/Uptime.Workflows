@@ -1,7 +1,53 @@
 ﻿@page "/workflow/{workflowId:int}"
 
-<h3>Workflow</h3>
+@inject IMediator Mediator
+@inject ISnackbar Snackbar
+
+@if (_loading)
+{
+    <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+}
+else
+{
+    <MudPaper Elevation="0">
+        <MudPaper Elevation="1" Outlined="true" Class="pa-4 mb-6">
+            <WorkflowPageDetails ViewModel="_detailsViewModel" />
+        </MudPaper>
+        <MudPaper Elevation="2" Outlined="true" Class="pa-4 my-6">
+            <WorkflowPageActions />
+        </MudPaper>
+        <MudPaper Elevation="1" Outlined="true" Class="pa-4 my-6">
+            <WorkflowPageTasks ViewModel="_tasksViewModel" />
+        </MudPaper>
+        <MudPaper Elevation="1" Outlined="true" Class="pa-4 my-6">
+            <WorkflowPageHistory />
+        </MudPaper>
+    </MudPaper>
+}
 
 @code {
+    private bool _loading;
+    private WorkflowDetailsDto? _detailsViewModel;
+    private List<WorkflowTaskDto>? _tasksViewModel;
+
     [Parameter] public int WorkflowId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        _loading = true;
+
+        try
+        {
+            _detailsViewModel = await Mediator.Send(new GetWorkflowDetailsQuery(WorkflowId));
+            _tasksViewModel = await Mediator.Send(new GetWorkflowTasksQuery(WorkflowId));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message);
+        }
+
+        _loading = false;
+    }
 }

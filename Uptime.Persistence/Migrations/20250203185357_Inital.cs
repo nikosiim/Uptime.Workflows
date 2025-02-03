@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Uptime.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Inital : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -85,7 +85,7 @@ namespace Uptime.Persistence.Migrations
                     InstanceDataJson = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: true),
                     Originator = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     DocumentId = table.Column<int>(type: "int", nullable: false),
                     WorkflowTemplateId = table.Column<int>(type: "int", nullable: false)
                 },

@@ -1,4 +1,4 @@
-﻿namespace Uptime.Application.Enums;
+﻿namespace Uptime.Shared.Enums;
 
 public enum TaskOutcome
 {

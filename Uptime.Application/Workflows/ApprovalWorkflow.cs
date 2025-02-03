@@ -3,7 +3,8 @@ using Uptime.Application.Enums;
 using Uptime.Application.Interfaces;
 using Uptime.Application.Models.Approval;
 using Uptime.Application.Models.Common;
-using Uptime.Domain.Enums;
+using Uptime.Shared.Enums;
+using static Uptime.Shared.GlobalConstants;
 
 namespace Uptime.Application.Workflows;
 
@@ -35,7 +36,7 @@ public class ApprovalWorkflow(ITaskService taskService, WorkflowStatus workflowS
             .OnEntry(() => Console.WriteLine("Workflow was rejected."));
     }
 
-    public async Task<bool> CompleteTaskAsync(TaskCompletionPayload payload)
+    public async Task<bool> CompleteTaskAsync(AlterTaskPayload payload)
     {
         ApprovalTaskContext? taskContext = Context.ReplicatorState.Items.FirstOrDefault(t => t.Id == payload.TaskId);
         if (taskContext == null)
@@ -102,12 +103,12 @@ public class ApprovalWorkflow(ITaskService taskService, WorkflowStatus workflowS
             ApprovalTaskContext ctx = child.Context;
 
             // Task is rejected -> workflow will be cancelled
-            if (ctx.Outcome == TaskOutcome.Rejected)
+            if (ctx.Storage.TryGetValue(TaskStorageKeys.Outcome, out object? oOutcome) && oOutcome is int outcomeInt && (TaskOutcome)outcomeInt == TaskOutcome.Rejected)
             {
                 Context.AnyTaskRejected = true;
             }
 
-            if (ctx.Storage.TryGetValue("DelegatedTo", out object? delegatedTo) && delegatedTo is string delegatedToUser)
+            if (ctx.Storage.TryGetValue(TaskStorageKeys.Delegated, out object? delegatedTo) && delegatedTo is string delegatedToUser)
             {
                 var delegatedCtx = new ApprovalTaskContext(ctx)
                 {

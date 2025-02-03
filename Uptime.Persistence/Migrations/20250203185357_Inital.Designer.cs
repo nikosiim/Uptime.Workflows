@@ -12,8 +12,8 @@ using Uptime.Persistence;
 namespace Uptime.Persistence.Migrations
 {
     [DbContext(typeof(WorkflowDbContext))]
-    [Migration("20250202153747_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250203185357_Inital")]
+    partial class Inital
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -197,7 +197,7 @@ namespace Uptime.Persistence.Migrations
                     b.Property<int>("DocumentId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("EndDate")
+                    b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("InstanceDataJson")
@@ -382,7 +382,7 @@ namespace Uptime.Persistence.Migrations
             modelBuilder.Entity("Uptime.Domain.Entities.WorkflowHistory", b =>
                 {
                     b.HasOne("Uptime.Domain.Entities.Workflow", "Workflow")
-                        .WithMany()
+                        .WithMany("WorkflowHistories")
                         .HasForeignKey("WorkflowId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -426,6 +426,8 @@ namespace Uptime.Persistence.Migrations
 
             modelBuilder.Entity("Uptime.Domain.Entities.Workflow", b =>
                 {
+                    b.Navigation("WorkflowHistories");
+
                     b.Navigation("WorkflowTasks");
                 });
 

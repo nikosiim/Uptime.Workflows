@@ -2,7 +2,7 @@
 using System.Text.Json;
 using Uptime.Application.Commands;
 using Uptime.Application.Interfaces;
-using Uptime.Domain.Enums;
+using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Services;
 

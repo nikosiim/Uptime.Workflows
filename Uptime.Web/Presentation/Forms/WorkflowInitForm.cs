@@ -1,8 +1,8 @@
-﻿using System.Text.Json;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Uptime.Shared.Models.WorkflowTemplates;
+using System.Text.Json;
+using Uptime.Web.Application.DTOs;
 using Uptime.Web.Application.Models;
 using Uptime.Web.Application.Queries;
 
@@ -21,9 +21,9 @@ public class WorkflowInitForm<TFormModel> : ComponentBase where TFormModel : IWo
 
     protected override async Task OnInitializedAsync()
     {
-        WorkflowTemplateResponse? template = await Mediator.Send(new GetWorkflowTemplateQuery(TemplateId));
+        WorkflowTemplateDto template = await Mediator.Send(new GetWorkflowTemplateQuery(TemplateId));
 
-        FormModel = !string.IsNullOrWhiteSpace(template?.AssociationDataJson)
+        FormModel = !string.IsNullOrWhiteSpace(template.AssociationDataJson)
             ? JsonSerializer.Deserialize<TFormModel>(template.AssociationDataJson)!
             : new TFormModel();
     }

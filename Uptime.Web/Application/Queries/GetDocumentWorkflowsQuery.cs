@@ -4,14 +4,14 @@ using Uptime.Web.Application.DTOs;
 
 namespace Uptime.Web.Application.Queries;
 
-public record GetDocumentWorkflowsQuery(int DocumentId) : IRequest<List<DocumentWorkflow>>;
+public record GetDocumentWorkflowsQuery(int DocumentId) : IRequest<List<DocumentWorkflowDto>>;
 
 public class GetDocumentWorkflowsQueryHandler(IHttpClientFactory httpClientFactory)
-    : IRequestHandler<GetDocumentWorkflowsQuery, List<DocumentWorkflow>>
+    : IRequestHandler<GetDocumentWorkflowsQuery, List<DocumentWorkflowDto>>
 {
-    public async Task<List<DocumentWorkflow>> Handle(GetDocumentWorkflowsQuery request, CancellationToken cancellationToken)
+    public async Task<List<DocumentWorkflowDto>> Handle(GetDocumentWorkflowsQuery request, CancellationToken cancellationToken)
     {
-        var result = new List<DocumentWorkflow>();
+        var result = new List<DocumentWorkflowDto>();
 
         string url = ApiRoutes.Documents.GetWorkflows.Replace("{documentId}", request.DocumentId.ToString());
 
@@ -20,16 +20,17 @@ public class GetDocumentWorkflowsQueryHandler(IHttpClientFactory httpClientFacto
 
         if (response.IsSuccessStatusCode)
         {
-            List<DocumentWorkflowsResponse> workflows = await response.Content.ReadFromJsonAsync<List<DocumentWorkflowsResponse>>(cancellationToken: cancellationToken) ?? [];
+            List<DocumentWorkflowsResponse> workflows =
+                await response.Content.ReadFromJsonAsync<List<DocumentWorkflowsResponse>>(cancellationToken: cancellationToken) ?? [];
 
             foreach (DocumentWorkflowsResponse workflow in workflows)
             {
-                result.Add(new DocumentWorkflow
+                result.Add(new DocumentWorkflowDto
                 {
                     Id = workflow.Id,
                     TemplateId = workflow.TemplateId,
                     WorkflowTemplateName = workflow.WorkflowTemplateName,
-                    DueDate = workflow.StartDate,
+                    StartDate = workflow.StartDate,
                     EndDate = workflow.EndDate,
                     Status = workflow.Status
                 });

@@ -4,14 +4,14 @@ using Uptime.Web.Application.DTOs;
 
 namespace Uptime.Web.Application.Queries;
 
-public record GetLibraryDocumentsQuery(string LibraryName) : IRequest<List<LibraryDocument>>;
+public record GetLibraryDocumentsQuery(string LibraryName) : IRequest<List<LibraryDocumentDto>>;
 
 public class GetDocumentsQueryHandler(IHttpClientFactory httpClientFactory) 
-    : IRequestHandler<GetLibraryDocumentsQuery, List<LibraryDocument>>
+    : IRequestHandler<GetLibraryDocumentsQuery, List<LibraryDocumentDto>>
 {
-    public async Task<List<LibraryDocument>> Handle(GetLibraryDocumentsQuery request, CancellationToken cancellationToken)
+    public async Task<List<LibraryDocumentDto>> Handle(GetLibraryDocumentsQuery request, CancellationToken cancellationToken)
     {
-        var result = new List<LibraryDocument>();
+        var result = new List<LibraryDocumentDto>();
 
         Constants.Libraries.TryGetValue(request.LibraryName, out int libraryId);
 
@@ -20,16 +20,13 @@ public class GetDocumentsQueryHandler(IHttpClientFactory httpClientFactory)
         HttpClient httpClient = httpClientFactory.CreateClient(ApiRoutes.WorkflowApiClient);
         HttpResponseMessage response = await httpClient.GetAsync(url, cancellationToken);
         
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new HttpRequestException($"Failed to fetch documents. Status code: {response.StatusCode}");
-        }
+        response.EnsureSuccessStatusCode();
 
         List<LibraryDocumentResponse> documents = await response.Content.ReadFromJsonAsync<List<LibraryDocumentResponse>>(cancellationToken: cancellationToken) ?? [];
 
         foreach (LibraryDocumentResponse document in documents)
         {
-            result.Add(new LibraryDocument
+            result.Add(new LibraryDocumentDto
             {
                 Id = document.Id,
                 Title = document.Title,

@@ -1,6 +1,6 @@
 ﻿namespace Uptime.Web.Application.DTOs;
 
-public record WorkflowTemplate
+public record WorkflowTemplateDto
 {
     public int Id { get; init; }
     public string Name { get; init; } = null!;

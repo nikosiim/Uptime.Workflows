@@ -1,0 +1,29 @@
+﻿<MudText Typo="Typo.h5">Tööülesanded</MudText>
+
+@if (ViewModel != null)
+{
+    <MudText Typo="Typo.subtitle1">See töövoog on loonud järgmised tööülesanded.</MudText>
+
+    <MudTable Items="@ViewModel" Dense="true" Outlined="true">
+        <HeaderContent>
+            <MudTh>Määratud kasutajale</MudTh>
+            <MudTh>Pealkiri</MudTh>
+            <MudTh>Tähtaeg</MudTh>
+            <MudTh>Olek</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="task">
+            <MudTd>@task.AssignedTo</MudTd>
+            <MudTd><MudLink Href="@($"/workflow-task/{task.Id}")">@task.Title</MudLink></MudTd>
+            <MudTd>@task.DueDate?.ToString("g")</MudTd>
+            <MudTd>@task.Status.ToString()</MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+else
+{
+    <MudText Typo="Typo.subtitle1">Selles vaates pole üksusi, mida kuvada.</MudText>
+}
+
+@code {
+    [Parameter] public List<WorkflowTaskDto>? ViewModel { get; set; }
+}

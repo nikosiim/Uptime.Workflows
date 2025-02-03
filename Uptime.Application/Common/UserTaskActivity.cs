@@ -7,5 +7,5 @@ public abstract class UserTaskActivity(ITaskService taskService) : IWorkflowActi
 {
     public ITaskService TaskService => taskService;
     public abstract Task ExecuteAsync();
-    public abstract Task OnTaskChanged(TaskCompletionPayload payload);
+    public abstract Task OnTaskChanged(AlterTaskPayload payload);
 }

@@ -32,7 +32,7 @@ else
     [Parameter, EditorRequired]
     public string Name { get; set; } = null!;
 
-    private List<LibraryDocument> _documents = [];
+    private List<LibraryDocumentDto> _documents = [];
     private bool _loading;
 
     protected override async Task OnInitializedAsync()
@@ -49,7 +49,7 @@ else
         Navigation.NavigateTo($"/{PageRoutes.WorkflowSettings}/{Name.ToLower()}");
     }
 
-    private void NavigateToWorkflows(LibraryDocument document)
+    private void NavigateToWorkflows(LibraryDocumentDto document)
     {
         Navigation.NavigateTo($"/{PageRoutes.LibraryWorkflows}/{document.LibraryId}/{document.Id}");
     }

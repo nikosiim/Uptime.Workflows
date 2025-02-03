@@ -1,0 +1,8 @@
+﻿@page "/workflow-task/{taskId:int}"
+@inject IMediator Mediator
+
+<h3>WorkflowTask</h3>
+
+@code {
+    [Parameter] public int TaskId { get; set; }
+}

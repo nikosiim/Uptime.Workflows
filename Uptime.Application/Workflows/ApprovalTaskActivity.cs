@@ -1,8 +1,8 @@
 ﻿using Uptime.Application.Common;
-using Uptime.Application.Enums;
 using Uptime.Application.Interfaces;
 using Uptime.Application.Models.Approval;
-using Uptime.Domain.Enums;
+using Uptime.Shared.Enums;
+using static Uptime.Shared.GlobalConstants;
 
 namespace Uptime.Application.Workflows;
 
@@ -14,13 +14,15 @@ public class ApprovalTaskActivity(ITaskService taskService, ApprovalTaskContext 
     public override async Task ExecuteAsync()
     {
         Context.IsCompleted = false;
-        Context.Outcome = TaskOutcome.Pending;
+        Context.Storage[TaskStorageKeys.Title] = "Kinnitamine";
+        Context.Storage[TaskStorageKeys.Outcome] = TaskOutcome.Pending;
         Context.Id = await TaskService.CreateWorkflowTaskAsync(Context);
     }
 
-    public override async Task OnTaskChanged(TaskCompletionPayload payload)
+    public override async Task OnTaskChanged(AlterTaskPayload payload)
     {
         string? comment = payload.Comments;
+        string? executor = payload.Executor;
 
         switch (payload.Outcome)
         {
@@ -39,8 +41,8 @@ public class ApprovalTaskActivity(ITaskService taskService, ApprovalTaskContext 
     private async Task SetTaskCompleted(string? comment)
     {
         Context.IsCompleted = true;
-        Context.Outcome = TaskOutcome.Approved;
-        Context.Storage["Comment"] = comment;
+        Context.Storage[TaskStorageKeys.Outcome] = TaskOutcome.Approved;
+        Context.Storage[TaskStorageKeys.Comment] = comment;
 
         await TaskService.UpdateWorkflowTaskAsync(Context, WorkflowTaskStatus.Completed);
     }
@@ -48,8 +50,8 @@ public class ApprovalTaskActivity(ITaskService taskService, ApprovalTaskContext 
     private async Task SetTaskRejected(string? comment)
     {
         Context.IsCompleted = true;
-        Context.Outcome = TaskOutcome.Rejected;
-        Context.Storage["Comment"] = comment;
+        Context.Storage[TaskStorageKeys.Outcome] = TaskOutcome.Rejected;
+        Context.Storage[TaskStorageKeys.Comment] = comment;
 
         await TaskService.UpdateWorkflowTaskAsync(Context, WorkflowTaskStatus.Completed);
     }
@@ -57,9 +59,9 @@ public class ApprovalTaskActivity(ITaskService taskService, ApprovalTaskContext 
     private async Task SetTaskDelegated(string? comment)
     {
         Context.IsCompleted = true;
-        Context.Outcome = TaskOutcome.Delegated;
-        Context.Storage["DelegatedTo"] = "Delegated User";
-        Context.Storage["Comment"] = comment;
+        Context.Storage[TaskStorageKeys.Delegated] = "Delegated User";
+        Context.Storage[TaskStorageKeys.Outcome] = TaskOutcome.Delegated;
+        Context.Storage[TaskStorageKeys.Comment] = comment;
 
         await TaskService.UpdateWorkflowTaskAsync(Context, WorkflowTaskStatus.Completed);
     }
