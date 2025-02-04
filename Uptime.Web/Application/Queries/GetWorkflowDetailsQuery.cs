@@ -11,7 +11,7 @@ public class GetWorkflowDetailsQueryHandler(IHttpClientFactory httpClientFactory
 {
     public async Task<WorkflowDetailsDto> Handle(GetWorkflowDetailsQuery request, CancellationToken cancellationToken)
     {
-        string url = ApiRoutes.Workflows.GetDetails.Replace("{workflowId}", request.WorkflowId.ToString());
+        string url = ApiRoutes.Workflows.GetWorkflow.Replace("{workflowId}", request.WorkflowId.ToString());
 
         HttpClient httpClient = httpClientFactory.CreateClient(ApiRoutes.WorkflowApiClient);
         HttpResponseMessage response = await httpClient.GetAsync(url, cancellationToken);

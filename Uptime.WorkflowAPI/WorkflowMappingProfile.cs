@@ -3,6 +3,7 @@ using Uptime.Application.Commands;
 using Uptime.Application.DTOs;
 using Uptime.Shared.Models.Documents;
 using Uptime.Shared.Models.Libraries;
+using Uptime.Shared.Models.Tasks;
 using Uptime.Shared.Models.Workflows;
 using Uptime.Shared.Models.WorkflowTemplates;
 
@@ -21,5 +22,6 @@ public class WorkflowMappingProfile : Profile
         CreateMap<WorkflowTemplateDto, WorkflowTemplateResponse>();
         CreateMap<WorkflowDto, WorkflowResponse>();
         CreateMap<WorkflowTemplateCreateRequest, CreateWorkflowTemplateCommand>();
+        CreateMap<WorkflowTaskDto, WorkflowTaskResponse>();
     }
 }

@@ -19,12 +19,17 @@ public static class ApiRoutes
         public const string GetTasks = $"{Base}/{{documentId}}/workflow-tasks";
     }
 
+    public static class Tasks
+    {
+        public const string Base = "api/workflow-tasks";
+        public const string GetTask = $"{Base}/{{taskId}}";
+    }
+
     public static class Workflows
     {
         public const string Base = "api/workflows";
-        public const string GetDetails = $"{Base}/{{workflowId}}";
+        public const string GetWorkflow = $"{Base}/{{workflowId}}";
         public const string GetTasks = $"{Base}/{{workflowId}}/workflow-tasks";
-        public const string GetTask = $"{Base}/{{workflowId}}/workflow-tasks/{{taskId}}";
         public const string GetHistories = $"{Base}/{{workflowId}}/workflow-histories";
         public const string GetHistory = $"{Base}/{{workflowId}}/workflow-histories/{{historyId}}";
 

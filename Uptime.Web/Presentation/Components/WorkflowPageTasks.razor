@@ -1,9 +1,18 @@
-﻿<MudText Typo="Typo.h5">Tööülesanded</MudText>
+﻿<div class="mb-4">
+    <MudText Typo="Typo.h5">Tööülesanded</MudText>
+    
+    @if (ViewModel != null && ViewModel.Count > 0)
+    {
+        <MudText Typo="Typo.subtitle1">See töövoog on loonud järgmised tööülesanded.</MudText>
+    }
+    else
+    {
+        <MudText Typo="Typo.subtitle1">Selles vaates pole üksusi, mida kuvada.</MudText>
+    }
+</div>
 
 @if (ViewModel != null)
 {
-    <MudText Typo="Typo.subtitle1">See töövoog on loonud järgmised tööülesanded.</MudText>
-
     <MudTable Items="@ViewModel" Dense="true" Outlined="true">
         <HeaderContent>
             <MudTh>Määratud kasutajale</MudTh>
@@ -19,10 +28,7 @@
         </RowTemplate>
     </MudTable>
 }
-else
-{
-    <MudText Typo="Typo.subtitle1">Selles vaates pole üksusi, mida kuvada.</MudText>
-}
+
 
 @code {
     [Parameter] public List<WorkflowTaskDto>? ViewModel { get; set; }

@@ -1,5 +1,10 @@
-﻿<MudText Typo="Typo.h5">Töövoo ajalugu</MudText>
-<MudText Typo="Typo.subtitle1">Selles töövoos ilmnesid järgmised sündmused.</MudText>
+﻿@if (ShowTitle)
+{
+    <div class="mb-4">
+        <MudText Typo="Typo.h5">Töövoo ajalugu</MudText>
+        <MudText Typo="Typo.subtitle1">Selles töövoos ilmnesid järgmised sündmused.</MudText>
+    </div>
+}
 
 <MudTable Items="@_historyItems" Dense="true" Outlined="true">
     <HeaderContent>
@@ -20,6 +25,8 @@
 
 
 @code {
+    [Parameter] public bool ShowTitle { get; set; } = true;
+
     public class WorkflowHistoryDto
     {
         public DateTime EventDate { get; set; } = DateTime.Now;

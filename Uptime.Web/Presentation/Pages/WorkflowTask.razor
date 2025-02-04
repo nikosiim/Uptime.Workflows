@@ -1,8 +1,92 @@
 ﻿@page "/workflow-task/{taskId:int}"
 @inject IMediator Mediator
 
-<h3>WorkflowTask</h3>
+<MudContainer>
+    <MudText Typo="Typo.h5" Class="my-4">Tööülesande täitmine</MudText>
+
+    @if (_task != null)
+    {
+        <MudPaper Elevation="1" Outlined="true" Class="pa-4 my-5">
+            <div class="d-table" style="width:100%;">
+                <div class="d-table-row">
+                    <div class="d-table-cell py-2">
+                        <MudText><b>Dokument</b></MudText>
+                    </div>
+                    <div class="d-table-cell">
+                        <MudText>@_task.Document</MudText>
+                    </div>
+                </div>
+                <div class="d-table-row">
+                    <div class="d-table-cell py-2">
+                        <MudText><b>Määratud</b></MudText>
+                    </div>
+                    <div class="d-table-cell">
+                        <MudText>@_task.AssignedTo</MudText>
+                    </div>
+                </div>
+                <div class="d-table-row">
+                    <div class="d-table-cell py-2">
+                        <MudText><b>Ülesande andja</b></MudText>
+                    </div>
+                    <div class="d-table-cell">
+                        <MudText>@_task.AssignedBy</MudText>
+                    </div>
+                </div>
+                <div class="d-table-row">
+                    <div class="d-table-cell py-2">
+                        <MudText><b>Tähtaeg</b></MudText>
+                    </div>
+                    <div class="d-table-cell">
+                        <MudText>@_task.DueDate</MudText>
+                    </div>
+                </div>
+                <div class="d-table-row">
+                    <div class="d-table-cell py-2">
+                        <MudText><b>Ülesanne</b></MudText>
+                    </div>
+                    <div class="d-table-cell">
+                        <MudText>@_task.Description</MudText>
+                    </div>
+                </div>
+            </div>
+        </MudPaper>
+
+        <MudPaper Elevation="0" Style="margin-bottom: 35px;">
+            <MudStack Row="true" Spacing="3">
+                <MudButton Size="Size.Medium" Variant="Variant.Filled">Kinnita</MudButton>
+                <MudButton Size="Size.Medium" Variant="Variant.Filled">Suuna ümber</MudButton>
+                <MudButton Size="Size.Medium" Variant="Variant.Filled">Lükka tagasi</MudButton>
+                <MudButton Size="Size.Medium" Variant="Variant.Filled">Loobu</MudButton>
+            </MudStack>
+        </MudPaper>
+    }
+
+    <MudPaper Elevation="0" Outlined="true" Class="mb-4">
+        <MudExpansionPanels Outlined="true" Elevation="0">
+            <MudExpansionPanel Text="Töövoo ajalugu" MaxHeight="1000">
+                <WorkflowPageHistory ShowTitle="false" />
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+    </MudPaper>
+
+    <MudPaper Elevation="0" Outlined="true">
+        <MudExpansionPanels Outlined="true" Elevation="0">
+            <MudExpansionPanel Text="Seotud töövood" MaxHeight="1000">
+
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+    </MudPaper>
+</MudContainer>
 
 @code {
+    private WorkflowTaskDto? _task;
+
     [Parameter] public int TaskId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        _task = await Mediator.Send(new GetWorkflowTaskQuery(TaskId));
+    }
 }

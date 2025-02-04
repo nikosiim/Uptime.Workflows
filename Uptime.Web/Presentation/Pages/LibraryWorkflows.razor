@@ -3,20 +3,24 @@
 @inject IMediator Mediator
 @inject ISnackbar Snackbar
 
+
 @if (_loading)
 {
     <MudProgressCircular Indeterminate="true" Size="Size.Small" />
 }
 else
 {
-    <MudPaper Elevation="0" Outlined="false" Class="mb-6">
-        <LibraryWorkflowTemplates ViewModel="_templatesViewModel" />
-        <MudDivider />
-    </MudPaper>
-    <MudPaper Elevation="0" Outlined="false" Class="my-6">
-        <LibraryWorkflowOverview ViewModel="_workflowsViewModel" />
-    </MudPaper>
+    <MudContainer>
+        <MudPaper Elevation="0" Outlined="false" Class="mb-6">
+            <LibraryWorkflowTemplates ViewModel="_templatesViewModel" />
+            <MudDivider />
+        </MudPaper>
+        <MudPaper Elevation="0" Outlined="false" Class="my-6">
+            <LibraryWorkflowOverview ViewModel="_workflowsViewModel" />
+        </MudPaper>
+    </MudContainer>
 }
+
 
 @code {
     private bool _loading;

@@ -9,40 +9,42 @@
 }
 else
 {
-    <MudTable Items="@WorkflowTemplates" Hover="true" Bordered="false" Striped="false" Dense="true" Outlined="true">
-        <ToolBarContent>
-            <MudPaper Class="d-flex justify-space-between flex-grow-1 align-top gap-4" Elevation="0">
-                <MudText Typo="Typo.h5">Töövoo sätted</MudText>
-                <MudStack Row="true">
-                    <MudSelect T="string" Label="Workflow Type" @bind-Value="_selectedWorkflowBaseId" Style="min-width: 200px;">
-                        @foreach (IWorkflowDefinition workflow in WorkflowRegistry.GetAllWorkflows())
-                        {
-                            <MudSelectItem T="string" Value="@workflow.Id">@workflow.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                    <MudButton Variant="Variant.Filled" Disabled="@string.IsNullOrWhiteSpace(_selectedWorkflowBaseId)" OnClick="@(async () => await AssignNewTemplate(_selectedWorkflowBaseId))">
-                        Assign New Template
-                    </MudButton>
-                </MudStack>
-            </MudPaper>
-        </ToolBarContent>
+    <MudContainer>
+        <MudTable Items="@WorkflowTemplates" Hover="true" Bordered="false" Striped="false" Dense="true" Outlined="true">
+            <ToolBarContent>
+                <MudPaper Class="d-flex justify-space-between flex-grow-1 align-top gap-4" Elevation="0">
+                    <MudText Typo="Typo.h5">Töövoo sätted</MudText>
+                    <MudStack Row="true">
+                        <MudSelect T="string" Label="Workflow Type" @bind-Value="_selectedWorkflowBaseId" Style="min-width: 200px;">
+                            @foreach (IWorkflowDefinition workflow in WorkflowRegistry.GetAllWorkflows())
+                            {
+                                <MudSelectItem T="string" Value="@workflow.Id">@workflow.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                        <MudButton Variant="Variant.Filled" Disabled="@string.IsNullOrWhiteSpace(_selectedWorkflowBaseId)" OnClick="@(async () => await AssignNewTemplate(_selectedWorkflowBaseId))">
+                            Assign New Template
+                        </MudButton>
+                    </MudStack>
+                </MudPaper>
+            </ToolBarContent>
 
-        <HeaderContent>
-            <MudTh>Töövoo nimi</MudTh>
-            <MudTh>Guid</MudTh>
-            <MudTh>Loodud</MudTh>
-            <MudTh>Tegevused</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd>@context.Name</MudTd>
-            <MudTd>@context.WorkflowBaseId</MudTd>
-            <MudTd>@context.Created</MudTd>
-            <MudTd>
-                <MudButton Size="Size.Small" Variant="Variant.Outlined" OnClick="() => EditTemplate(context)">Edit</MudButton>
-                <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Error" OnClick="() => DeleteTemplate(context.Id)">Delete</MudButton>
-            </MudTd>
-        </RowTemplate>
-    </MudTable>
+            <HeaderContent>
+                <MudTh>Töövoo nimi</MudTh>
+                <MudTh>Guid</MudTh>
+                <MudTh>Loodud</MudTh>
+                <MudTh>Tegevused</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.Name</MudTd>
+                <MudTd>@context.WorkflowBaseId</MudTd>
+                <MudTd>@context.Created</MudTd>
+                <MudTd>
+                    <MudButton Size="Size.Small" Variant="Variant.Outlined" OnClick="() => EditTemplate(context)">Edit</MudButton>
+                    <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Error" OnClick="() => DeleteTemplate(context.Id)">Delete</MudButton>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudContainer>
 }
 
 @code {
@@ -67,7 +69,7 @@ else
     {
         await LoadWorkflowTemplates();
     }
-    
+
     private async Task LoadWorkflowTemplates()
     {
         _loading = true;
