@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Uptime.Application.Commands;
 using Uptime.Application.DTOs;
 using Uptime.Application.Interfaces;
 using Uptime.Application.Models.Approval;
@@ -12,7 +13,7 @@ namespace Uptime.WorkflowAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class WorkflowsController(IWorkflowService workflowService, IMediator mediator, IMapper mapper) : ControllerBase
+public class WorkflowsController(IMediator mediator, IMapper mapper) : ControllerBase
 {
     [HttpGet("{workflowId:int}")]
     public async Task<ActionResult<WorkflowResponse>> GetWorkflow(int workflowId)
@@ -46,17 +47,10 @@ public class WorkflowsController(IWorkflowService workflowService, IMediator med
     // TODO: Terminate Workflow
 
     [HttpPost("start-approval-workflow")]
-    public async Task<ActionResult> StartApprovalWorkflow([FromBody] ApprovalWorkflowPayload payload)
+    public async Task<ActionResult<Task<WorkflowStatus>>> StartApprovalWorkflow([FromBody] ApprovalWorkflowPayload payload)
     {
-        bool result = await workflowService.StartWorkflowAsync(payload);
-
-        return Ok(result);
-    }
-
-    [HttpPost("complete-approval-task")]
-    public async Task<ActionResult> CompleteApprovalTask([FromBody] AlterTaskPayload payload)
-    {
-        bool result = await workflowService.UpdateWorkflowTaskAsync(payload);
+        var query = new StartWorkflowCommand(payload);
+        WorkflowStatus result = await mediator.Send(query);
 
         return Ok(result);
     }

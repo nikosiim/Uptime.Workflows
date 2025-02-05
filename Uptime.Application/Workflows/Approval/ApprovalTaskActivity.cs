@@ -4,7 +4,7 @@ using Uptime.Application.Models.Approval;
 using Uptime.Shared.Enums;
 using static Uptime.Shared.GlobalConstants;
 
-namespace Uptime.Application.Workflows;
+namespace Uptime.Application.Workflows.Approval;
 
 public class ApprovalTaskActivity(ITaskService taskService, ApprovalTaskContext context)
     : UserTaskActivity(taskService), IWorkflowActivity
@@ -19,22 +19,26 @@ public class ApprovalTaskActivity(ITaskService taskService, ApprovalTaskContext 
         Context.Id = await TaskService.CreateWorkflowTaskAsync(Context);
     }
 
-    public override async Task OnTaskChanged(AlterTaskPayload payload)
+    public override async Task OnTaskChanged(IAlterTaskPayload payload)
     {
-        string? comment = payload.Comments;
-        string? executor = payload.Executor;
+        string? comment = payload.TryGetComment();
+        string? executor = payload.TryGetExecutor();
+        TaskOutcome? outcome = payload.TryGetTaskOutcome();
 
-        switch (payload.Outcome)
+        if (outcome is not null)
         {
-            case TaskOutcome.Approved:
-                await SetTaskCompleted(comment);
-                break;
-            case TaskOutcome.Rejected:
-                await SetTaskRejected(comment);
-                break;
-            case TaskOutcome.Delegated:
-                await SetTaskDelegated(comment);
-                break;
+            switch (outcome)
+            {
+                case TaskOutcome.Approved:
+                    await SetTaskCompleted(comment);
+                    break;
+                case TaskOutcome.Rejected:
+                    await SetTaskRejected(comment);
+                    break;
+                case TaskOutcome.Delegated:
+                    await SetTaskDelegated(comment);
+                    break;
+            }
         }
     }
 

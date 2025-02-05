@@ -1,17 +1,18 @@
 ﻿using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Uptime.Application.Commands;
 using Uptime.Application.DTOs;
-using Uptime.Application.Interfaces;
-using Uptime.Application.Models.Approval;
+using Uptime.Application.Models.Common;
 using Uptime.Application.Queries;
+using Uptime.Shared.Enums;
 using Uptime.Shared.Models.Tasks;
 
 namespace Uptime.WorkflowAPI.Controllers;
 
 [ApiController]
 [Route("api/workflow-tasks/{taskId:int}")]
-public class WorkflowTasksController(IWorkflowService workflowService, IMediator mediator, IMapper mapper) : ControllerBase
+public class WorkflowTasksController(IMediator mediator, IMapper mapper) : ControllerBase
 {
     [HttpGet("")]
     public async Task<ActionResult<WorkflowTaskResponse>> GetTask(int taskId)
@@ -26,25 +27,13 @@ public class WorkflowTasksController(IWorkflowService workflowService, IMediator
     }
 
     [HttpPost("update")]
-    public async Task<ActionResult> UpdateTask(int taskId, [FromBody] TaskUpdateRequest request)
+    public async Task<ActionResult<WorkflowStatus>> UpdateTask(int taskId, [FromBody] TaskUpdateRequest request)
     {
-        //if (request.WorkflowId == null)
-        //    return BadRequest("WorkflowId is required.");
+        var payload = new AlterTaskPayload(taskId, request.WorkflowId, request.Storage);
 
-        //var payload = new AlterTaskPayload
-        //{
-        //    WorkflowId = request.WorkflowId.Value,
-        //    TaskId = taskId,
-        //    Outcome = request.Outcome,
-        //    Comments = request.Comments
-        //};
+        var query = new AlterTaskCommand(payload);
+        WorkflowStatus result = await mediator.Send(query);
 
-        //bool success = await workflowService.UpdateWorkflowTaskAsync(payload);
-        //if (!success)
-        //{
-        //    return BadRequest($"Task {taskId} could not be updated.");
-        //}
-
-        return NoContent();
+        return Ok(result);
     }
 }

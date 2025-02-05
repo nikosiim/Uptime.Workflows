@@ -7,5 +7,6 @@ public enum WorkflowStatus
     Rejected = 3,
     Completed = 4,
     Cancelled = 5,
-    Terminated = 6
+    Terminated = 6,
+    Invalid = 7
 }

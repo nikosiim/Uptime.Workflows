@@ -3,20 +3,28 @@ using Uptime.Application.Enums;
 using Uptime.Application.Interfaces;
 using Uptime.Application.Models.Approval;
 using Uptime.Application.Models.Common;
+using Uptime.Application.Services;
 using Uptime.Shared.Enums;
 using static Uptime.Shared.GlobalConstants;
 
-namespace Uptime.Application.Workflows;
+namespace Uptime.Application.Workflows.Approval;
 
-public class ApprovalWorkflow(ITaskService taskService, WorkflowStatus workflowState, ApprovalWorkflowContext workflowContext)
-    : WorkflowBase<ApprovalWorkflowContext>(workflowState, workflowContext)
+// TODO: add history entries
+// TODO: add overall exception handling and set final workflow state
+public class ApprovalWorkflow(IWorkflowService workflowService, ITaskService taskService)
+    : WorkflowBase<ApprovalWorkflowContext>(workflowService)
 {
     private ITaskService TaskService { get; } = taskService;
-    public ApprovalWorkflowContext Context { get; } = workflowContext;
-    
-    protected override void OnWorkflowExecuted()
+
+    protected override void OnWorkflowStartedAsync(int workflowId, WorkflowPayload payload)
     {
-        // TODO: add any initialization logic here
+        var approvalPayload = (ApprovalWorkflowPayload)payload;
+
+        WorkflowContext.ReplicatorState = new ReplicatorState<ApprovalTaskContext>
+        {
+            Type = ReplicatorType.Sequential,
+            Items = ApprovalWorkflowHelper.GetApprovalTasks(workflowId, approvalPayload)
+        };
     }
 
     protected override void ConfigureStateMachine()
@@ -36,19 +44,24 @@ public class ApprovalWorkflow(ITaskService taskService, WorkflowStatus workflowS
             .OnEntry(() => Console.WriteLine("Workflow was rejected."));
     }
 
-    public async Task<bool> CompleteTaskAsync(AlterTaskPayload payload)
+    public async Task<WorkflowStatus> CompleteTaskAsync(AlterTaskPayload payload)
     {
-        ApprovalTaskContext? taskContext = Context.ReplicatorState.Items.FirstOrDefault(t => t.Id == payload.TaskId);
+        ApprovalTaskContext? taskContext = WorkflowContext.ReplicatorState.Items.FirstOrDefault(t => t.Id == payload.TaskId);
         if (taskContext == null)
-            return false;
+        {
+            // TODO: log
+            return Machine.State;
+        }
 
         var taskActivity = new ApprovalTaskActivity(TaskService, taskContext);
         await taskActivity.OnTaskChanged(payload);
 
         await RunReplicatorActivities();
 
-        return true;
+        return await CommitWorkflowUpdateAsync();
     }
+
+    #region Replicator events
     
     private async Task RunReplicatorActivities()
     {
@@ -105,7 +118,7 @@ public class ApprovalWorkflow(ITaskService taskService, WorkflowStatus workflowS
             // Task is rejected -> workflow will be cancelled
             if (ctx.Storage.TryGetValue(TaskStorageKeys.Outcome, out object? oOutcome) && oOutcome is int outcomeInt && (TaskOutcome)outcomeInt == TaskOutcome.Rejected)
             {
-                Context.AnyTaskRejected = true;
+                WorkflowContext.AnyTaskRejected = true;
             }
 
             if (ctx.Storage.TryGetValue(TaskStorageKeys.Delegated, out object? delegatedTo) && delegatedTo is string delegatedToUser)
@@ -119,4 +132,6 @@ public class ApprovalWorkflow(ITaskService taskService, WorkflowStatus workflowS
             }
         }
     }
+
+    #endregion
 }
