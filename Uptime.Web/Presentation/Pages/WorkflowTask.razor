@@ -1,5 +1,6 @@
 ﻿@page "/workflow-task/{taskId:int}"
 @inject IMediator Mediator
+@inject IDialogService DialogService
 
 <MudContainer>
     <MudText Typo="Typo.h5" Class="my-4">Tööülesande täitmine</MudText>
@@ -53,7 +54,7 @@
 
         <MudPaper Elevation="0" Style="margin-bottom: 35px;">
             <MudStack Row="true" Spacing="3">
-                <MudButton Size="Size.Medium" Variant="Variant.Filled">Kinnita</MudButton>
+                <MudButton Size="Size.Medium" Variant="Variant.Filled" OnClick="@(() => OnApproveClicked(_task))">Kinnita</MudButton>
                 <MudButton Size="Size.Medium" Variant="Variant.Filled">Suuna ümber</MudButton>
                 <MudButton Size="Size.Medium" Variant="Variant.Filled">Lükka tagasi</MudButton>
                 <MudButton Size="Size.Medium" Variant="Variant.Filled">Loobu</MudButton>
@@ -63,8 +64,18 @@
 
     <MudPaper Elevation="0" Outlined="true" Class="mb-4">
         <MudExpansionPanels Outlined="true" Elevation="0">
-            <MudExpansionPanel Text="Töövoo ajalugu" MaxHeight="1000">
-                <WorkflowPageHistory ShowTitle="false" />
+            <MudExpansionPanel Text="Töövoo ajalugu" HideIcon="true">
+                <TitleContent>
+                    <div class="d-flex">
+                        <MudText Class="mt-1">Inbox</MudText>
+                        <MudBadge Content="3" Color="Color.Primary" Overlap="true" Class="d-flex ml-auto">
+                            <MudIcon Icon="@Icons.Material.Filled.History" Color="Color.Default" />
+                        </MudBadge>
+                    </div>
+                </TitleContent>
+                <ChildContent>
+                    <WorkflowPageHistory ShowTitle="false" />
+                </ChildContent>
             </MudExpansionPanel>
         </MudExpansionPanels>
     </MudPaper>
@@ -86,7 +97,29 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+        await LoadWorkflowTask();
+    }
 
+    private async Task OnApproveClicked(WorkflowTaskDto task)
+    {
+        var parameters = new DialogParameters
+        {
+            { DialogParams.TaskId, task.Id },
+            { DialogParams.Document, task.Document }
+        };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        IDialogReference dialog = await DialogService.ShowAsync(typeof(ApproveButtonDialog), "Tööülesande lõpetamine", parameters, options);
+
+        DialogResult? result = await dialog.Result;
+        if (result is { Canceled: false })
+        {
+            await LoadWorkflowTask();
+        }
+    }
+
+    private async Task LoadWorkflowTask()
+    {
         _task = await Mediator.Send(new GetWorkflowTaskQuery(TaskId));
     }
 }

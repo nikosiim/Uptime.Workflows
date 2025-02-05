@@ -41,6 +41,10 @@ public class WorkflowsController(IWorkflowService workflowService, IMediator med
         return Ok(mapper.Map<List<WorkflowTasksResponse>>(tasks));
     }
 
+    // TODO: Start Workflow
+    // TODO: Cancel Workflow
+    // TODO: Terminate Workflow
+
     [HttpPost("start-approval-workflow")]
     public async Task<ActionResult> StartApprovalWorkflow([FromBody] ApprovalWorkflowPayload payload)
     {
@@ -52,7 +56,7 @@ public class WorkflowsController(IWorkflowService workflowService, IMediator med
     [HttpPost("complete-approval-task")]
     public async Task<ActionResult> CompleteApprovalTask([FromBody] AlterTaskPayload payload)
     {
-        bool result = await workflowService.CompleteTaskAsync(payload);
+        bool result = await workflowService.UpdateWorkflowTaskAsync(payload);
 
         return Ok(result);
     }

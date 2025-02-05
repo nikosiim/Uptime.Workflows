@@ -7,6 +7,8 @@ public static class Constants
         public const string TemplateId = "TemplateId";
         public const string LibraryId = "LibraryId";
         public const string WorkflowDefinition = "WorkflowDefinition";
+        public const string Document = "Document";
+        public const string TaskId = "TaskId";
     }
 
     public static Dictionary<string, int> Libraries = new(StringComparer.OrdinalIgnoreCase)

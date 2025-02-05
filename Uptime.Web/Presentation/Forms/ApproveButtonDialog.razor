@@ -1,0 +1,36 @@
+﻿<MudDialog>
+    <TitleContent>@MudDialog.Title</TitleContent>
+    <DialogContent>
+        <MudText Typo="Typo.subtitle1">@Document kinnitamine</MudText>
+        <MudTextField T="string" Label="Kommentaar" Variant="Variant.Outlined" @bind-Value="_comment" Lines="5" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" OnClick="Approve">Kinnita</MudButton>
+        <MudButton Variant="Variant.Outlined" OnClick="Cancel">Loobu</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private string? _comment;
+
+    [Parameter] public int TaskId { get; set; }
+    [Parameter] public string? Document { get; set; }
+
+    [Inject] 
+    protected IMediator Mediator { get; set; } = null!;
+
+    [CascadingParameter] 
+    protected IMudDialogInstance MudDialog { get; set; } = null!;
+
+    protected virtual async Task Approve()
+    {
+        await Task.Delay(2000);
+
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    protected virtual void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

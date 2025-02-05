@@ -5,5 +5,5 @@ namespace Uptime.Application.Interfaces;
 public interface IWorkflowService
 {
     Task<bool> StartWorkflowAsync<TPayload>(TPayload payload) where TPayload : class;
-    Task<bool> CompleteTaskAsync(AlterTaskPayload payload);
+    Task<bool> UpdateWorkflowTaskAsync(AlterTaskPayload payload);
 }

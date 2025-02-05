@@ -13,22 +13,26 @@
     </MudForm>
 
     <MudStack Row="true" Class="mt-4" Justify="Justify.FlexStart">
-        <MudButton Variant="Variant.Filled" OnClick="StartWorkflow" Color="Color.Primary">Start</MudButton>
+        <MudButton Variant="Variant.Filled" OnClick="StartWorkflow" Color="Color.Primary" Disabled="@_isDisabled">Start</MudButton>
         <MudButton Variant="Variant.Outlined" OnClick="Cancel" Color="Color.Error">Cancel</MudButton>
     </MudStack>
 </MudPaper>
 
 @code
 {
+    private bool _isDisabled;
+
     protected override async Task StartWorkflow()
     {
         await base.StartWorkflow();
+
+        _isDisabled = true;
         
         var payload = new ApprovalWorkflowPayload
         {
             WorkflowTemplateId = TemplateId,
             DocumentId = DocumentId,
-            Originator = "system",
+            Originator = "SystemAccount",
             Executors = [FormModel.AssignedTo ?? string.Empty],
             Description = FormModel.TaskDescription,
             DueDate = FormModel.DueDate
@@ -36,6 +40,8 @@
 
         var command = new StartApprovalWorkflowCommand(payload);
         await Mediator.Send(command);
+
+        _isDisabled = false;
 
         Navigation.NavigateTo("/contracts");
     }

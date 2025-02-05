@@ -4,10 +4,7 @@ namespace Uptime.Application.Models.Approval;
 
 public sealed class ApprovalTaskContext : WorkflowTaskBase
 {
-    public ApprovalTaskContext()
-    {
-
-    }
+    public ApprovalTaskContext() { }
 
     public ApprovalTaskContext(ApprovalTaskContext source)
     {

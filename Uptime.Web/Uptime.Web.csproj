@@ -16,9 +16,4 @@
   <ItemGroup>
     <ProjectReference Include="..\Uptime.Shared\Uptime.Shared.csproj" />
   </ItemGroup>
-
-
-  <ItemGroup>
-    <Folder Include="Presentation\Forms\" />
-  </ItemGroup>
 </Project>

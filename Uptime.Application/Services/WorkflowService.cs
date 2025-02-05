@@ -24,18 +24,22 @@ public class WorkflowService(ITaskService taskService, IMediator mediator) : IWo
         throw new InvalidOperationException("Unknown workflow type");
     }
 
-    public async Task<bool> CompleteTaskAsync(AlterTaskPayload payload)
+    public async Task<bool> UpdateWorkflowTaskAsync(AlterTaskPayload payload)
     {
+        // Retrieve workflow instance
         WorkflowDto? workflowInstance = await mediator.Send(new GetWorkflowQuery(payload.WorkflowId));
         if (workflowInstance == null)
             return false;
 
+        // Deserialize the workflow context
         var workflowContext = JsonSerializer.Deserialize<ApprovalWorkflowContext>(workflowInstance.InstanceDataJson ?? string.Empty);
         if (workflowContext == null)
             return false;
 
+        // Instantiate the workflow
         var workflow = new ApprovalWorkflow(taskService, workflowInstance.Status, workflowContext);
 
+        // Let workflow handle task update
         bool taskHandled = await workflow.CompleteTaskAsync(payload);
         if (!taskHandled)
             return false;
