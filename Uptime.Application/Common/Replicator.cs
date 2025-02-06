@@ -1,14 +1,13 @@
 ﻿using Uptime.Application.Enums;
 using Uptime.Application.Interfaces;
-using Uptime.Application.Models.Common;
 
 namespace Uptime.Application.Common;
 
-public class Replicator<TItem> : IReplicator<TItem> where TItem : IWorkflowItem
+public class Replicator<TItem> : IReplicator<TItem> where TItem : IReplicatorItem
 {
     public ReplicatorType Type { get; set; } = ReplicatorType.Sequential;
     public IEnumerable<TItem> Items { get; set; } = [];
-    public bool IsComplete { get; private set; }
+    public bool IsItemsCompleted { get; private set; }
 
     public Action<TItem, IWorkflowActivity>? OnChildInitialized { get; set; }
     public Action<TItem, IWorkflowActivity>? OnChildCompleted { get; set; }
@@ -19,7 +18,7 @@ public class Replicator<TItem> : IReplicator<TItem> where TItem : IWorkflowItem
     {
         if (!Items.Any())
         {
-            IsComplete = true;
+            IsItemsCompleted = true;
             return;
         }
 
@@ -38,7 +37,7 @@ public class Replicator<TItem> : IReplicator<TItem> where TItem : IWorkflowItem
         }
 
         // Determine if all items are completed
-        IsComplete = Items.All(item => item.IsCompleted);
+        IsItemsCompleted = Items.All(item => item.IsCompleted);
     }
 
     private async Task ExecuteSequentialAsync()

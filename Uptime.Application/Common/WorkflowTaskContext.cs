@@ -1,9 +1,8 @@
 ﻿using Uptime.Application.Interfaces;
-using Uptime.Application.Models.Common;
 
 namespace Uptime.Application.Common;
 
-public class WorkflowTaskBase : IWorkflowTask, IWorkflowItem
+public class WorkflowTaskContext : IWorkflowTask, IReplicatorItem
 {
     /* Context Properties */
     public int Id { get; set; }

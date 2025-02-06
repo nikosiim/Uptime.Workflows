@@ -1,6 +1,5 @@
 ﻿using Uptime.Application.Common;
 using Uptime.Application.Interfaces;
-using Uptime.Application.Models.Approval;
 using Uptime.Shared.Enums;
 using static Uptime.Shared.GlobalConstants;
 
@@ -14,16 +13,18 @@ public class ApprovalTaskActivity(ITaskService taskService, ApprovalTaskContext 
     public override async Task ExecuteAsync()
     {
         Context.IsCompleted = false;
-        Context.Storage[TaskStorageKeys.Title] = "Kinnitamine";
-        Context.Storage[TaskStorageKeys.Outcome] = TaskOutcome.Pending;
+        Context.Storage[TaskStorageKeys.TaskTitle] = "Kinnitamine";
+        Context.Storage[TaskStorageKeys.TaskOutcome] = TaskOutcome.Pending;
         Context.Id = await TaskService.CreateWorkflowTaskAsync(Context);
     }
 
     public override async Task OnTaskChanged(IAlterTaskPayload payload)
     {
-        string? comment = payload.TryGetComment();
-        string? executor = payload.TryGetExecutor();
-        TaskOutcome? outcome = payload.TryGetTaskOutcome();
+        var editor = payload.Storage.TryGetValueAs<string>(TaskStorageKeys.TaskEditor);
+        var delegatedTo = payload.Storage.TryGetValueAs<string>(TaskStorageKeys.TaskDelegatedTo);
+
+        var comment = payload.Storage.TryGetValueAs<string>(TaskStorageKeys.TaskComment);
+        var outcome = payload.Storage.TryGetValueAs<TaskOutcome?>(TaskStorageKeys.TaskOutcome);
 
         if (outcome is not null)
         {
@@ -36,7 +37,7 @@ public class ApprovalTaskActivity(ITaskService taskService, ApprovalTaskContext 
                     await SetTaskRejected(comment);
                     break;
                 case TaskOutcome.Delegated:
-                    await SetTaskDelegated(comment);
+                    await SetTaskDelegated(comment, delegatedTo);
                     break;
             }
         }
@@ -45,8 +46,8 @@ public class ApprovalTaskActivity(ITaskService taskService, ApprovalTaskContext 
     private async Task SetTaskCompleted(string? comment)
     {
         Context.IsCompleted = true;
-        Context.Storage[TaskStorageKeys.Outcome] = TaskOutcome.Approved;
-        Context.Storage[TaskStorageKeys.Comment] = comment;
+        Context.Storage[TaskStorageKeys.TaskOutcome] = TaskOutcome.Approved;
+        Context.Storage[TaskStorageKeys.TaskComment] = comment;
 
         await TaskService.UpdateWorkflowTaskAsync(Context, WorkflowTaskStatus.Completed);
     }
@@ -54,18 +55,18 @@ public class ApprovalTaskActivity(ITaskService taskService, ApprovalTaskContext 
     private async Task SetTaskRejected(string? comment)
     {
         Context.IsCompleted = true;
-        Context.Storage[TaskStorageKeys.Outcome] = TaskOutcome.Rejected;
-        Context.Storage[TaskStorageKeys.Comment] = comment;
+        Context.Storage[TaskStorageKeys.TaskOutcome] = TaskOutcome.Rejected;
+        Context.Storage[TaskStorageKeys.TaskComment] = comment;
 
         await TaskService.UpdateWorkflowTaskAsync(Context, WorkflowTaskStatus.Completed);
     }
 
-    private async Task SetTaskDelegated(string? comment)
+    private async Task SetTaskDelegated(string? comment, string? delegatedTo)
     {
         Context.IsCompleted = true;
-        Context.Storage[TaskStorageKeys.Delegated] = "Delegated User";
-        Context.Storage[TaskStorageKeys.Outcome] = TaskOutcome.Delegated;
-        Context.Storage[TaskStorageKeys.Comment] = comment;
+        Context.Storage[TaskStorageKeys.TaskDelegatedTo] = delegatedTo;
+        Context.Storage[TaskStorageKeys.TaskOutcome] = TaskOutcome.Delegated;
+        Context.Storage[TaskStorageKeys.TaskComment] = comment;
 
         await TaskService.UpdateWorkflowTaskAsync(Context, WorkflowTaskStatus.Completed);
     }

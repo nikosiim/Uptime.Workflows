@@ -1,7 +1,6 @@
 ﻿using MediatR;
+using Uptime.Application.Common;
 using Uptime.Application.Interfaces;
-using Uptime.Application.Models.Common;
-using Uptime.Application.Services;
 using Uptime.Application.Workflows.Approval;
 using Uptime.Shared.Enums;
 
@@ -19,7 +18,7 @@ public class AlterTaskCommandHandler(IWorkflowService workflowService, ITaskServ
         bool isRehydrated = await workflow.ReHydrateAsync(request.Payload.TaskId);
         if (isRehydrated)
         {
-            return await workflow.CompleteTaskAsync(request.Payload);
+            return await workflow.AlterTaskAsync(request.Payload);
         }
 
         return WorkflowStatus.Invalid;

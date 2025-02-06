@@ -7,5 +7,5 @@ public interface IReplicator<TItem>
     ReplicatorType Type { get; set; }
     IEnumerable<TItem> Items { get; set; }
     Task ExecuteAsync();
-    bool IsComplete { get; }
+    bool IsItemsCompleted { get; }
 }

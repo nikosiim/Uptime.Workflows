@@ -2,22 +2,15 @@
 using System.Text.Json;
 using Uptime.Application.Commands;
 using Uptime.Application.DTOs;
-using Uptime.Application.Models.Common;
+using Uptime.Application.Interfaces;
 using Uptime.Application.Queries;
 using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Services;
 
-public interface IWorkflowService
-{
-    Task<int> CreateWorkflowInstanceAsync(WorkflowPayload payload);
-    Task<WorkflowDto?> GetWorkflowInstanceAsync(int workflowId);
-    Task UpdateWorkflowStateAsync<TData>(int workflowId, WorkflowStatus status, TData context);
-}
-
 public sealed class WorkflowService(IMediator mediator) : IWorkflowService
 {
-    public async Task<int> CreateWorkflowInstanceAsync(WorkflowPayload payload)
+    public async Task<int> CreateWorkflowInstanceAsync(IWorkflowPayload payload)
     {
         var createCmd = new CreateWorkflowInstanceCommand
         {

@@ -1,8 +1,8 @@
 ﻿using Uptime.Application.Common;
 
-namespace Uptime.Application.Models.Approval;
+namespace Uptime.Application.Workflows.Approval;
 
-public sealed class ApprovalTaskContext : WorkflowTaskBase
+public sealed class ApprovalTaskContext : WorkflowTaskContext
 {
     public ApprovalTaskContext() { }
 

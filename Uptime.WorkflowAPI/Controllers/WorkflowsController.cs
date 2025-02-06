@@ -2,9 +2,8 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Application.Commands;
+using Uptime.Application.Common;
 using Uptime.Application.DTOs;
-using Uptime.Application.Interfaces;
-using Uptime.Application.Models.Approval;
 using Uptime.Application.Queries;
 using Uptime.Shared.Enums;
 using Uptime.Shared.Models.Workflows;
@@ -41,17 +40,36 @@ public class WorkflowsController(IMediator mediator, IMapper mapper) : Controlle
         }
         return Ok(mapper.Map<List<WorkflowTasksResponse>>(tasks));
     }
-
-    // TODO: Start Workflow
-    // TODO: Cancel Workflow
-    // TODO: Terminate Workflow
-
-    [HttpPost("start-approval-workflow")]
-    public async Task<ActionResult<Task<WorkflowStatus>>> StartApprovalWorkflow([FromBody] ApprovalWorkflowPayload payload)
+    
+    [HttpPost("start-workflow")]
+    public async Task<ActionResult<Task<WorkflowStatus>>> StartWorkflow([FromBody] WorkflowPayload payload)
     {
         var query = new StartWorkflowCommand(payload);
-        WorkflowStatus result = await mediator.Send(query);
+        WorkflowStatus status = await mediator.Send(query);
 
-        return Ok(result);
+        if (status == WorkflowStatus.Invalid)
+            return BadRequest("Invalid workflow type.");
+
+        return Ok(status);
+    }
+
+    [HttpPost("{workflowId:int}/cancel-workflow")]
+    public async Task<ActionResult> CancelWorkflow(int workflowId)
+    {
+        // TODO: add implementation
+
+        await Task.Delay(2000);
+
+        return NoContent();
+    }
+    
+    [HttpPost("{workflowId:int}/terminate-workflow")]
+    public async Task<ActionResult> TerminateWorkflow(int workflowId)
+    {
+        // TODO: add implementation
+
+        await Task.Delay(2000);
+
+        return NoContent();
     }
 }
