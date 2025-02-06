@@ -33,7 +33,7 @@ public static class ApiRoutes
         public const string GetHistories = $"{Base}/{{workflowId}}/workflow-histories";
         public const string GetHistory = $"{Base}/{{workflowId}}/workflow-histories/{{historyId}}";
 
-        public const string StartApprovalWorkflow = $"{Base}/start-approval-workflow";
+        public const string StartWorkflow = $"{Base}/start-workflow";
         public const string CompleteApprovalTask = $"{Base}/complete-approval-task";
     }
 

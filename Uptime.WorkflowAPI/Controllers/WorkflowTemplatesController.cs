@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Application.Commands;
 using Uptime.Application.DTOs;
@@ -10,26 +9,26 @@ namespace Uptime.WorkflowAPI.Controllers;
 
 [ApiController]
 [Route("api/workflow-templates")]
-public class WorkflowTemplatesController(IMediator mediator, IMapper mapper) : ControllerBase
+public class WorkflowTemplatesController(IMediator mediator) : ControllerBase
 {
     [HttpGet("{templateId:int}")]
     public async Task<ActionResult<WorkflowTemplateResponse>> GetWorkflowTemplate(int templateId)
     {
         var query = new GetWorkflowTemplateQuery(templateId);
-
         WorkflowTemplateDto? template = await mediator.Send(query);
+
         if (template == null || template.Id == 0) 
         {
             return NotFound($"Workflow template with ID '{templateId}' was not found.");
         }
 
-        return Ok(mapper.Map<WorkflowTemplateResponse>(template));
+        return Ok(Mapper.MapToWorkflowTemplateResponse(template));
     }
 
     [HttpPost("")]
     public async Task<ActionResult<CreateWorkflowTemplateResponse>> CreateWorkflowTemplate([FromBody] WorkflowTemplateCreateRequest request)
     {
-        var command = mapper.Map<CreateWorkflowTemplateCommand>(request);
+        CreateWorkflowTemplateCommand command = Mapper.MapToCreateWorkflowTemplateCommand(request);
         int templateId = await mediator.Send(command);
 
         return CreatedAtAction(nameof(CreateWorkflowTemplate), new CreateWorkflowTemplateResponse(templateId));
@@ -38,15 +37,7 @@ public class WorkflowTemplatesController(IMediator mediator, IMapper mapper) : C
     [HttpPost("{templateId:int}")]
     public async Task<ActionResult> UpdateWorkflowTemplate(int templateId, [FromBody] WorkflowTemplateUpdateRequest request)
     {
-        var command = new UpdateWorkflowTemplateCommand
-        {
-            TemplateId = templateId,
-            TemplateName = request.TemplateName,
-            WorkflowName = request.WorkflowName,
-            WorkflowBaseId = request.WorkflowBaseId,
-            AssociationDataJson = request.AssociationDataJson
-        };
-
+        UpdateWorkflowTemplateCommand command = Mapper.MapToUpdateWorkflowTemplateCommand(request, templateId);
         bool result = await mediator.Send(command);
 
         if (!result)

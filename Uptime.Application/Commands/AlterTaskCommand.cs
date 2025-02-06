@@ -6,7 +6,12 @@ using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Commands;
 
-public record AlterTaskCommand(AlterTaskPayload Payload) : IRequest<WorkflowStatus>;
+public record AlterTaskCommand : IRequest<WorkflowStatus>
+{
+    public int TaskId { get; init; }
+    public int WorkflowId { get; init; }
+    public Dictionary<string, object> Storage { get; init; } = new();
+}
 
 public class AlterTaskCommandHandler(IWorkflowService workflowService, ITaskService taskService) 
     : IRequestHandler<AlterTaskCommand, WorkflowStatus>
@@ -15,10 +20,11 @@ public class AlterTaskCommandHandler(IWorkflowService workflowService, ITaskServ
     {
         var workflow = new ApprovalWorkflow(workflowService, taskService);
 
-        bool isRehydrated = await workflow.ReHydrateAsync(request.Payload.TaskId);
+        bool isRehydrated = await workflow.ReHydrateAsync(request.TaskId);
         if (isRehydrated)
         {
-            return await workflow.AlterTaskAsync(request.Payload);
+            var payload = new AlterTaskPayload(request.TaskId, request.WorkflowId, request.Storage);
+            return await workflow.AlterTaskAsync(payload);
         }
 
         return WorkflowStatus.Invalid;

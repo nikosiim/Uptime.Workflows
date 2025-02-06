@@ -1,4 +1,5 @@
 ﻿@page "/approval-initiation/{templateId:int}/{documentId:int}"
+
 @inherits WorkflowInitForm<ApprovalInitFormModel>
 
 <MudPaper Class="pa-4" Elevation="0" Style="max-width:800px;">
@@ -27,15 +28,20 @@
         await base.StartWorkflow();
 
         _isDisabled = true;
-        
+
+        var data = new Dictionary<string, object?>
+        {
+            [GlobalConstants.TaskStorageKeys.TaskExecutors] = new List<string> { FormModel.AssignedTo! },
+            [GlobalConstants.TaskStorageKeys.TaskDescription] = FormModel.TaskDescription,
+            [GlobalConstants.TaskStorageKeys.TaskDueDate] = FormModel.DueDate
+        };
+
         var payload = new ApprovalWorkflowPayload
         {
             WorkflowTemplateId = TemplateId,
             DocumentId = DocumentId,
             Originator = "SystemAccount",
-            Executors = [FormModel.AssignedTo ?? string.Empty],
-            Description = FormModel.TaskDescription,
-            DueDate = FormModel.DueDate
+            Data = data
         };
 
         var command = new StartApprovalWorkflowCommand(payload);

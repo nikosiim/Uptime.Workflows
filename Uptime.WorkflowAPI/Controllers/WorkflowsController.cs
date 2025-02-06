@@ -1,8 +1,6 @@
-﻿using AutoMapper;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Application.Commands;
-using Uptime.Application.Common;
 using Uptime.Application.DTOs;
 using Uptime.Application.Queries;
 using Uptime.Shared.Enums;
@@ -12,7 +10,7 @@ namespace Uptime.WorkflowAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class WorkflowsController(IMediator mediator, IMapper mapper) : ControllerBase
+public class WorkflowsController(IMediator mediator) : ControllerBase
 {
     [HttpGet("{workflowId:int}")]
     public async Task<ActionResult<WorkflowResponse>> GetWorkflow(int workflowId)
@@ -25,7 +23,7 @@ public class WorkflowsController(IMediator mediator, IMapper mapper) : Controlle
             return NotFound($"No workflow found for ID {workflowId}.");
         }
 
-        return Ok(mapper.Map<WorkflowResponse>(workflow));
+        return Ok(Mapper.MapToWorkflowResponse(workflow));
     }
 
     [HttpGet("{workflowId:int}/workflow-tasks")]
@@ -38,13 +36,13 @@ public class WorkflowsController(IMediator mediator, IMapper mapper) : Controlle
         {
             return NotFound($"No tasks found for workflow ID {workflowId}.");
         }
-        return Ok(mapper.Map<List<WorkflowTasksResponse>>(tasks));
+        return Ok(Mapper.MapToWorkflowTasksResponse(tasks));
     }
     
     [HttpPost("start-workflow")]
-    public async Task<ActionResult<Task<WorkflowStatus>>> StartWorkflow([FromBody] WorkflowPayload payload)
+    public async Task<ActionResult<Task<WorkflowStatus>>> StartWorkflow([FromBody] StartWorkflowRequest request)
     {
-        var query = new StartWorkflowCommand(payload);
+        StartWorkflowCommand query = Mapper.MapToStartWorkflowCommand(request);
         WorkflowStatus status = await mediator.Send(query);
 
         if (status == WorkflowStatus.Invalid)

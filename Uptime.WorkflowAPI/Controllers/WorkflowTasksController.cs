@@ -1,9 +1,7 @@
-﻿using AutoMapper;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Application.Commands;
 using Uptime.Application.DTOs;
-using Uptime.Application.Models.Common;
 using Uptime.Application.Queries;
 using Uptime.Shared.Enums;
 using Uptime.Shared.Models.Tasks;
@@ -12,7 +10,7 @@ namespace Uptime.WorkflowAPI.Controllers;
 
 [ApiController]
 [Route("api/workflow-tasks/{taskId:int}")]
-public class WorkflowTasksController(IMediator mediator, IMapper mapper) : ControllerBase
+public class WorkflowTasksController(IMediator mediator) : ControllerBase
 {
     [HttpGet("")]
     public async Task<ActionResult<WorkflowTaskResponse>> GetTask(int taskId)
@@ -23,16 +21,14 @@ public class WorkflowTasksController(IMediator mediator, IMapper mapper) : Contr
             return NotFound($"No task found with ID {taskId}.");
         }
 
-        return Ok(mapper.Map<WorkflowTaskResponse>(task));
+        return Ok(Mapper.MapToWorkflowTaskResponse(task));
     }
 
     [HttpPost("update")]
-    public async Task<ActionResult<WorkflowStatus>> UpdateTask(int taskId, [FromBody] TaskUpdateRequest request)
+    public async Task<ActionResult<WorkflowStatus>> AlterTask(int taskId, [FromBody] AlterTaskRequest request)
     {
-        var payload = new AlterTaskPayload(taskId, request.WorkflowId, request.Storage);
-
-        var query = new AlterTaskCommand(payload);
-        WorkflowStatus result = await mediator.Send(query);
+        AlterTaskCommand command = Mapper.MapToAlterTaskCommand(request , taskId);
+        WorkflowStatus result = await mediator.Send(command);
 
         return Ok(result);
     }

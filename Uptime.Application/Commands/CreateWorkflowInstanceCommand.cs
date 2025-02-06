@@ -5,11 +5,11 @@ using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Commands;
 
-public class CreateWorkflowInstanceCommand : IRequest<int>
+public record CreateWorkflowInstanceCommand : IRequest<int>
 {
-    public int WorkflowTemplateId { get; set; }
-    public int DocumentId { get; set; }
-    public string? Originator { get; set; }
+    public int WorkflowTemplateId { get; init; }
+    public int DocumentId { get; init; }
+    public string? Originator { get; init; }
 }
 
 public class CreateWorkflowInstanceCommandHandler(IWorkflowDbContext dbContext)

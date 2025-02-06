@@ -4,7 +4,7 @@ using Uptime.Domain.Entities;
 
 namespace Uptime.Application.Commands;
 
-public class CreateWorkflowTemplateCommand : IRequest<int>
+public record CreateWorkflowTemplateCommand : IRequest<int>
 {
     public required string TemplateName { get; init; }
     public required string WorkflowName { get; init; }

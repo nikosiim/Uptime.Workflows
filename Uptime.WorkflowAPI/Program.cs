@@ -7,7 +7,6 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddApplicationServices();
 builder.Services.AddControllers();
-builder.Services.AddAutoMapper(typeof(WorkflowMappingProfile));
 
 builder.Services.AddSwaggerGen(c =>
 {
