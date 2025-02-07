@@ -38,7 +38,8 @@ public class GetWorkflowTasksQueryHandler(IHttpClientFactory httpClientFactory)
                     DueDate = task.DueDate,
                     EndDate = task.EndDate,
                     Status = task.Status,
-                    StorageJson = task.StorageJson
+                    StorageJson = task.StorageJson,
+                    WorkflowId = request.WorkflowId
                 });
             }
         }

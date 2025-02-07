@@ -2,5 +2,5 @@
 
 public interface IWorkflowContext
 {
-    Dictionary<string, object?> Storage { get; protected set; }
+    Dictionary<string, string?> Storage { get; protected set; }
 }

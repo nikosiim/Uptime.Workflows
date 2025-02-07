@@ -23,7 +23,8 @@ public class GetWorkflowTaskQueryHandler(IWorkflowDbContext dbContext) : IReques
                 DueDate = task.DueDate,
                 EndDate = task.EndDate,
                 StorageJson = task.StorageJson,
-                Document = task.Workflow.Document.Title
+                Document = task.Workflow.Document.Title,
+                WorkflowId = task.WorkflowId
             })
             .FirstOrDefaultAsync(cancellationToken);
     }

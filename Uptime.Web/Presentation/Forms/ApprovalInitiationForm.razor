@@ -1,5 +1,4 @@
 ﻿@page "/approval-initiation/{templateId:int}/{documentId:int}"
-
 @inherits WorkflowInitForm<ApprovalInitFormModel>
 
 <MudPaper Class="pa-4" Elevation="0" Style="max-width:800px;">
@@ -29,22 +28,20 @@
 
         _isDisabled = true;
 
-        var data = new Dictionary<string, object?>
-        {
-            [GlobalConstants.TaskStorageKeys.TaskExecutors] = new List<string> { FormModel.AssignedTo! },
-            [GlobalConstants.TaskStorageKeys.TaskDescription] = FormModel.TaskDescription,
-            [GlobalConstants.TaskStorageKeys.TaskDueDate] = FormModel.DueDate
-        };
+        var storage = new Dictionary<string, string?>();
 
-        var payload = new ApprovalWorkflowPayload
+        storage.SetValueAsString(GlobalConstants.TaskStorageKeys.TaskDescription, FormModel.TaskDescription);
+        storage.SetValueAsDateTime(GlobalConstants.TaskStorageKeys.TaskDueDate, FormModel.DueDate);
+        storage.SetValueAsList(GlobalConstants.TaskStorageKeys.TaskExecutors, [FormModel.AssignedTo!]);
+
+        var command = new StartWorkflowCommand
         {
             WorkflowTemplateId = TemplateId,
             DocumentId = DocumentId,
             Originator = "SystemAccount",
-            Data = data
+            Storage = storage
         };
 
-        var command = new StartApprovalWorkflowCommand(payload);
         await Mediator.Send(command);
 
         _isDisabled = false;

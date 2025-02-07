@@ -8,7 +8,7 @@ public class WorkflowTaskContext : IWorkflowTask, IReplicatorItem
     public int Id { get; set; }
     public int WorkflowId { get; set; }
     public bool IsCompleted { get; set; }
-    public Dictionary<string, object?> Storage { get; protected set; } = new();
+    public Dictionary<string, string?> Storage { get; protected set; } = new();
     
     /* Form Data Properties */
     public string AssignedTo { get; set; } = null!;

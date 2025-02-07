@@ -15,5 +15,6 @@ public record WorkflowTaskDto
     public DateTime? EndDate { get; init; }
     public string? StorageJson { get; init; }
     public string? Document { get; init; }
+    public int WorkflowId { get; init; }
     public string? Title => JsonHelper.ExtractValue(StorageJson, GlobalConstants.TaskStorageKeys.TaskTitle);
 }

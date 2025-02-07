@@ -13,4 +13,5 @@ public record WorkflowTaskDto
     public DateTime? EndDate { get; init; }
     public string? StorageJson { get; set; }
     public string? Document { get; set; }
+    public int WorkflowId { get; set; }
 }

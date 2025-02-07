@@ -2,6 +2,7 @@
 using Uptime.Application.Enums;
 using Uptime.Application.Interfaces;
 using Uptime.Shared.Enums;
+using Uptime.Shared.Extensions;
 using static Uptime.Shared.GlobalConstants;
 
 namespace Uptime.Application.Workflows.Approval;
@@ -34,7 +35,7 @@ public class ApprovalWorkflow(IWorkflowService workflowService, ITaskService tas
     {
         WorkflowContext.ReplicatorState = new ReplicatorState<ApprovalTaskContext>
         {
-            Type = ReplicatorType.Sequential, // TODO: get it from payload
+            Type = ReplicatorType.Sequential,
             Items = payload.GetApprovalTasks(workflowId)
         };
     }
@@ -110,17 +111,18 @@ public class ApprovalWorkflow(IWorkflowService workflowService, ITaskService tas
         {
             ApprovalTaskContext task = child.Context;
 
-            // Task is rejected -> workflow will be cancelled
-            if (task.Storage.TryGetValue(TaskStorageKeys.TaskOutcome, out object? oOutcome) && oOutcome is int outcomeInt && (TaskOutcome)outcomeInt == TaskOutcome.Rejected)
+            if (task.Storage.GetValueAsEnum<TaskOutcome>(TaskStorageKeys.TaskOutcome) == TaskOutcome.Rejected)
             {
                 WorkflowContext.AnyTaskRejected = true;
+                return;
             }
 
-            if (task.Storage.TryGetValue(TaskStorageKeys.TaskDelegatedTo, out object? delegatedTo) && delegatedTo is string delegatedToUser)
+            var delegatedTo = task.Storage.GetValueAs<string?>(TaskStorageKeys.TaskDelegatedTo);
+            if (!string.IsNullOrWhiteSpace(delegatedTo))
             {
                 var delegatedCtx = new ApprovalTaskContext(task)
                 {
-                    AssignedTo = delegatedToUser
+                    AssignedTo = delegatedTo
                 };
 
                 WorkflowContext.ReplicatorState.Items.Add(delegatedCtx);

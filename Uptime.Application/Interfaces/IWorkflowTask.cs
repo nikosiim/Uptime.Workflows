@@ -8,5 +8,5 @@ public interface IWorkflowTask
     string AssignedBy { get; }
     string? TaskDescription { get; }
     DateTime? DueDate { get; }
-    Dictionary<string, object?> Storage { get; }
+    Dictionary<string, string?> Storage { get; }
 }

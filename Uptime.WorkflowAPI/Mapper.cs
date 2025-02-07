@@ -105,7 +105,7 @@ public static class Mapper
             Originator = source.Originator,
             DocumentId = source.DocumentId,
             WorkflowTemplateId = source.WorkflowTemplateId,
-            Data = source.Data
+            Storage = source.Storage
         };
     }
 
@@ -125,7 +125,8 @@ public static class Mapper
             DueDate = source.DueDate ?? DateTime.UtcNow, // Default to current UTC time if null
             EndDate = source.EndDate,
             StorageJson = source.StorageJson,
-            Document = source.Document
+            Document = source.Document,
+            WorkflowId = source.WorkflowId
         };
     }
 

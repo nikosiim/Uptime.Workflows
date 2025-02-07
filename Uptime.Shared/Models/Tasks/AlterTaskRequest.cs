@@ -3,5 +3,5 @@
 public record AlterTaskRequest
 {
     public int WorkflowId { get; init; }
-    public Dictionary<string, object> Storage { get; init; } = new();
+    public Dictionary<string, string?> Storage { get; init; } = new();
 }

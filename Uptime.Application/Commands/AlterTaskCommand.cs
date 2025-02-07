@@ -10,7 +10,7 @@ public record AlterTaskCommand : IRequest<WorkflowStatus>
 {
     public int TaskId { get; init; }
     public int WorkflowId { get; init; }
-    public Dictionary<string, object> Storage { get; init; } = new();
+    public Dictionary<string, string?> Storage { get; init; } = new();
 }
 
 public class AlterTaskCommandHandler(IWorkflowService workflowService, ITaskService taskService) 
@@ -20,7 +20,7 @@ public class AlterTaskCommandHandler(IWorkflowService workflowService, ITaskServ
     {
         var workflow = new ApprovalWorkflow(workflowService, taskService);
 
-        bool isRehydrated = await workflow.ReHydrateAsync(request.TaskId);
+        bool isRehydrated = await workflow.ReHydrateAsync(request.WorkflowId);
         if (isRehydrated)
         {
             var payload = new AlterTaskPayload(request.TaskId, request.WorkflowId, request.Storage);

@@ -1,6 +1,7 @@
 ﻿@page "/workflow-task/{taskId:int}"
 @inject IMediator Mediator
 @inject IDialogService DialogService
+@inject NavigationManager Navigation
 
 <MudContainer>
     <MudText Typo="Typo.h5" Class="my-4">Tööülesande täitmine</MudText>
@@ -105,6 +106,7 @@
         var parameters = new DialogParameters
         {
             { DialogParams.TaskId, task.Id },
+            { DialogParams.WorkflowId, task.WorkflowId },
             { DialogParams.Document, task.Document }
         };
 
@@ -114,7 +116,7 @@
         DialogResult? result = await dialog.Result;
         if (result is { Canceled: false })
         {
-            await LoadWorkflowTask();
+            Navigation.NavigateTo($"/{PageRoutes.Workflow}/{task.WorkflowId}");
         }
     }
 

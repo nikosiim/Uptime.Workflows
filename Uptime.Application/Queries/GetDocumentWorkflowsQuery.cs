@@ -13,16 +13,15 @@ public class GetDocumentWorkflowsQueryHandler(IWorkflowDbContext dbContext)
     public async Task<List<DocumentWorkflowDto>> Handle(GetDocumentWorkflowsQuery request, CancellationToken cancellationToken)
     {
         return await dbContext.Workflows
-            .Where(wi => wi.DocumentId == request.DocumentId)
-            .Include(wi => wi.WorkflowTemplate)
-            .Select(wi => new DocumentWorkflowDto
+            .Where(w => w.DocumentId == request.DocumentId)
+            .Select(w => new DocumentWorkflowDto
             {
-                Id = wi.Id,
-                TemplateId = wi.WorkflowTemplateId,
-                WorkflowTemplateName = wi.WorkflowTemplate != null ? wi.WorkflowTemplate.TemplateName : "Template Missing",
-                StartDate = wi.StartDate,
-                EndDate = wi.EndDate,
-                Status = wi.Status
+                Id = w.Id,
+                TemplateId = w.WorkflowTemplateId,
+                WorkflowTemplateName = w.WorkflowTemplate.TemplateName,
+                StartDate = w.StartDate,
+                EndDate = w.EndDate,
+                Status = w.Status
             })
             .ToListAsync(cancellationToken);
     }

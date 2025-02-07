@@ -14,7 +14,7 @@ public sealed class ApprovalTaskContext : WorkflowTaskContext
         AssignedTo = source.AssignedTo;
         TaskDescription = source.TaskDescription;
         DueDate = source.DueDate;
-        Storage = new Dictionary<string, object?>(source.Storage);
+        Storage = new Dictionary<string, string?>(source.Storage);
         IsCompleted = source.IsCompleted;
     }
 }

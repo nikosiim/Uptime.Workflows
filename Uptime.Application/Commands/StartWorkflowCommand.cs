@@ -13,7 +13,7 @@ public record StartWorkflowCommand : IRequest<WorkflowStatus>
     public required string Originator { get; init; }
     public required int DocumentId { get; init; }
     public required int WorkflowTemplateId { get; init; }
-    public Dictionary<string, object?> Data { get; init; } = new();
+    public Dictionary<string, string?> Storage { get; init; } = new();
 }
 
 public class StartWorkflowCommandHandler(IWorkflowService workflowService, ITaskService taskService, IMediator mediator)
@@ -35,7 +35,7 @@ public class StartWorkflowCommandHandler(IWorkflowService workflowService, ITask
                 Originator = request.Originator,
                 DocumentId = request.DocumentId,
                 WorkflowTemplateId = request.WorkflowTemplateId,
-                Data = request.Data
+                Storage = request.Storage
             };
 
             var workflow = new ApprovalWorkflow(workflowService, taskService);

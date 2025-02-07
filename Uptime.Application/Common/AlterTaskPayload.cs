@@ -2,4 +2,4 @@
 
 namespace Uptime.Application.Common;
 
-public record AlterTaskPayload(int TaskId, int WorkflowId, Dictionary<string, object> Storage) : IAlterTaskPayload;
+public record AlterTaskPayload(int TaskId, int WorkflowId, Dictionary<string, string?> Storage) : IAlterTaskPayload;

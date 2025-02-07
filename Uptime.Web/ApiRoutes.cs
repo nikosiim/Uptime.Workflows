@@ -23,6 +23,7 @@ public static class ApiRoutes
     {
         public const string Base = "api/workflow-tasks";
         public const string GetTask = $"{Base}/{{taskId}}";
+        public const string AlterTask = $"{Base}/{{taskId}}/update";
     }
 
     public static class Workflows
@@ -34,7 +35,8 @@ public static class ApiRoutes
         public const string GetHistory = $"{Base}/{{workflowId}}/workflow-histories/{{historyId}}";
 
         public const string StartWorkflow = $"{Base}/start-workflow";
-        public const string CompleteApprovalTask = $"{Base}/complete-approval-task";
+        public const string CancelWorkflow = $"{Base}/cancel-workflow";
+        public const string TerminateWorkflow = $"{Base}/terminate-workflow";
     }
 
     public static class WorkflowTemplates
