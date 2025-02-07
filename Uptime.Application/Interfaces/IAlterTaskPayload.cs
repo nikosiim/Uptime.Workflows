@@ -1,8 +1,10 @@
-﻿namespace Uptime.Application.Interfaces;
+﻿using Uptime.Domain.Common;
+
+namespace Uptime.Application.Interfaces;
 
 public interface IAlterTaskPayload
 {
-    int TaskId { get; }
-    int WorkflowId { get; }
+    TaskId TaskId { get; }
+    WorkflowId WorkflowId { get; }
     Dictionary<string, string?> Storage { get; }
 }

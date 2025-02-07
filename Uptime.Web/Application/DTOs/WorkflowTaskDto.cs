@@ -1,6 +1,6 @@
 ﻿using Uptime.Shared;
-using Uptime.Shared.Common;
 using Uptime.Shared.Enums;
+using Uptime.Shared.Extensions;
 
 namespace Uptime.Web.Application.DTOs;
 
@@ -16,5 +16,6 @@ public record WorkflowTaskDto
     public string? StorageJson { get; init; }
     public string? Document { get; init; }
     public int WorkflowId { get; init; }
-    public string? Title => JsonHelper.ExtractValue(StorageJson, GlobalConstants.TaskStorageKeys.TaskTitle);
+
+    public string? Title => StorageJson.GetValueAs<string?>(GlobalConstants.TaskStorageKeys.TaskTitle);
 }

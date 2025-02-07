@@ -2,14 +2,15 @@
 using Uptime.Application.Common;
 using Uptime.Application.Interfaces;
 using Uptime.Application.Workflows.Approval;
+using Uptime.Domain.Common;
 using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Commands;
 
 public record AlterTaskCommand : IRequest<WorkflowStatus>
 {
-    public int TaskId { get; init; }
-    public int WorkflowId { get; init; }
+    public TaskId TaskId { get; init; }
+    public WorkflowId WorkflowId { get; init; }
     public Dictionary<string, string?> Storage { get; init; } = new();
 }
 

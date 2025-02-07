@@ -1,11 +1,12 @@
 ﻿using Uptime.Application.DTOs;
+using Uptime.Domain.Common;
 using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Interfaces;
 
 public interface IWorkflowService
 {
-    Task<int> CreateWorkflowInstanceAsync(IWorkflowPayload payload);
-    Task<WorkflowDto?> GetWorkflowInstanceAsync(int workflowId);
-    Task UpdateWorkflowStateAsync<TData>(int workflowId, WorkflowStatus status, TData context);
+    Task<WorkflowId> CreateWorkflowInstanceAsync(IWorkflowPayload payload);
+    Task<WorkflowDto?> GetWorkflowInstanceAsync(WorkflowId workflowId);
+    Task UpdateWorkflowStateAsync<TData>(WorkflowId workflowId, WorkflowStatus status, TData context);
 }

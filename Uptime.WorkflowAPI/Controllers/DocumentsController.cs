@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Application.DTOs;
 using Uptime.Application.Queries;
+using Uptime.Domain.Common;
 using Uptime.Shared.Models.Documents;
 
 namespace Uptime.WorkflowAPI.Controllers;
@@ -13,7 +14,7 @@ public class DocumentsController(IMediator mediator) : ControllerBase
     [HttpGet("workflows")]
     public async Task<ActionResult<List<DocumentWorkflowsResponse>>> GetDocumentWorkflows(int documentId)
     {
-        var query = new GetDocumentWorkflowsQuery(documentId);
+        var query = new GetDocumentWorkflowsQuery((DocumentId)documentId);
         List<DocumentWorkflowDto> workflows = await mediator.Send(query);
 
         if (!workflows.Any())
@@ -27,7 +28,7 @@ public class DocumentsController(IMediator mediator) : ControllerBase
     [HttpGet("workflow-tasks")]
     public async Task<ActionResult<List<DocumentTasksResponse>>> GetDocumentTasks(int documentId)
     {
-        var query = new GetDocumentWorkflowTasksQuery(documentId);
+        var query = new GetDocumentWorkflowTasksQuery((DocumentId)documentId);
         List<DocumentWorkflowTaskDto> tasks = await mediator.Send(query);
 
         if (!tasks.Any())

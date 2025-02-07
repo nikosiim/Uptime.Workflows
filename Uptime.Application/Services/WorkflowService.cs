@@ -4,13 +4,14 @@ using Uptime.Application.Commands;
 using Uptime.Application.DTOs;
 using Uptime.Application.Interfaces;
 using Uptime.Application.Queries;
+using Uptime.Domain.Common;
 using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Services;
 
 public sealed class WorkflowService(IMediator mediator) : IWorkflowService
 {
-    public async Task<int> CreateWorkflowInstanceAsync(IWorkflowPayload payload)
+    public async Task<WorkflowId> CreateWorkflowInstanceAsync(IWorkflowPayload payload)
     {
         var createCmd = new CreateWorkflowInstanceCommand
         {
@@ -22,12 +23,12 @@ public sealed class WorkflowService(IMediator mediator) : IWorkflowService
         return await mediator.Send(createCmd);
     }
 
-    public async Task<WorkflowDto?> GetWorkflowInstanceAsync(int workflowId)
+    public async Task<WorkflowDto?> GetWorkflowInstanceAsync(WorkflowId workflowId)
     {
         return await mediator.Send(new GetWorkflowQuery(workflowId));
     }
 
-    public async Task UpdateWorkflowStateAsync<TData>(int workflowId, WorkflowStatus status, TData context)
+    public async Task UpdateWorkflowStateAsync<TData>(WorkflowId workflowId, WorkflowStatus status, TData context)
     {
         await mediator.Send(new UpdateWorkflowStateCommand
         {

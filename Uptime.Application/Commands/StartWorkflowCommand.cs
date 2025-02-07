@@ -4,6 +4,7 @@ using Uptime.Application.DTOs;
 using Uptime.Application.Interfaces;
 using Uptime.Application.Queries;
 using Uptime.Application.Workflows.Approval;
+using Uptime.Domain.Common;
 using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Commands;
@@ -11,8 +12,8 @@ namespace Uptime.Application.Commands;
 public record StartWorkflowCommand : IRequest<WorkflowStatus>
 {
     public required string Originator { get; init; }
-    public required int DocumentId { get; init; }
-    public required int WorkflowTemplateId { get; init; }
+    public required DocumentId DocumentId { get; init; }
+    public required WorkflowTemplateId WorkflowTemplateId { get; init; }
     public Dictionary<string, string?> Storage { get; init; } = new();
 }
 

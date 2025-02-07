@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Uptime.Application.Interfaces;
+using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
 using Uptime.Shared.Enums;
 
@@ -8,7 +9,7 @@ namespace Uptime.Application.Commands;
 
 public class UpdateUserTaskCommand : IRequest
 {
-    public int TaskId { get; set; }
+    public TaskId TaskId { get; set; }
     public required string AssignedTo { get; init; }
     public required string AssignedBy { get; init; }
     public string? TaskDescription { get; init; }
@@ -21,7 +22,7 @@ public class UpdateUserTaskCommandHandler(IWorkflowDbContext context) : IRequest
 {
     public async Task Handle(UpdateUserTaskCommand request, CancellationToken cancellationToken)
     {
-        WorkflowTask? task = await context.WorkflowTasks.FirstOrDefaultAsync(t => t.Id == request.TaskId, cancellationToken);
+        WorkflowTask? task = await context.WorkflowTasks.FirstOrDefaultAsync(t => t.Id == request.TaskId.Value, cancellationToken);
         
         if (task == null)
         {

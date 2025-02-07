@@ -1,14 +1,15 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Uptime.Application.Interfaces;
+using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
 using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Commands;
 
-public record CreateUserTaskCommand : IRequest<int>
+public record CreateUserTaskCommand : IRequest<TaskId>
 {
-    public int WorkflowId { get; init; }
+    public WorkflowId WorkflowId { get; init; }
     public required string AssignedTo { get; init; }
     public required string AssignedBy { get; init; }
     public string? TaskDescription { get; init; }
@@ -17,11 +18,11 @@ public record CreateUserTaskCommand : IRequest<int>
     public WorkflowTaskStatus Status { get; init; }
 }
 
-public class CreateUserTaskCommandHandler(IWorkflowDbContext context) : IRequestHandler<CreateUserTaskCommand, int>
+public class CreateUserTaskCommandHandler(IWorkflowDbContext context) : IRequestHandler<CreateUserTaskCommand, TaskId>
 {
-    public async Task<int> Handle(CreateUserTaskCommand request, CancellationToken cancellationToken)
+    public async Task<TaskId> Handle(CreateUserTaskCommand request, CancellationToken cancellationToken)
     {
-        bool workflowExists = await context.Workflows.AnyAsync(w => w.Id == request.WorkflowId, cancellationToken);
+        bool workflowExists = await context.Workflows.AnyAsync(w => w.Id == request.WorkflowId.Value, cancellationToken);
     
         if (!workflowExists)
         {
@@ -30,7 +31,7 @@ public class CreateUserTaskCommandHandler(IWorkflowDbContext context) : IRequest
 
         var task = new WorkflowTask
         {
-            WorkflowId = request.WorkflowId,
+            WorkflowId = request.WorkflowId.Value,
             AssignedTo = request.AssignedTo,
             AssignedBy = request.AssignedBy,
             TaskDescription = request.TaskDescription,
@@ -42,6 +43,6 @@ public class CreateUserTaskCommandHandler(IWorkflowDbContext context) : IRequest
         context.WorkflowTasks.Add(task);
         await context.SaveChangesAsync(cancellationToken);
 
-        return task.Id;
+        return (TaskId)task.Id;
     }
 }

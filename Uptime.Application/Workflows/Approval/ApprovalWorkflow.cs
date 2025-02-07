@@ -1,6 +1,7 @@
 ﻿using Uptime.Application.Common;
 using Uptime.Application.Enums;
 using Uptime.Application.Interfaces;
+using Uptime.Domain.Common;
 using Uptime.Shared.Enums;
 using Uptime.Shared.Extensions;
 using static Uptime.Shared.GlobalConstants;
@@ -31,7 +32,7 @@ public class ApprovalWorkflow(IWorkflowService workflowService, ITaskService tas
             .OnEntry(() => Console.WriteLine("Workflow was rejected."));
     }
 
-    protected override void OnWorkflowActivated(int workflowId, IWorkflowPayload payload)
+    protected override void OnWorkflowActivated(WorkflowId workflowId, IWorkflowPayload payload)
     {
         WorkflowContext.ReplicatorState = new ReplicatorState<ApprovalTaskContext>
         {
@@ -42,7 +43,7 @@ public class ApprovalWorkflow(IWorkflowService workflowService, ITaskService tas
 
     public async Task<WorkflowStatus> AlterTaskAsync(AlterTaskPayload payload)
     {
-        ApprovalTaskContext? taskContext = WorkflowContext.ReplicatorState.Items.FirstOrDefault(t => t.Id == payload.TaskId);
+        ApprovalTaskContext? taskContext = WorkflowContext.ReplicatorState.Items.FirstOrDefault(t => t.TaskId == payload.TaskId);
         if (taskContext == null)
         {
             // TODO: log

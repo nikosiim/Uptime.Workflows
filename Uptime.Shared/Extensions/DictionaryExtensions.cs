@@ -1,10 +1,10 @@
 ﻿using System.Globalization;
+using System.Text.Json;
 
 namespace Uptime.Shared.Extensions;
 
 public static class DictionaryExtensions
 {
-    
     #region Get Values
 
     /// <summary>
@@ -81,6 +81,90 @@ public static class DictionaryExtensions
         }
 
         return default!; // Return default(T) if value is missing or invalid
+    }
+
+    #endregion
+
+    #region Get Values from JSON String
+
+    /// <summary>
+    /// Extracts a DateTime value from a JSON string.
+    /// </summary>
+    public static DateTime GetValueAsDateTime(this string? json, string key)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return DateTime.MinValue;
+
+        try
+        {
+            var storage = JsonSerializer.Deserialize<Dictionary<string, string?>>(json);
+            return storage?.GetValueAsDateTime(key) ?? DateTime.MinValue;
+        }
+        catch (JsonException)
+        {
+            return DateTime.MinValue;
+        }
+    }
+
+    /// <summary>
+    /// Extracts an enum value from a JSON string.
+    /// </summary>
+    public static TEnum GetValueAsEnum<TEnum>(this string? json, string key) where TEnum : struct
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return default;
+
+        try
+        {
+            var storage = JsonSerializer.Deserialize<Dictionary<string, string?>>(json);
+            return storage?.GetValueAsEnum<TEnum>(key) ?? default;
+        }
+        catch (JsonException)
+        {
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Extracts a list of strings from a JSON string.
+    /// </summary>
+    public static List<string> GetValueAsList(this string? json, string key)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return [];
+
+        try
+        {
+            var storage = JsonSerializer.Deserialize<Dictionary<string, string?>>(json);
+            return storage?.GetValueAsList(key) ?? [];
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+    }
+  
+    /// <summary>
+    /// Extracts a generic value from a JSON string.
+    /// </summary>
+    public static T GetValueAs<T>(this string? json, string key)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return default!;
+
+        try
+        {
+            var storage = JsonSerializer.Deserialize<Dictionary<string, string?>>(json);
+            if (storage is not null)
+                return storage.GetValueAs<T>(key);
+
+        }
+        catch (JsonException)
+        {
+            // Handle JSON parsing errors
+        }
+
+        return default!;
     }
 
     #endregion

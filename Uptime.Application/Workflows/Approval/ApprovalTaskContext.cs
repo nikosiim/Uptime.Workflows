@@ -8,7 +8,7 @@ public sealed class ApprovalTaskContext : WorkflowTaskContext
 
     public ApprovalTaskContext(ApprovalTaskContext source)
     {
-        Id = source.Id;
+        TaskId = source.TaskId;
         WorkflowId = source.WorkflowId;
         AssignedBy = source.AssignedBy;
         AssignedTo = source.AssignedTo;

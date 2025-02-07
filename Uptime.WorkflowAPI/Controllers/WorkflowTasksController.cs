@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Uptime.Application.Commands;
 using Uptime.Application.DTOs;
 using Uptime.Application.Queries;
+using Uptime.Domain.Common;
 using Uptime.Shared.Enums;
 using Uptime.Shared.Models.Tasks;
 
@@ -15,7 +16,7 @@ public class WorkflowTasksController(IMediator mediator) : ControllerBase
     [HttpGet("")]
     public async Task<ActionResult<WorkflowTaskResponse>> GetTask(int taskId)
     {
-        WorkflowTaskDto? task = await mediator.Send(new GetWorkflowTaskQuery(taskId));
+        WorkflowTaskDto? task = await mediator.Send(new GetWorkflowTaskQuery((TaskId)taskId));
         if (task == null)
         {
             return NotFound($"No task found with ID {taskId}.");
@@ -27,7 +28,7 @@ public class WorkflowTasksController(IMediator mediator) : ControllerBase
     [HttpPost("update")]
     public async Task<ActionResult<WorkflowStatus>> AlterTask(int taskId, [FromBody] AlterTaskRequest request)
     {
-        AlterTaskCommand command = Mapper.MapToAlterTaskCommand(request , taskId);
+        AlterTaskCommand command = Mapper.MapToAlterTaskCommand(request, taskId);
         WorkflowStatus result = await mediator.Send(command);
 
         return Ok(result);

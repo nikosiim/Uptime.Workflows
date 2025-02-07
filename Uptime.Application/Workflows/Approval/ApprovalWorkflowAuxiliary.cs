@@ -1,4 +1,5 @@
 ﻿using Uptime.Application.Interfaces;
+using Uptime.Domain.Common;
 using Uptime.Shared.Extensions;
 using static Uptime.Shared.GlobalConstants;
 
@@ -6,7 +7,7 @@ namespace Uptime.Application.Workflows.Approval;
 
 internal static class ApprovalWorkflowAuxiliary
 {
-    public static List<ApprovalTaskContext> GetApprovalTasks(this IWorkflowPayload payload, int workflowId)
+    public static List<ApprovalTaskContext> GetApprovalTasks(this IWorkflowPayload payload, WorkflowId workflowId)
     {
         if (payload.Storage.TryGetValueAsList(TaskStorageKeys.TaskExecutors, out List<string> executors))
         {

@@ -1,5 +1,6 @@
 ﻿using Uptime.Application.Interfaces;
+using Uptime.Domain.Common;
 
 namespace Uptime.Application.Common;
 
-public record AlterTaskPayload(int TaskId, int WorkflowId, Dictionary<string, string?> Storage) : IAlterTaskPayload;
+public record AlterTaskPayload(TaskId TaskId, WorkflowId WorkflowId, Dictionary<string, string?> Storage) : IAlterTaskPayload;

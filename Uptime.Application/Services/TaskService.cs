@@ -2,13 +2,14 @@
 using System.Text.Json;
 using Uptime.Application.Commands;
 using Uptime.Application.Interfaces;
+using Uptime.Domain.Common;
 using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Services;
 
 public class TaskService(IMediator mediator) : ITaskService
 {
-    public async Task<int> CreateWorkflowTaskAsync(IWorkflowTask task)
+    public async Task<TaskId> CreateWorkflowTaskAsync(IWorkflowTask task)
     {
         var cmd = new CreateUserTaskCommand
         {
@@ -28,7 +29,7 @@ public class TaskService(IMediator mediator) : ITaskService
     {
         var cmd = new UpdateUserTaskCommand
         {
-            TaskId = task.Id,
+            TaskId = task.TaskId,
             AssignedTo = task.AssignedTo,
             AssignedBy = task.AssignedBy,
             TaskDescription = task.TaskDescription,

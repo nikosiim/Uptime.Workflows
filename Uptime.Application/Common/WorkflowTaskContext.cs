@@ -1,12 +1,13 @@
 ﻿using Uptime.Application.Interfaces;
+using Uptime.Domain.Common;
 
 namespace Uptime.Application.Common;
 
 public class WorkflowTaskContext : IWorkflowTask, IReplicatorItem
 {
     /* Context Properties */
-    public int Id { get; set; }
-    public int WorkflowId { get; set; }
+    public TaskId TaskId { get; set; }
+    public WorkflowId WorkflowId { get; set; }
     public bool IsCompleted { get; set; }
     public Dictionary<string, string?> Storage { get; protected set; } = new();
     

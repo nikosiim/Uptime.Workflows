@@ -3,6 +3,7 @@ using System.Text.Json;
 using Uptime.Application.DTOs;
 using Uptime.Application.Enums;
 using Uptime.Application.Interfaces;
+using Uptime.Domain.Common;
 using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Common;
@@ -12,7 +13,7 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
 {
     protected StateMachine<WorkflowStatus, WorkflowTrigger> Machine = null!;
 
-    protected int WorkflowId;
+    protected WorkflowId WorkflowId;
 
     public TContext WorkflowContext { get; private set; } = new();
 
@@ -34,7 +35,7 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
         return Machine.State;
     }
 
-    public virtual async Task<bool> ReHydrateAsync(int workflowId)
+    public virtual async Task<bool> ReHydrateAsync(WorkflowId workflowId)
     {
         // Retrieve workflow instance
         WorkflowDto? workflowInstance = await workflowService.GetWorkflowInstanceAsync(workflowId);
@@ -67,7 +68,7 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
         return Machine.State;
     }
 
-    protected abstract void OnWorkflowActivated(int workflowId, IWorkflowPayload payload);
+    protected abstract void OnWorkflowActivated(WorkflowId workflowId, IWorkflowPayload payload);
 
     protected abstract void ConfigureStateMachine();
 }

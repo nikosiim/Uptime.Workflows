@@ -1,9 +1,11 @@
-﻿namespace Uptime.Application.Interfaces;
+﻿using Uptime.Domain.Common;
+
+namespace Uptime.Application.Interfaces;
 
 public interface IWorkflowTask
 {
-    int Id { get; }
-    int WorkflowId { get; }
+    TaskId TaskId { get; }
+    WorkflowId WorkflowId { get; }
     string AssignedTo { get; }
     string AssignedBy { get; }
     string? TaskDescription { get; }

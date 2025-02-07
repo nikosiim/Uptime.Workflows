@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Uptime.Application.Commands;
 using Uptime.Application.DTOs;
 using Uptime.Application.Queries;
+using Uptime.Domain.Common;
 using Uptime.Shared.Models.WorkflowTemplates;
 
 namespace Uptime.WorkflowAPI.Controllers;
@@ -14,7 +15,7 @@ public class WorkflowTemplatesController(IMediator mediator) : ControllerBase
     [HttpGet("{templateId:int}")]
     public async Task<ActionResult<WorkflowTemplateResponse>> GetWorkflowTemplate(int templateId)
     {
-        var query = new GetWorkflowTemplateQuery(templateId);
+        var query = new GetWorkflowTemplateQuery((WorkflowTemplateId)templateId);
         WorkflowTemplateDto? template = await mediator.Send(query);
 
         if (template == null || template.Id == 0) 
@@ -29,9 +30,9 @@ public class WorkflowTemplatesController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<CreateWorkflowTemplateResponse>> CreateWorkflowTemplate([FromBody] WorkflowTemplateCreateRequest request)
     {
         CreateWorkflowTemplateCommand command = Mapper.MapToCreateWorkflowTemplateCommand(request);
-        int templateId = await mediator.Send(command);
+        WorkflowTemplateId templateId = await mediator.Send(command);
 
-        return CreatedAtAction(nameof(CreateWorkflowTemplate), new CreateWorkflowTemplateResponse(templateId));
+        return CreatedAtAction(nameof(CreateWorkflowTemplate), new CreateWorkflowTemplateResponse(templateId.Value));
     }
 
     [HttpPost("{templateId:int}")]
@@ -51,7 +52,7 @@ public class WorkflowTemplatesController(IMediator mediator) : ControllerBase
     [HttpDelete("{templateId:int}")]
     public async Task<ActionResult> DeleteWorkflowTemplate(int templateId)
     {
-        var command = new DeleteWorkflowTemplateCommand(templateId);
+        var command = new DeleteWorkflowTemplateCommand((WorkflowTemplateId)templateId);
         bool result = await mediator.Send(command);
 
         if (!result)

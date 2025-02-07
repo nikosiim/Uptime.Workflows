@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Application.DTOs;
 using Uptime.Application.Queries;
+using Uptime.Domain.Common;
 using Uptime.Shared.Models.Libraries;
 
 namespace Uptime.WorkflowAPI.Controllers
@@ -13,7 +14,7 @@ namespace Uptime.WorkflowAPI.Controllers
         [HttpGet("")]
         public async Task<ActionResult<LibraryResponse>> GetLibrary(int libraryId)
         {
-            var query = new GetLibraryQuery(libraryId);
+            var query = new GetLibraryQuery((LibraryId)libraryId);
 
             LibraryDto? library = await mediator.Send(query);
             if (library == null)
@@ -27,7 +28,7 @@ namespace Uptime.WorkflowAPI.Controllers
         [HttpGet("documents")]
         public async Task<ActionResult<List<LibraryDocumentResponse>>> GetDocuments(int libraryId)
         {
-            var query = new GetLibraryDocumentsQuery(libraryId);
+            var query = new GetLibraryDocumentsQuery((LibraryId)libraryId);
             List<LibraryDocumentDto> documents = await mediator.Send(query);
 
             if (documents.Count == 0)
@@ -41,7 +42,7 @@ namespace Uptime.WorkflowAPI.Controllers
         [HttpGet("workflow-templates")]
         public async Task<ActionResult<List<LibraryWorkflowTemplateResponse>>> GetWorkflowTemplates(int libraryId)
         {
-            var query = new GetLibraryWorkflowTemplatesQuery(libraryId);
+            var query = new GetLibraryWorkflowTemplatesQuery((LibraryId)libraryId);
             List<LibraryWorkflowTemplateDto> templates = await mediator.Send(query);
 
             if (templates.Count == 0)

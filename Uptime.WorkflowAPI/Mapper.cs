@@ -1,5 +1,6 @@
 ﻿using Uptime.Application.Commands;
 using Uptime.Application.DTOs;
+using Uptime.Domain.Common;
 using Uptime.Shared.Models.Documents;
 using Uptime.Shared.Models.Libraries;
 using Uptime.Shared.Models.Tasks;
@@ -103,8 +104,8 @@ public static class Mapper
         return new StartWorkflowCommand
         {
             Originator = source.Originator,
-            DocumentId = source.DocumentId,
-            WorkflowTemplateId = source.WorkflowTemplateId,
+            DocumentId = (DocumentId)source.DocumentId,
+            WorkflowTemplateId = (WorkflowTemplateId)source.WorkflowTemplateId,
             Storage = source.Storage
         };
     }
@@ -134,8 +135,8 @@ public static class Mapper
     {
         return new AlterTaskCommand
         {
-            TaskId = taskId,
-            WorkflowId = request.WorkflowId,
+            TaskId = (TaskId)taskId,
+            WorkflowId = (WorkflowId)request.WorkflowId,
             Storage = request.Storage
         };
     }
@@ -151,7 +152,7 @@ public static class Mapper
             TemplateName = source.TemplateName,
             WorkflowName = source.WorkflowName,
             WorkflowBaseId = source.WorkflowBaseId,
-            LibraryId = source.LibraryId,
+            LibraryId = (LibraryId)source.LibraryId,
             AssociationDataJson = source.AssociationDataJson
         };
     }
@@ -160,7 +161,7 @@ public static class Mapper
     {
         return new UpdateWorkflowTemplateCommand
         {
-            TemplateId = templateId,
+            TemplateId = (WorkflowTemplateId)templateId,
             TemplateName = source.TemplateName,
             WorkflowName = source.WorkflowName,
             WorkflowBaseId = source.WorkflowBaseId,

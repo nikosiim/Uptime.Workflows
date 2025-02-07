@@ -1,11 +1,12 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Uptime.Application.Interfaces;
+using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
 
 namespace Uptime.Application.Commands;
 
-public record DeleteWorkflowTemplateCommand(int TemplateId) : IRequest<bool>;
+public record DeleteWorkflowTemplateCommand(WorkflowTemplateId TemplateId) : IRequest<bool>;
 
 public class DeleteWorkflowTemplateCommandHandler(IWorkflowDbContext context)
     : IRequestHandler<DeleteWorkflowTemplateCommand, bool>
@@ -13,7 +14,7 @@ public class DeleteWorkflowTemplateCommandHandler(IWorkflowDbContext context)
     public async Task<bool> Handle(DeleteWorkflowTemplateCommand request, CancellationToken cancellationToken)
     {
         WorkflowTemplate? template = await context.WorkflowTemplates
-            .FirstOrDefaultAsync(t => t.Id == request.TemplateId, cancellationToken);
+            .FirstOrDefaultAsync(t => t.Id == request.TemplateId.Value, cancellationToken);
         
         if (template == null) 
             return false;

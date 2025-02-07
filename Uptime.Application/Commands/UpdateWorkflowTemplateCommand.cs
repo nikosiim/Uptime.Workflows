@@ -2,13 +2,14 @@
 using Microsoft.EntityFrameworkCore;
 using Uptime.Application.Common;
 using Uptime.Application.Interfaces;
+using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
 
 namespace Uptime.Application.Commands;
 
 public record UpdateWorkflowTemplateCommand : IRequest<bool>
 {
-    public int TemplateId { get; init; }
+    public WorkflowTemplateId TemplateId { get; init; }
     public string TemplateName { get; init; } = null!;
     public string WorkflowName { get; init; } = null!;
     public string WorkflowBaseId { get; init; } = null!;
@@ -21,7 +22,7 @@ public class UpdateWorkflowTemplateCommandHandler(IWorkflowDbContext context)
     public async Task<bool> Handle(UpdateWorkflowTemplateCommand request, CancellationToken cancellationToken)
     {
         WorkflowTemplate? workflowTemplate = await context.WorkflowTemplates
-            .FirstOrDefaultAsync(wt => wt.Id == request.TemplateId, cancellationToken);
+            .FirstOrDefaultAsync(wt => wt.Id == request.TemplateId.Value, cancellationToken);
 
         if (workflowTemplate == null)
         {

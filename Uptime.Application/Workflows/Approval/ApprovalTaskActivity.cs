@@ -17,7 +17,7 @@ public class ApprovalTaskActivity(ITaskService taskService, ApprovalTaskContext 
         Context.Storage.SetValueAsString(TaskStorageKeys.TaskTitle, "Kinnitamine");
         Context.Storage.SetValueAsEnum<TaskOutcome>(TaskStorageKeys.TaskOutcome, TaskOutcome.Pending);
 
-        Context.Id = await TaskService.CreateWorkflowTaskAsync(Context);
+        Context.TaskId = await TaskService.CreateWorkflowTaskAsync(Context);
     }
 
     public override async Task OnTaskChanged(IAlterTaskPayload payload)
