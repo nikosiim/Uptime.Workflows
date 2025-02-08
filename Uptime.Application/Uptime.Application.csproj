@@ -11,6 +11,7 @@
     <Compile Remove="Enums\WorkflowTaskStatus.cs" />
     <Compile Remove="Interfaces\IActivityContext.cs" />
     <Compile Remove="Interfaces\IUserTaskActivityContext.cs" />
+    <Compile Remove="Workflows\Signing\SigningWorkflow.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,6 +24,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Uptime.Domain\Uptime.Domain.csproj" />
     <ProjectReference Include="..\Uptime.Shared\Uptime.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Workflows\Signing\" />
   </ItemGroup>
 
 </Project>

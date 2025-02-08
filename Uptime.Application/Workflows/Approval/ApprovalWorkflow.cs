@@ -8,10 +8,8 @@ using static Uptime.Shared.GlobalConstants;
 
 namespace Uptime.Application.Workflows.Approval;
 
-// TODO: add history entries
-// TODO: add overall exception handling and set final workflow state
 public class ApprovalWorkflow(IWorkflowService workflowService, ITaskService taskService)
-    : WorkflowBase<ApprovalWorkflowContext>(workflowService)
+    : ReplicatorWorkflowBase<ApprovalWorkflowContext, ApprovalTaskData>(workflowService, taskService)
 {
     protected override void ConfigureStateMachine()
     {
@@ -19,7 +17,7 @@ public class ApprovalWorkflow(IWorkflowService workflowService, ITaskService tas
             .Permit(WorkflowTrigger.Start, WorkflowStatus.InProgress);
 
         Machine.Configure(WorkflowStatus.InProgress)
-            .OnEntryAsync(RunReplicatorAsync)
+            .OnEntryAsync(RunReplicatorsAsync)
             .Permit(WorkflowTrigger.AllTasksCompleted, WorkflowStatus.Completed)
             .Permit(WorkflowTrigger.TaskRejected, WorkflowStatus.Rejected);
 
@@ -35,113 +33,76 @@ public class ApprovalWorkflow(IWorkflowService workflowService, ITaskService tas
         WorkflowContext.ReplicatorState = new ReplicatorState<ApprovalTaskData>
         {
             Type = ReplicatorType.Sequential,
-            Items = payload.GetApprovalTasks(workflowId)
+            Items = payload.GetApprovalTasks(workflowId) // Kuidas tagada, et siin väärtustatakse taski guidid?
         };
     }
 
-    public async Task<WorkflowStatus> AlterTaskAsync(AlterTaskPayload payload)
+    protected override List<ReplicatorState<ApprovalTaskData>> GetReplicatorStates()
     {
-        WorkflowTaskContext? context = await taskService.GetWorkflowTaskContextAsync(payload.TaskId);
-        if (context == null)
-            return Machine.State;
-
-        var taskActivity = new ApprovalTaskActivity(taskService, context);
-        await taskActivity.OnTaskChanged(payload);
-
-        for (var i = 0; i < WorkflowContext.ReplicatorState.Items.Count; i++)
-        {
-            (ApprovalTaskData data, Guid taskGuid, bool isCompleted) = WorkflowContext.ReplicatorState.Items[i];
-
-            if (taskGuid == context.TaskGuid)
-            {
-                WorkflowContext.ReplicatorState.Items[i] = (data, taskGuid, taskActivity.IsCompleted);
-                break;
-            }
-        }
-
-        await RunReplicatorAsync();
-
-        return await CommitWorkflowStateAsync();
+        return [WorkflowContext.ReplicatorState];
     }
 
-    #region Replicator events
-    
-    private async Task RunReplicatorAsync()
+    protected override IWorkflowActivity CreateChildActivity(ApprovalTaskData data)
     {
-        ReplicatorState<ApprovalTaskData> approvalReplicator = WorkflowContext.ReplicatorState;
-        
-        var replicator = new Replicator<ApprovalTaskData>
-        {
-            Type = approvalReplicator.Type,
-            Items = approvalReplicator.Items,
-            ChildActivityFactory = data =>
-            {
-                Guid taskGuid = approvalReplicator.Items.First(t => t.Data == data).TaskGuid;
-                var taskContext = new WorkflowTaskContext(WorkflowId, taskGuid);
+        Guid taskGuid = WorkflowContext.ReplicatorState.Items.First(t => t.Data == data).TaskGuid;
+        var taskContext = new WorkflowTaskContext(WorkflowId, taskGuid);
+        return new ApprovalTaskActivity(TaskService, taskContext) { InitiationData = data };
+    }
 
-                return new ApprovalTaskActivity(taskService, taskContext) { InitiationData = data };
-            },
-            OnChildInitialized = ReplicatorChildInitialized,
-            OnChildCompleted = ReplicatorChildCompleted
-        };
+    protected override UserTaskActivity CreateChildActivity(WorkflowTaskContext context)
+    {
+        return new ApprovalTaskActivity(TaskService, context);
+    }
 
-        await replicator.ExecuteAsync();
-        
-        if (replicator.IsComplete)
+    protected override void UpdateReplicatorState(Guid taskGuid, bool isCompleted)
+    {
+        foreach (ReplicatorItem<ApprovalTaskData> t in WorkflowContext.ReplicatorState.Items.Where(t => t.TaskGuid == taskGuid))
         {
-            if (WorkflowContext.AnyTaskRejected)
-            {
-                await Machine.FireAsync(WorkflowTrigger.TaskRejected);
-            }
-            else
-            {
-                await Machine.FireAsync(WorkflowTrigger.AllTasksCompleted);
-            }
+            t.IsCompleted = isCompleted;
+            break;
         }
     }
 
-    private static void ReplicatorChildInitialized(ApprovalTaskData data, IWorkflowActivity activity)
+    protected override void OnReplicatorChildCompleted(ApprovalTaskData data, IWorkflowActivity activity)
     {
-        // In case activity input data need to be changed
-        if (activity is ApprovalTaskActivity child)
+        if (activity is not ApprovalTaskActivity child) return;
+
+        WorkflowTaskContext task = child.Context;
+
+        // Check if task was rejected
+        if (task.Storage.GetValueAsEnum<TaskOutcome>(TaskStorageKeys.TaskOutcome) == TaskOutcome.Rejected)
         {
-            WorkflowTaskContext currentTask = child.Context;
+            WorkflowContext.AnyTaskRejected = true;
+            return;
+        }
 
-            // Just to create an example
-            DateTime date = DateTime.Now.AddDays(1);
-            if (currentTask.DueDate.HasValue)
+        // Check if task was delegated
+        var delegatedTo = task.Storage.GetValueAs<string?>(TaskStorageKeys.TaskDelegatedTo);
+
+        if (!string.IsNullOrWhiteSpace(delegatedTo))
+        {
+            // Copy task data and reassign the task to the delegated person
+            ApprovalTaskData newData = ApprovalTaskData.Copy(data);
+            newData.AssignedTo = delegatedTo;
+
+            WorkflowContext.ReplicatorState.Items.Add(new ReplicatorItem<ApprovalTaskData>
             {
-                date = currentTask.DueDate.Value.AddDays(1);
-            }
-
-            child.Context.DueDate = date;
+                Data = newData,
+                TaskGuid = Guid.NewGuid(),
+                IsCompleted = false
+            });
         }
     }
 
-    private void ReplicatorChildCompleted(ApprovalTaskData data, IWorkflowActivity activity)
+    protected override async Task OnAllTasksCompleted(ReplicatorState<ApprovalTaskData> replicatorState)
     {
-        if (activity is ApprovalTaskActivity child)
+        if (WorkflowContext.AnyTaskRejected)
         {
-            WorkflowTaskContext task = child.Context;
-
-            // Check if the task was rejected
-            if (task.Storage.GetValueAsEnum<TaskOutcome>(TaskStorageKeys.TaskOutcome) == TaskOutcome.Rejected)
-            {
-                WorkflowContext.AnyTaskRejected = true;
-                return;
-            }
-
-            // Check if the task was delegated
-            var delegatedTo = task.Storage.GetValueAs<string?>(TaskStorageKeys.TaskDelegatedTo);
-            if (!string.IsNullOrWhiteSpace(delegatedTo))
-            {
-                ApprovalTaskData newData = ApprovalTaskData.Copy(data);
-                newData.AssignedTo = delegatedTo;
-
-                WorkflowContext.ReplicatorState.Items.Add((newData, Guid.NewGuid(), false));
-            }
+            await FireAsync(WorkflowTrigger.TaskRejected);
+        }
+        else
+        {
+            await FireAsync(WorkflowTrigger.AllTasksCompleted);
         }
     }
-
-    #endregion
 }

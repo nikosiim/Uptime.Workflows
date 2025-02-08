@@ -6,19 +6,23 @@ namespace Uptime.Application.Common;
 public class Replicator<TItem> : IReplicator<TItem>
 {
     public ReplicatorType Type { get; set; } = ReplicatorType.Sequential;
-    public List<(TItem Data, Guid TaskGuid, bool IsCompleted)> Items { get; set; } = [];
-    public bool IsComplete { get; private set; }
+    public List<ReplicatorItem<TItem>> Items { get; set; } = [];
+    public bool IsComplete => Items.All(item => item.IsCompleted);
 
     public Action<TItem, IWorkflowActivity>? OnChildInitialized { get; set; }
     public Action<TItem, IWorkflowActivity>? OnChildCompleted { get; set; }
+    public Func<Task>? OnAllTasksCompleted { get; set; }
     public Func<TItem, IWorkflowActivity> ChildActivityFactory { get; set; }
         = _ => throw new InvalidOperationException("No factory set.");
 
     public async Task ExecuteAsync()
     {
-        if (!Items.Any())
+        if (Items.Count == 0)
         {
-            IsComplete = true;
+            if (OnAllTasksCompleted != null)
+            {
+                await OnAllTasksCompleted.Invoke();
+            }
             return;
         }
 
@@ -34,38 +38,36 @@ public class Replicator<TItem> : IReplicator<TItem>
                 throw new NotSupportedException($"Replicator type '{Type}' is not supported.");
         }
 
-        // Check if all tasks are marked as complete
-        IsComplete = Items.All(item => item.IsCompleted);
+        if (IsComplete && OnAllTasksCompleted != null)
+        {
+            await OnAllTasksCompleted.Invoke();
+        }
     }
 
     private async Task ExecuteSequentialAsync()
     {
         for (var i = 0; i < Items.Count; i++)
         {
-            (TItem data, Guid taskGuid, bool isCompleted) = Items[i];
+            ReplicatorItem<TItem> item = Items[i];
 
-            if (isCompleted)
+            if (item.IsCompleted)
                 continue;
 
-            IWorkflowActivity activity = ChildActivityFactory(data);
-
-            OnChildInitialized?.Invoke(data, activity);
+            IWorkflowActivity activity = ChildActivityFactory(item.Data);
+            OnChildInitialized?.Invoke(item.Data, activity);
             await activity.ExecuteAsync();
 
             if (activity.IsCompleted)
             {
-                OnChildCompleted?.Invoke(data, activity);
-
-                // Update the completion status in ReplicatorState
-                Items[i] = (data, taskGuid, true);
+                OnChildCompleted?.Invoke(item.Data, activity);
+                Items[i].IsCompleted = true; // Mark as completed
             }
             else
             {
-                return; // Stop execution since sequential execution requires waiting for completion
+                return; // Stop execution, waiting for user action
             }
         }
     }
-
 
     private async Task ExecuteParallelAsync()
     {
@@ -73,30 +75,31 @@ public class Replicator<TItem> : IReplicator<TItem>
 
         for (var i = 0; i < Items.Count; i++)
         {
-            (TItem data, Guid taskGuid, bool isCompleted) = Items[i];
+            ReplicatorItem<TItem> item = Items[i];
 
-            if (isCompleted)
-                continue; // Skip already completed tasks
+            if (item.IsCompleted)
+                continue;
 
-            int  j = i;
+            int j = i;
             tasks.Add(Task.Run(async () =>
             {
-                IWorkflowActivity activity = ChildActivityFactory(data);
-
-                OnChildInitialized?.Invoke(data, activity);
+                IWorkflowActivity activity = ChildActivityFactory(item.Data);
+                OnChildInitialized?.Invoke(item.Data, activity);
                 await activity.ExecuteAsync();
 
                 if (activity.IsCompleted)
                 {
-                    OnChildCompleted?.Invoke(data, activity);
-
-                    // Update completion status in ReplicatorState
-                    Items[j] = (data, taskGuid, true);
+                    OnChildCompleted?.Invoke(item.Data, activity);
+                    Items[j].IsCompleted = true; // Mark as completed
                 }
             }));
         }
 
-        await Task.WhenAll(tasks); // Wait for all parallel tasks to complete
-    }
+        await Task.WhenAll(tasks);
 
+        if (IsComplete)
+        {
+            OnAllTasksCompleted?.Invoke();
+        }
+    }
 }
