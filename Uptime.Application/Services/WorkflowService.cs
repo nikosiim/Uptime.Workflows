@@ -1,6 +1,8 @@
 ﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using Uptime.Application.Commands;
+using Uptime.Application.Common;
 using Uptime.Application.DTOs;
 using Uptime.Application.Interfaces;
 using Uptime.Application.Queries;
@@ -28,13 +30,24 @@ public sealed class WorkflowService(IMediator mediator) : IWorkflowService
         return await mediator.Send(new GetWorkflowQuery(workflowId));
     }
 
-    public async Task UpdateWorkflowStateAsync<TData>(WorkflowId workflowId, WorkflowStatus status, TData context)
+    public async Task UpdateWorkflowStateAsync<TContext>(WorkflowId workflowId, WorkflowStatus status, TContext context) 
+        where TContext : IWorkflowContext, new()
     {
+        WorkflowDto? existingWorkflow = await GetWorkflowInstanceAsync(workflowId);
+        if (existingWorkflow == null)
+        {
+            throw new InvalidOperationException($"Workflow with ID {workflowId} not found.");
+        }
+        
+        TContext existingContext = new();
+        existingContext.Deserialize(existingWorkflow.InstanceDataJson ?? "{}");
+        existingContext.Storage.MergeWith(context.Storage);
+        
         await mediator.Send(new UpdateWorkflowStateCommand
         {
             WorkflowId = workflowId,
             Status = status,
-            InstanceDataJson = JsonSerializer.Serialize(context)
+            StorageJson = JsonSerializer.Serialize(context)
         });
     }
 }

@@ -2,5 +2,6 @@
 
 public interface IWorkflowActivity
 {
+    bool IsCompleted { get; }
     Task ExecuteAsync();
 }

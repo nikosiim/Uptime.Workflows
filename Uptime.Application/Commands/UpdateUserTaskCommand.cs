@@ -7,9 +7,10 @@ using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Commands;
 
-public class UpdateUserTaskCommand : IRequest
+public record UpdateUserTaskCommand : IRequest
 {
-    public TaskId TaskId { get; set; }
+    public TaskId TaskId { get; init; }
+    public required Guid TaskGuid { get; init; }
     public required string AssignedTo { get; init; }
     public required string AssignedBy { get; init; }
     public string? TaskDescription { get; init; }
@@ -29,9 +30,10 @@ public class UpdateUserTaskCommandHandler(IWorkflowDbContext context) : IRequest
             throw new KeyNotFoundException($"Task with ID {request.TaskId} not found.");
         }
 
+        task.TaskGuid = request.TaskGuid;
         task.AssignedTo = request.AssignedTo;
         task.AssignedBy = request.AssignedBy;
-        task.TaskDescription = request.TaskDescription;
+        task.Description = request.TaskDescription;
         task.DueDate = request.DueDate;
         task.StorageJson = request.StorageJson;
         task.Status = request.Status;

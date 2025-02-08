@@ -20,7 +20,7 @@ public class GetWorkflowQueryHandler(IWorkflowDbContext dbContext) : IRequestHan
                 StartDate = w.StartDate,
                 EndDate = w.EndDate,
                 Originator = w.Originator,
-                InstanceDataJson = w.InstanceDataJson,
+                InstanceDataJson = w.StorageJson,
                 DocumentId = w.DocumentId,
                 Document = w.Document.Title
             })

@@ -3,17 +3,14 @@ using Uptime.Domain.Common;
 
 namespace Uptime.Application.Common;
 
-public class WorkflowTaskContext : IWorkflowTask, IReplicatorItem
+public class WorkflowTaskContext(WorkflowId workflowId, Guid taskGuid) : IWorkflowTask
 {
-    /* Context Properties */
+    public WorkflowId WorkflowId { get; } = workflowId;
+    public Guid TaskGuid { get; } = taskGuid;
     public TaskId TaskId { get; set; }
-    public WorkflowId WorkflowId { get; set; }
-    public bool IsCompleted { get; set; }
-    public Dictionary<string, string?> Storage { get; protected set; } = new();
-    
-    /* Form Data Properties */
     public string AssignedTo { get; set; } = null!;
     public string AssignedBy { get; set; } = null!;
     public string? TaskDescription { get; set; }
     public DateTime? DueDate { get; set; }
+    public Dictionary<string, string?> Storage { get; set; } = new();
 }

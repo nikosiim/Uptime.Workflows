@@ -197,10 +197,6 @@ namespace Uptime.Persistence.Migrations
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("InstanceDataJson")
-                        .HasMaxLength(4096)
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Originator")
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
@@ -210,6 +206,10 @@ namespace Uptime.Persistence.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<string>("StorageJson")
+                        .HasMaxLength(4096)
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("WorkflowTemplateId")
                         .HasColumnType("int");
@@ -276,6 +276,10 @@ namespace Uptime.Persistence.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
                     b.Property<DateTime?>("DueDate")
                         .HasColumnType("datetime2");
 
@@ -289,9 +293,8 @@ namespace Uptime.Persistence.Migrations
                         .HasMaxLength(4096)
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("TaskDescription")
-                        .HasMaxLength(2048)
-                        .HasColumnType("nvarchar(2048)");
+                    b.Property<Guid>("TaskGuid")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("WorkflowId")
                         .HasColumnType("int");

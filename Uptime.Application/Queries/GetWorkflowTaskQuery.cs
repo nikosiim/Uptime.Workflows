@@ -17,10 +17,11 @@ public class GetWorkflowTaskQueryHandler(IWorkflowDbContext dbContext) : IReques
             .Select(task => new WorkflowTaskDto
             {
                 Id = task.Id,
+                TaskGuid = task.TaskGuid,
                 AssignedTo = task.AssignedTo,
                 AssignedBy = task.AssignedBy,
                 Status = task.Status,
-                Description = task.TaskDescription,
+                Description = task.Description,
                 DueDate = task.DueDate,
                 EndDate = task.EndDate,
                 StorageJson = task.StorageJson,

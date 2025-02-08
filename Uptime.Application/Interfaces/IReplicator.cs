@@ -5,7 +5,7 @@ namespace Uptime.Application.Interfaces;
 public interface IReplicator<TItem>
 {
     ReplicatorType Type { get; set; }
-    IEnumerable<TItem> Items { get; set; }
+    List<(TItem Data, Guid TaskGuid, bool IsCompleted)> Items { get; set; }
     Task ExecuteAsync();
-    bool IsItemsCompleted { get; }
+    bool IsComplete { get; }
 }

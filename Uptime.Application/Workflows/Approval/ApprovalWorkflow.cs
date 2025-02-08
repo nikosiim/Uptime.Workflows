@@ -13,8 +13,6 @@ namespace Uptime.Application.Workflows.Approval;
 public class ApprovalWorkflow(IWorkflowService workflowService, ITaskService taskService)
     : WorkflowBase<ApprovalWorkflowContext>(workflowService)
 {
-    private ITaskService TaskService { get; } = taskService;
-    
     protected override void ConfigureStateMachine()
     {
         Machine.Configure(WorkflowStatus.NotStarted)
@@ -34,7 +32,7 @@ public class ApprovalWorkflow(IWorkflowService workflowService, ITaskService tas
 
     protected override void OnWorkflowActivated(WorkflowId workflowId, IWorkflowPayload payload)
     {
-        WorkflowContext.ReplicatorState = new ReplicatorState<ApprovalTaskContext>
+        WorkflowContext.ReplicatorState = new ReplicatorState<ApprovalTaskData>
         {
             Type = ReplicatorType.Sequential,
             Items = payload.GetApprovalTasks(workflowId)
@@ -43,15 +41,23 @@ public class ApprovalWorkflow(IWorkflowService workflowService, ITaskService tas
 
     public async Task<WorkflowStatus> AlterTaskAsync(AlterTaskPayload payload)
     {
-        ApprovalTaskContext? taskContext = WorkflowContext.ReplicatorState.Items.FirstOrDefault(t => t.TaskId == payload.TaskId);
-        if (taskContext == null)
-        {
-            // TODO: log
+        WorkflowTaskContext? context = await taskService.GetWorkflowTaskContextAsync(payload.TaskId);
+        if (context == null)
             return Machine.State;
-        }
 
-        var taskActivity = new ApprovalTaskActivity(TaskService, taskContext);
+        var taskActivity = new ApprovalTaskActivity(taskService, context);
         await taskActivity.OnTaskChanged(payload);
+
+        for (var i = 0; i < WorkflowContext.ReplicatorState.Items.Count; i++)
+        {
+            (ApprovalTaskData data, Guid taskGuid, bool isCompleted) = WorkflowContext.ReplicatorState.Items[i];
+
+            if (taskGuid == context.TaskGuid)
+            {
+                WorkflowContext.ReplicatorState.Items[i] = (data, taskGuid, taskActivity.IsCompleted);
+                break;
+            }
+        }
 
         await RunReplicatorAsync();
 
@@ -62,20 +68,26 @@ public class ApprovalWorkflow(IWorkflowService workflowService, ITaskService tas
     
     private async Task RunReplicatorAsync()
     {
-        ReplicatorState<ApprovalTaskContext> approvalReplicator = WorkflowContext.ReplicatorState;
-
-        var replicator = new Replicator<ApprovalTaskContext>
+        ReplicatorState<ApprovalTaskData> approvalReplicator = WorkflowContext.ReplicatorState;
+        
+        var replicator = new Replicator<ApprovalTaskData>
         {
             Type = approvalReplicator.Type,
             Items = approvalReplicator.Items,
-            ChildActivityFactory = item => new ApprovalTaskActivity(TaskService, item),
+            ChildActivityFactory = data =>
+            {
+                Guid taskGuid = approvalReplicator.Items.First(t => t.Data == data).TaskGuid;
+                var taskContext = new WorkflowTaskContext(WorkflowId, taskGuid);
+
+                return new ApprovalTaskActivity(taskService, taskContext) { InitiationData = data };
+            },
             OnChildInitialized = ReplicatorChildInitialized,
             OnChildCompleted = ReplicatorChildCompleted
         };
 
         await replicator.ExecuteAsync();
-
-        if (replicator.IsItemsCompleted)
+        
+        if (replicator.IsComplete)
         {
             if (WorkflowContext.AnyTaskRejected)
             {
@@ -88,14 +100,14 @@ public class ApprovalWorkflow(IWorkflowService workflowService, ITaskService tas
         }
     }
 
-    private static void ReplicatorChildInitialized(ApprovalTaskContext input, IWorkflowActivity activity)
+    private static void ReplicatorChildInitialized(ApprovalTaskData data, IWorkflowActivity activity)
     {
+        // In case activity input data need to be changed
         if (activity is ApprovalTaskActivity child)
         {
-            // In case activity input data need to be changed
+            WorkflowTaskContext currentTask = child.Context;
 
-            ApprovalTaskContext currentTask = child.Context;
-
+            // Just to create an example
             DateTime date = DateTime.Now.AddDays(1);
             if (currentTask.DueDate.HasValue)
             {
@@ -106,27 +118,27 @@ public class ApprovalWorkflow(IWorkflowService workflowService, ITaskService tas
         }
     }
 
-    private void ReplicatorChildCompleted(ApprovalTaskContext item, IWorkflowActivity activity)
+    private void ReplicatorChildCompleted(ApprovalTaskData data, IWorkflowActivity activity)
     {
         if (activity is ApprovalTaskActivity child)
         {
-            ApprovalTaskContext task = child.Context;
+            WorkflowTaskContext task = child.Context;
 
+            // Check if the task was rejected
             if (task.Storage.GetValueAsEnum<TaskOutcome>(TaskStorageKeys.TaskOutcome) == TaskOutcome.Rejected)
             {
                 WorkflowContext.AnyTaskRejected = true;
                 return;
             }
 
+            // Check if the task was delegated
             var delegatedTo = task.Storage.GetValueAs<string?>(TaskStorageKeys.TaskDelegatedTo);
             if (!string.IsNullOrWhiteSpace(delegatedTo))
             {
-                var delegatedCtx = new ApprovalTaskContext(task)
-                {
-                    AssignedTo = delegatedTo
-                };
+                ApprovalTaskData newData = ApprovalTaskData.Copy(data);
+                newData.AssignedTo = delegatedTo;
 
-                WorkflowContext.ReplicatorState.Items.Add(delegatedCtx);
+                WorkflowContext.ReplicatorState.Items.Add((newData, Guid.NewGuid(), false));
             }
         }
     }

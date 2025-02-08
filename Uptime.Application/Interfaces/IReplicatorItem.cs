@@ -2,5 +2,5 @@
 
 public interface IReplicatorItem
 {
-    bool IsCompleted { get; }
+
 }

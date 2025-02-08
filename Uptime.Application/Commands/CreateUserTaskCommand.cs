@@ -10,6 +10,7 @@ namespace Uptime.Application.Commands;
 public record CreateUserTaskCommand : IRequest<TaskId>
 {
     public WorkflowId WorkflowId { get; init; }
+    public required Guid TaskGuid { get; init; }
     public required string AssignedTo { get; init; }
     public required string AssignedBy { get; init; }
     public string? TaskDescription { get; init; }
@@ -32,9 +33,10 @@ public class CreateUserTaskCommandHandler(IWorkflowDbContext context) : IRequest
         var task = new WorkflowTask
         {
             WorkflowId = request.WorkflowId.Value,
+            TaskGuid = request.TaskGuid,
             AssignedTo = request.AssignedTo,
             AssignedBy = request.AssignedBy,
-            TaskDescription = request.TaskDescription,
+            Description = request.TaskDescription,
             DueDate = request.DueDate,
             Status = request.Status,
             StorageJson = request.StorageJson

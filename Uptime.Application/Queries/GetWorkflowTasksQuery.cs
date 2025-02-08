@@ -22,7 +22,7 @@ public class GetWorkflowTasksQueryHandler(IWorkflowDbContext dbContext)
                 AssignedTo = task.AssignedTo,
                 AssignedBy = task.AssignedBy,
                 Status = task.Status,
-                Description = task.TaskDescription,
+                Description = task.Description,
                 DueDate = task.DueDate,
                 EndDate = task.EndDate,
                 StorageJson = task.StorageJson

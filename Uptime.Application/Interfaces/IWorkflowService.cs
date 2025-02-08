@@ -8,5 +8,6 @@ public interface IWorkflowService
 {
     Task<WorkflowId> CreateWorkflowInstanceAsync(IWorkflowPayload payload);
     Task<WorkflowDto?> GetWorkflowInstanceAsync(WorkflowId workflowId);
-    Task UpdateWorkflowStateAsync<TData>(WorkflowId workflowId, WorkflowStatus status, TData context);
+    Task UpdateWorkflowStateAsync<TContext>(WorkflowId workflowId, WorkflowStatus status, TContext context)
+        where TContext : IWorkflowContext, new();
 }

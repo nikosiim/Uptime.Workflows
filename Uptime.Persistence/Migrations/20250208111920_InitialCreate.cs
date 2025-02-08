@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Uptime.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class Inital : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -82,10 +82,10 @@ namespace Uptime.Persistence.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Status = table.Column<int>(type: "int", nullable: false),
-                    InstanceDataJson = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: true),
                     Originator = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    StorageJson = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: true),
                     DocumentId = table.Column<int>(type: "int", nullable: false),
                     WorkflowTemplateId = table.Column<int>(type: "int", nullable: false)
                 },
@@ -135,9 +135,10 @@ namespace Uptime.Persistence.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    TaskGuid = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     AssignedTo = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     AssignedBy = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    TaskDescription = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: true),
                     Status = table.Column<int>(type: "int", nullable: false),
                     DueDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),

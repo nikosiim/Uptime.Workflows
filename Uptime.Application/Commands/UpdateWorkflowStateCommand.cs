@@ -11,7 +11,7 @@ public class UpdateWorkflowStateCommand : IRequest
 {
     public WorkflowId WorkflowId { get; set; }
     public WorkflowStatus Status { get; set; }
-    public string? InstanceDataJson { get; set; }
+    public string? StorageJson { get; set; }
 }
 
 public class UpdateWorkflowStateCommandHandler(IWorkflowDbContext dbContext)
@@ -26,7 +26,7 @@ public class UpdateWorkflowStateCommandHandler(IWorkflowDbContext dbContext)
         }
 
         instance.Status = request.Status;
-        instance.InstanceDataJson = request.InstanceDataJson;
+        instance.StorageJson = request.StorageJson;
 
         await dbContext.SaveChangesAsync(ct);
     }
