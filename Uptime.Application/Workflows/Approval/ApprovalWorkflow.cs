@@ -77,7 +77,7 @@ public class ApprovalWorkflow(IWorkflowService workflowService, ITaskService tas
         }
 
         // Check if task was delegated
-        var delegatedTo = task.Storage.GetValueAs<string?>(TaskStorageKeys.TaskDelegatedTo);
+        string? delegatedTo = task.Storage.GetValueAsString(TaskStorageKeys.TaskDelegatedTo);
 
         if (!string.IsNullOrWhiteSpace(delegatedTo))
         {

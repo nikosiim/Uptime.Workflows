@@ -17,5 +17,5 @@ public record WorkflowTaskDto
     public string? Document { get; init; }
     public int WorkflowId { get; init; }
 
-    public string? Title => StorageJson.GetValueAs<string?>(GlobalConstants.TaskStorageKeys.TaskTitle);
+    public string? Title => StorageJson.GetValueAsString(GlobalConstants.TaskStorageKeys.TaskTitle);
 }

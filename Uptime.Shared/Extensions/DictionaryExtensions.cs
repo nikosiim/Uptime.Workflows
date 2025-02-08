@@ -8,13 +8,21 @@ public static class DictionaryExtensions
     #region Get Values
 
     /// <summary>
+    /// Retrieves a string value from a dictionary, if the key exists.
+    /// </summary>
+    public static string? GetValueAsString(this Dictionary<string, string?> data, string key)
+    {
+        return data.GetValueOrDefault(key);
+    }
+
+    /// <summary>
     /// Gets a DateTime value from the dictionary, assuming it is stored as a UTC string.
     /// Returns DateTime.MinValue if the key is missing or invalid.
     /// </summary>
     public static DateTime GetValueAsDateTime(this Dictionary<string, string?> data, string key)
     {
         if (data.TryGetValue(key, out string? value) &&
-            DateTime.TryParse(value, null, DateTimeStyles.AdjustToUniversal, out var dateTime))
+            DateTime.TryParse(value, null, DateTimeStyles.AdjustToUniversal, out DateTime dateTime))
         {
             return dateTime;
         }
@@ -49,38 +57,6 @@ public static class DictionaryExtensions
         }
 
         return [];
-    }
-
-    /// <summary>
-    /// Generic method to retrieve values from a Dictionary as the specified type.
-    /// Supports int, double, bool, and string conversions.
-    /// Returns default(T) if the key is missing or conversion fails.
-    /// </summary>
-    public static T GetValueAs<T>(this Dictionary<string, string?> data, string key)
-    {
-        if (data.TryGetValue(key, out string? value) && !string.IsNullOrEmpty(value))
-        {
-            try
-            {
-                if (typeof(T) == typeof(int) && int.TryParse(value, out int intResult))
-                    return (T)(object)intResult;
-
-                if (typeof(T) == typeof(double) && double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out double doubleResult))
-                    return (T)(object)doubleResult;
-
-                if (typeof(T) == typeof(bool) && bool.TryParse(value, out bool boolResult))
-                    return (T)(object)boolResult;
-
-                if (typeof(T) == typeof(string))
-                    return (T)(object)value;
-            }
-            catch
-            {
-                // Ignore conversion errors
-            }
-        }
-
-        return default!; // Return default(T) if value is missing or invalid
     }
 
     #endregion
@@ -145,26 +121,24 @@ public static class DictionaryExtensions
     }
   
     /// <summary>
-    /// Extracts a generic value from a JSON string.
+    /// Extracts a string value from a JSON string that represents a dictionary.
     /// </summary>
-    public static T GetValueAs<T>(this string? json, string key)
+    public static string? GetValueAsString(this string? json, string key)
     {
         if (string.IsNullOrWhiteSpace(json))
-            return default!;
+            return null;
 
         try
         {
             var storage = JsonSerializer.Deserialize<Dictionary<string, string?>>(json);
-            if (storage is not null)
-                return storage.GetValueAs<T>(key);
-
+            return storage?.GetValueAsString(key);
         }
         catch (JsonException)
         {
             // Handle JSON parsing errors
         }
 
-        return default!;
+        return null;
     }
 
     #endregion

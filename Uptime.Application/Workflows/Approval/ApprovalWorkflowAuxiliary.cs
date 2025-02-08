@@ -13,8 +13,8 @@ internal static class ApprovalWorkflowAuxiliary
         if (!payload.Storage.TryGetValueAsList(TaskStorageKeys.TaskExecutors, out List<string> executors))
             return [];
 
-        var taskDescription = payload.Storage.GetValueAs<string?>(TaskStorageKeys.TaskDescription);
-        var dueDate = payload.Storage.GetValueAs<DateTime?>(TaskStorageKeys.TaskDueDate);
+        string? taskDescription = payload.Storage.GetValueAsString(TaskStorageKeys.TaskDescription);
+        DateTime dueDate = payload.Storage.GetValueAsDateTime(TaskStorageKeys.TaskDueDate);
 
         return executors
             .Select(executor => new ReplicatorItem<ApprovalTaskData>

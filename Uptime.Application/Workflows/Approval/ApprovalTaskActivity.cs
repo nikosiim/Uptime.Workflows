@@ -33,9 +33,9 @@ public class ApprovalTaskActivity(ITaskService taskService, WorkflowTaskContext 
 
     public override async Task OnTaskChanged(IAlterTaskPayload payload)
     {
-        var editor = payload.Storage.GetValueAs<string>(TaskStorageKeys.TaskEditor);
-        var comment = payload.Storage.GetValueAs<string>(TaskStorageKeys.TaskComment);
-        var delegatedTo = payload.Storage.GetValueAs<string>(TaskStorageKeys.TaskDelegatedTo);
+        string? editor = payload.Storage.GetValueAsString(TaskStorageKeys.TaskEditor);
+        string? comment = payload.Storage.GetValueAsString(TaskStorageKeys.TaskComment);
+        string? delegatedTo = payload.Storage.GetValueAsString(TaskStorageKeys.TaskDelegatedTo);
 
         if (payload.Storage.TryGetValueAsEnum(TaskStorageKeys.TaskOutcome, out TaskOutcome? taskOutcome))
         {

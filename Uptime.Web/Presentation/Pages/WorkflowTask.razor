@@ -39,7 +39,7 @@
                         <MudText><b>Tähtaeg</b></MudText>
                     </div>
                     <div class="d-table-cell">
-                        <MudText>@_task.DueDate</MudText>
+                        <MudText>@_task.DueDate?.ToLocalTime().ToString("d")</MudText>
                     </div>
                 </div>
                 <div class="d-table-row">
