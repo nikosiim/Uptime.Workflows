@@ -25,6 +25,11 @@ public class WorkflowFactory : IWorkflowFactory
         return WorkflowPhase.Invalid;
     }
 
+    public IWorkflowMachine? GetWorkflow(Guid workflowBaseId)
+    {
+        return _workflowMap.GetValueOrDefault(workflowBaseId);
+    }
+
     private static Guid GetWorkflowBaseId(IWorkflowMachine workflow)
     {
         return workflow switch

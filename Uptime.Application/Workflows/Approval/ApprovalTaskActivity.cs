@@ -22,9 +22,7 @@ public class ApprovalTaskActivity(ITaskService taskService, WorkflowTaskContext 
         string? editor = payload.Storage.GetValueAsString(TaskStorageKeys.TaskEditor);
         string? comment = payload.Storage.GetValueAsString(TaskStorageKeys.TaskComment);
         string? delegatedTo = payload.Storage.GetValueAsString(TaskStorageKeys.TaskDelegatedTo);
-
-        Context.TaskId = payload.TaskId;// TODO: miks siin contexti peab täitma, millegipärast on väärtused siit puudu
-
+        
         if (payload.Storage.TryGetValueAsEnum(TaskStorageKeys.TaskOutcome, out TaskOutcome? taskOutcome))
         {
             await SetTaskOutcome(taskOutcome!.Value, editor, comment, delegatedTo);

@@ -1,8 +1,7 @@
 ﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Uptime.Application.Common;
-using Uptime.Application.DTOs;
 using Uptime.Application.Interfaces;
-using Uptime.Application.Queries;
 using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
 
@@ -16,13 +15,17 @@ public record StartWorkflowCommand : IRequest<WorkflowPhase>
     public Dictionary<string, string?> Storage { get; init; } = new();
 }
 
-public class StartWorkflowCommandHandler(IWorkflowFactory workflowFactory, IMediator mediator)
+public class StartWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory)
     : IRequestHandler<StartWorkflowCommand, WorkflowPhase>
 {
     public async Task<WorkflowPhase> Handle(StartWorkflowCommand request, CancellationToken cancellationToken)
     {
-        WorkflowTemplateDto? workflowTemplate = await mediator.Send(new GetWorkflowTemplateQuery(request.WorkflowTemplateId), cancellationToken);
-        if (workflowTemplate == null)
+        string workflowBaseIdString = await dbContext.WorkflowTemplates
+            .Where(wt => wt.Id == request.WorkflowTemplateId.Value)
+            .Select(wt => wt.WorkflowBaseId)
+            .FirstAsync(cancellationToken);
+
+        if (!Guid.TryParse(workflowBaseIdString, out Guid workflowBaseId))
         {
             return WorkflowPhase.Invalid;
         }
@@ -35,6 +38,6 @@ public class StartWorkflowCommandHandler(IWorkflowFactory workflowFactory, IMedi
             Storage = request.Storage
         };
 
-        return await workflowFactory.StartWorkflowAsync(Guid.Parse(workflowTemplate.WorkflowBaseId), payload);
+        return await workflowFactory.StartWorkflowAsync(workflowBaseId, payload);
     }
 }

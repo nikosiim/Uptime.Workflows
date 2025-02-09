@@ -1,33 +1,47 @@
 ﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Uptime.Application.Common;
-using Uptime.Application.Workflows.Approval;
+using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
-using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Commands;
 
-public record AlterTaskCommand : IRequest<WorkflowStatus>
+public record AlterTaskCommand : IRequest<WorkflowPhase>
 {
     public TaskId TaskId { get; init; }
     public WorkflowId WorkflowId { get; init; }
     public Dictionary<string, string?> Storage { get; init; } = new();
 }
 
-public class AlterTaskCommandHandler(ApprovalWorkflow approvalWorkflow) 
-    : IRequestHandler<AlterTaskCommand, WorkflowStatus>
+public class AlterTaskCommandHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory) 
+    : IRequestHandler<AlterTaskCommand, WorkflowPhase>
 {
-    public async Task<WorkflowStatus> Handle(AlterTaskCommand request, CancellationToken cancellationToken)
+    public async Task<WorkflowPhase> Handle(AlterTaskCommand request, CancellationToken cancellationToken)
     {
-        bool isRehydrated = await approvalWorkflow.ReHydrateAsync(request.WorkflowId);
-        if (isRehydrated)
+        string workflowBaseIdString = await dbContext.Workflows
+            .Where(x => x.Id == request.WorkflowId.Value)
+            .Select(w => w.WorkflowTemplate.WorkflowBaseId).FirstAsync(cancellationToken);
+        
+        if (!Guid.TryParse(workflowBaseIdString, out Guid workflowBaseId))
         {
-            var payload = new AlterTaskPayload(request.TaskId, request.WorkflowId, request.Storage);
-            WorkflowPhase phase = await approvalWorkflow.TryAlterTaskAsync(payload);
-
-            return phase.MapToWorkflowStatus();
+            return WorkflowPhase.Invalid;
         }
 
-        return WorkflowStatus.Invalid;
+        IWorkflowMachine? workflow = workflowFactory.GetWorkflow(workflowBaseId);
+        if (workflow is null)
+        {
+            return WorkflowPhase.Invalid;
+        }
+
+        bool isRehydrated = await workflow.ReHydrateAsync(request.WorkflowId);
+        if (!isRehydrated)
+        {
+            return WorkflowPhase.Invalid;
+        }
+
+        var payload = new AlterTaskPayload(request.TaskId, request.WorkflowId, request.Storage);
+
+        return await workflow.TryAlterTaskAsync(payload);
     }
 }
