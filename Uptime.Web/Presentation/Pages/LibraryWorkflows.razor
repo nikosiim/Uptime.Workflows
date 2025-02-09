@@ -53,7 +53,7 @@ else
     {
         _workflowsViewModel = new WorkflowsViewModel
         {
-            ActiveInstances = workflows.Where(w => w.Status is WorkflowStatus.NotStarted or WorkflowStatus.InProgress).ToList(),
+            ActiveInstances = workflows.Where(w => w.Status is not (WorkflowStatus.Completed or WorkflowStatus.Cancelled)).ToList(),
             CompletedInstances = workflows.Where(w => w.Status is WorkflowStatus.Completed or WorkflowStatus.Cancelled).ToList()
         };
 

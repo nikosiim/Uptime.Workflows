@@ -21,6 +21,7 @@ public class TaskService(IMediator mediator) : ITaskService
         return new WorkflowTaskContext((WorkflowId)dto.WorkflowId)
         {
             TaskId = taskId,
+            TaskGuid = dto.TaskGuid,
             AssignedTo = dto.AssignedTo ?? string.Empty,
             AssignedBy = dto.AssignedBy ?? string.Empty,
             TaskDescription = dto.Description,
@@ -28,7 +29,6 @@ public class TaskService(IMediator mediator) : ITaskService
             Storage = JsonSerializer.Deserialize<Dictionary<string, string?>>(dto.StorageJson ?? "{}") ?? new Dictionary<string, string?>()
         };
     }
-
 
     public async Task<TaskId> CreateWorkflowTaskAsync(IWorkflowTask task)
     {

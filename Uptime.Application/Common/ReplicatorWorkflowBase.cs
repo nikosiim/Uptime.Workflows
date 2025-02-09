@@ -37,7 +37,7 @@ public abstract class ReplicatorWorkflowBase<TContext, TData>(IWorkflowService w
     protected UserTaskActivity? CreateChildActivity(WorkflowTaskContext context)
     {
         TData? taskData = GetTaskDataForContext(context);
-        return taskData != null ? activityFactory.CreateActivity(context.WorkflowId, taskData) as UserTaskActivity : null;
+        return taskData != null ? activityFactory.CreateActivity(context.WorkflowId, taskData, context) as UserTaskActivity : null;
     }
     
     public async Task<WorkflowStatus> AlterTaskAsync(AlterTaskPayload payload)

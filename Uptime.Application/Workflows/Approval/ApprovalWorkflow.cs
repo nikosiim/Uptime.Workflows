@@ -49,7 +49,7 @@ public class ApprovalWorkflow(IWorkflowService workflowService, ITaskService tas
 
             new ReplicatorPhase<ApprovalTaskData>
             {
-                PhaseName = "SigningPhase",
+                PhaseName = "SigningInProgress",
                 TaskData = payload.GetSigningTasks(workflowId)
             }
         ];

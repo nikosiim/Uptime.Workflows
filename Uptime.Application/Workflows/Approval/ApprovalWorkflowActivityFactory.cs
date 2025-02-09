@@ -6,9 +6,9 @@ namespace Uptime.Application.Workflows.Approval;
 
 public class ApprovalWorkflowActivityFactory(ITaskService taskService) : IWorkflowActivityFactory<ApprovalTaskData>
 {
-    public IWorkflowActivity CreateActivity(WorkflowId workflowId, ApprovalTaskData data)
+    public IWorkflowActivity CreateActivity(WorkflowId workflowId, ApprovalTaskData data, WorkflowTaskContext context)
     {
-        return new ApprovalTaskActivity(taskService, new WorkflowTaskContext(workflowId))
+        return new ApprovalTaskActivity(taskService, context)
         {
             InitiationData = data
         };
@@ -20,7 +20,7 @@ public class ApprovalWorkflowActivityFactory(ITaskService taskService) : IWorkfl
         {
             Console.WriteLine($"Approval task initialized for {data.AssignedTo}");
         }
-        else if (phaseName == "SigningPhase")
+        else if (phaseName == "SigningInProgress")
         {
             Console.WriteLine($"Signing task initialized for {data.AssignedTo}");
         }
@@ -32,7 +32,7 @@ public class ApprovalWorkflowActivityFactory(ITaskService taskService) : IWorkfl
         {
             Console.WriteLine($"Approval task completed for {data.AssignedTo}");
         }
-        else if (phaseName == "SigningPhase")
+        else if (phaseName == "SigningInProgress")
         {
             Console.WriteLine($"Signing task completed for {data.AssignedTo}");
         }
