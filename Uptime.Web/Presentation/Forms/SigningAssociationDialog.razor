@@ -6,7 +6,7 @@
         <MudForm @ref="Form">
             <MudTextField T="string" Label="Template Name" Variant="Variant.Outlined" @bind-Value="FormModel.TemplateName" Required="true" />
             <MudTextField T="string" Label="Assigned To" Variant="Variant.Outlined" @bind-Value="FormModel.Signer" Placeholder="Comma-separated usernames" />
-            <MudTextField T="string" Label="Task" Variant="Variant.Outlined" @bind-Value="FormModel.Task" Lines="4" />
+            <MudTextField T="string" Label="Task" Variant="Variant.Outlined" @bind-Value="FormModel.TaskDescription" Lines="4" />
             <MudNumericField Label="Due Days" Variant="Variant.Outlined" @bind-Value="FormModel.DueDays" />
         </MudForm>
     </DialogContent>

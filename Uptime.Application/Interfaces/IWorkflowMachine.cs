@@ -7,7 +7,7 @@ namespace Uptime.Application.Interfaces;
 public interface IWorkflowMachine
 {
     Task<WorkflowPhase> StartAsync(IWorkflowPayload payload);
-    Task FireAsync(string phaseName, WorkflowTrigger trigger);
+    Task FireAsync(string phaseName, WorkflowTrigger trigger, bool autoCommit = true);
     Task UpdateWorkflowStateAsync();
     Task<bool> ReHydrateAsync(WorkflowId workflowId);
     Task<WorkflowPhase> TryAlterTaskAsync(IAlterTaskPayload payload);

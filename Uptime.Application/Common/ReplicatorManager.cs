@@ -43,6 +43,5 @@ public class ReplicatorManager<TData>(WorkflowId workflowId, IWorkflowActivityFa
             return; // No replicator for this phase
         
         await replicator.ExecuteAsync();
-        await workflowMachine.UpdateWorkflowStateAsync();
     }
 }

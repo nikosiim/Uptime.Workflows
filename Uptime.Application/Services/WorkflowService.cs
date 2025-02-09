@@ -41,12 +41,19 @@ public sealed class WorkflowService(IMediator mediator) : IWorkflowService
         TContext existingContext = new();
         existingContext.Deserialize(existingWorkflow.InstanceDataJson ?? "{}");
         existingContext.Storage.MergeWith(context.Storage);
-        
-        await mediator.Send(new UpdateWorkflowStateCommand
+
+        var cmd = new UpdateWorkflowStateCommand
         {
             WorkflowId = workflowId,
             Phase = phase,
             StorageJson = JsonSerializer.Serialize(context)
-        });
+        };
+
+        if (phase == WorkflowPhase.Completed)
+        {
+            cmd.EndDate = DateTime.Now.ToUniversalTime();
+        }
+        
+        await mediator.Send(cmd);
     }
 }

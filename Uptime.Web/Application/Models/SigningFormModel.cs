@@ -3,7 +3,7 @@
 public class SigningFormModel : IWorkflowFormModel
 {
     public string TemplateName { get; set; } = null!;
-    public string? Task { get; set; }
+    public string? TaskDescription { get; set; }
     public string? Signer { get; set; }
     public int DueDays { get; set; }
 }

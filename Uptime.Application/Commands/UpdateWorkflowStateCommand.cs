@@ -11,6 +11,7 @@ public class UpdateWorkflowStateCommand : IRequest
 {
     public WorkflowId WorkflowId { get; set; }
     public WorkflowPhase Phase { get; set; }
+    public DateTime? EndDate { get; set; }
     public string? StorageJson { get; set; }
 }
 
@@ -26,6 +27,7 @@ public class UpdateWorkflowStateCommandHandler(IWorkflowDbContext dbContext)
         }
 
         instance.Phase = request.Phase;
+        instance.EndDate = request.EndDate;
         instance.StorageJson = request.StorageJson;
 
         await dbContext.SaveChangesAsync(ct);

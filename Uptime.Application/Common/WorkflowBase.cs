@@ -18,12 +18,7 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
     public TContext WorkflowContext { get; private set; } = new();
 
     public IWorkflowService WorkflowService => workflowService;
-
-    public async Task FireAsync(string phaseName, WorkflowTrigger trigger)
-    {
-        await Machine.FireAsync(trigger);
-    }
-
+    
     public virtual async Task<WorkflowPhase> StartAsync(IWorkflowPayload payload)
     {
         InitializeStateMachine(WorkflowPhase.NotStarted);
@@ -48,9 +43,32 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
         return true;
     }
 
-    public virtual async Task FireAsync(WorkflowTrigger trigger)
+    public async Task FireAsync(string phaseName, WorkflowTrigger trigger, bool autoCommit = true)
     {
+        Console.WriteLine($"Triggering workflow state change: {Machine.State} -> {trigger}");
+    
         await Machine.FireAsync(trigger);
+    
+        Console.WriteLine($"New workflow state: {Machine.State}");
+
+        if (autoCommit)
+        {
+            await CommitWorkflowStateAsync();
+        }
+    }
+
+    public virtual async Task FireAsync(WorkflowTrigger trigger, bool autoCommit = true)
+    {
+        Console.WriteLine($"Triggering workflow state change: {Machine.State} -> {trigger}");
+    
+        await Machine.FireAsync(trigger);
+    
+        Console.WriteLine($"New workflow state: {Machine.State}");
+
+        if (autoCommit)
+        {
+            await CommitWorkflowStateAsync();
+        }
     }
 
     public async Task UpdateWorkflowStateAsync()

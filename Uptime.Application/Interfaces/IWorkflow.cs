@@ -12,5 +12,5 @@ public interface IWorkflow<out TData>
     /// <summary>
     /// (Optional) An asynchronous version of Fire if needed.
     /// </summary>
-    Task FireAsync(WorkflowTrigger trigger);
+    Task FireAsync(WorkflowTrigger trigger, bool autoCommit = true);
 }

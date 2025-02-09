@@ -17,6 +17,7 @@ public class SigningWorkflow(IWorkflowService workflowService, ITaskService task
 
         Machine.Configure(WorkflowPhase.Signing)
             .OnEntryAsync(StartSigningTask)
+            .OnExitAsync(OnSigningTaskCompleted) 
             .Permit(WorkflowTrigger.TaskCompleted, WorkflowPhase.Completed)
             .Permit(WorkflowTrigger.TaskRejected, WorkflowPhase.Rejected);
 
@@ -24,23 +25,26 @@ public class SigningWorkflow(IWorkflowService workflowService, ITaskService task
             .OnEntry(() => Console.WriteLine("Signing workflow completed successfully."));
 
         Machine.Configure(WorkflowPhase.Rejected)
-            .OnEntry(() => Console.WriteLine("Signing workflow was rejected."));
+            .OnEntry(() => Console.WriteLine("Signing workflow was rejected."))
+            .OnExitAsync(OnWorkflowCompletion);
     }
 
     protected override void OnWorkflowActivated(IWorkflowPayload payload)
     {
         if (payload.Storage.TryGetValue(GlobalConstants.TaskStorageKeys.TaskSigners, out string? signer) && !string.IsNullOrWhiteSpace(signer))
         {
-            string? taskDescription = payload.Storage.GetValueAsString(GlobalConstants.TaskStorageKeys.SignerTask);
-            DateTime dueDate = payload.Storage.GetValueAsDateTime(GlobalConstants.TaskStorageKeys.TaskDueDate);
+            string? taskDescription = payload.Storage.GetValueAsString(GlobalConstants.TaskStorageKeys.TaskDescription);
+            string? dueDays = payload.Storage.GetValueAsString(GlobalConstants.TaskStorageKeys.TaskDueDays);
+
+            int.TryParse(dueDays, out int days);
 
             WorkflowContext.SigningTask = new SigningTaskData
             {
                 AssignedBy = payload.Originator,
                 AssignedTo = signer,
                 TaskDescription = taskDescription,
-                DueDate = dueDate
-            };  
+                DueDate = DateTime.Now.AddDays(days)
+            };
         }             
     }
 
@@ -62,7 +66,7 @@ public class SigningWorkflow(IWorkflowService workflowService, ITaskService task
             await FireAsync(WorkflowTrigger.TaskCompleted);
         }
 
-        return Machine.State;
+        return await CommitWorkflowStateAsync();
     }
 
     private async Task StartSigningTask()
@@ -81,12 +85,16 @@ public class SigningWorkflow(IWorkflowService workflowService, ITaskService task
         };
 
         await taskActivity.ExecuteAsync();
-        await OnSigningTaskCompleted();
     }
 
     private static Task OnSigningTaskCompleted()
     {
         // TODO: add some logic that need to accomplish after task creation
        return Task.CompletedTask;
+    }
+
+    private static Task OnWorkflowCompletion()
+    {
+        return Task.CompletedTask;
     }
 }
