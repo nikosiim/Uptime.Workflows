@@ -18,7 +18,7 @@ public class TaskService(IMediator mediator) : ITaskService
         if (dto is null)
             return null;
 
-        return new WorkflowTaskContext((WorkflowId)dto.WorkflowId, dto.TaskGuid)
+        return new WorkflowTaskContext((WorkflowId)dto.WorkflowId)
         {
             TaskId = taskId,
             AssignedTo = dto.AssignedTo ?? string.Empty,

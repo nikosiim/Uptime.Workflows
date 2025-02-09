@@ -57,6 +57,11 @@ public class Replicator<TItem> : IReplicator<TItem>
             OnChildInitialized?.Invoke(item.Data, activity);
             await activity.ExecuteAsync();
 
+            if (activity is UserTaskActivity userTaskActivity)
+            {
+                item.TaskGuid = userTaskActivity.Context.TaskGuid;
+            }
+
             if (activity.IsCompleted)
             {
                 OnChildCompleted?.Invoke(item.Data, activity);
@@ -86,6 +91,11 @@ public class Replicator<TItem> : IReplicator<TItem>
                 IWorkflowActivity activity = ChildActivityFactory(item.Data);
                 OnChildInitialized?.Invoke(item.Data, activity);
                 await activity.ExecuteAsync();
+
+                if (activity is UserTaskActivity userTaskActivity)
+                {
+                    item.TaskGuid = userTaskActivity.Context.TaskGuid;
+                }
 
                 if (activity.IsCompleted)
                 {

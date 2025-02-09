@@ -30,7 +30,7 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
 
         OnWorkflowActivated(payload);
         await FireAsync(WorkflowTrigger.Start);
-        await WorkflowService.UpdateWorkflowStateAsync(WorkflowId, WorkflowStatus.InProgress, WorkflowContext);
+        await UpdateWorkflowStateAsync();
 
         return Machine.State;
     }
@@ -52,6 +52,11 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
         await Machine.FireAsync(trigger);
     }
 
+    public async Task UpdateWorkflowStateAsync()
+    {
+        await WorkflowService.UpdateWorkflowStateAsync(WorkflowId, Machine.State, WorkflowContext);
+    }
+
     protected void InitializeStateMachine(WorkflowStatus initialState)
     {
         Machine = new StateMachine<WorkflowStatus, WorkflowTrigger>(initialState);
@@ -65,7 +70,7 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
 
     protected virtual async Task<WorkflowStatus> CommitWorkflowStateAsync()
     {
-        await WorkflowService.UpdateWorkflowStateAsync(WorkflowId, Machine.State, WorkflowContext);
+        await UpdateWorkflowStateAsync();
         return Machine.State;
     }
 

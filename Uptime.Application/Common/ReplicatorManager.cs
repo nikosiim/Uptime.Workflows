@@ -22,16 +22,7 @@ public class ReplicatorManager<TData>(WorkflowId workflowId, IWorkflowActivityFa
             {
                 Type = state.Type,
                 Items = state.Items,
-
-                // See jama tuleb siin korda saada
-                ChildActivityFactory = data =>
-                {
-                    var replicatorItem = state.Items.FirstOrDefault(item => item.Data.Equals(data));
-                    Guid taskGuid = replicatorItem?.TaskGuid ?? Guid.NewGuid();
-
-                    return activityFactory.CreateActivity(workflowId, data, taskGuid);
-                },
-
+                ChildActivityFactory = data => activityFactory.CreateActivity(workflowId, data),
                 OnChildInitialized = (data, activity) => activityFactory.OnChildInitialized(phase, data, activity),
                 OnChildCompleted = (data, activity) => activityFactory.OnChildCompleted(phase, data, activity),
                 OnAllTasksCompleted = async () => await workflowMachine.FireAsync(phase, WorkflowTrigger.AllTasksCompleted)
@@ -48,5 +39,6 @@ public class ReplicatorManager<TData>(WorkflowId workflowId, IWorkflowActivityFa
             return; // No replicator for this phase
         
         await replicator.ExecuteAsync();
+        await workflowMachine.UpdateWorkflowStateAsync();
     }
 }

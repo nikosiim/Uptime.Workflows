@@ -21,12 +21,7 @@ public abstract class ReplicatorWorkflowBase<TContext, TData>(IWorkflowService w
             phase => new ReplicatorState<TData>
             {
                 Type = ReplicatorType.Sequential,
-                Items = phase.TaskData.Select(data => new ReplicatorItem<TData>
-                {
-                    Data = data,
-                    TaskGuid = Guid.NewGuid(),
-                    IsCompleted = false
-                }).ToList()
+                Items = phase.TaskData.Select(data => new ReplicatorItem<TData> { Data = data }).ToList()
             });
 
         WorkflowContext.ReplicatorStates = replicatorStates;
@@ -42,7 +37,7 @@ public abstract class ReplicatorWorkflowBase<TContext, TData>(IWorkflowService w
     protected UserTaskActivity? CreateChildActivity(WorkflowTaskContext context)
     {
         TData? taskData = GetTaskDataForContext(context);
-        return taskData != null ? activityFactory.CreateActivity(context.WorkflowId, taskData, context.TaskGuid) as UserTaskActivity : null;
+        return taskData != null ? activityFactory.CreateActivity(context.WorkflowId, taskData) as UserTaskActivity : null;
     }
     
     public async Task<WorkflowStatus> AlterTaskAsync(AlterTaskPayload payload)

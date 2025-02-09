@@ -15,6 +15,6 @@ public class ReplicatorState<TItem> where TItem : IReplicatorItem
 public class ReplicatorItem<TItem>
 {
     public required TItem Data { get; set; }
-    public required Guid TaskGuid { get; set; }
-    public required bool IsCompleted { get; set; }
+    public Guid TaskGuid { get; set; } = Guid.Empty;
+    public bool IsCompleted { get; set; }
 }

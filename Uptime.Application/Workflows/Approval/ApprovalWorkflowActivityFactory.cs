@@ -6,9 +6,9 @@ namespace Uptime.Application.Workflows.Approval;
 
 public class ApprovalWorkflowActivityFactory(ITaskService taskService) : IWorkflowActivityFactory<ApprovalTaskData>
 {
-    public IWorkflowActivity CreateActivity(WorkflowId workflowId, ApprovalTaskData data, Guid taskGuid)
+    public IWorkflowActivity CreateActivity(WorkflowId workflowId, ApprovalTaskData data)
     {
-        return new ApprovalTaskActivity(taskService, new WorkflowTaskContext(workflowId, taskGuid))
+        return new ApprovalTaskActivity(taskService, new WorkflowTaskContext(workflowId))
         {
             InitiationData = data
         };

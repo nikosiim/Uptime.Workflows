@@ -25,6 +25,7 @@ public class ApprovalTaskActivity(ITaskService taskService, WorkflowTaskContext 
 
     private void InitializeContext(ApprovalTaskData data)
     {
+        Context.TaskGuid = Guid.NewGuid();
         Context.AssignedTo = data.AssignedTo;
         Context.AssignedBy = data.AssignedBy;
         Context.DueDate = data.DueDate;

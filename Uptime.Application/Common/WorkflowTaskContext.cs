@@ -3,10 +3,10 @@ using Uptime.Domain.Common;
 
 namespace Uptime.Application.Common;
 
-public class WorkflowTaskContext(WorkflowId workflowId, Guid taskGuid) : IWorkflowTask
+public class WorkflowTaskContext(WorkflowId workflowId) : IWorkflowTask
 {
     public WorkflowId WorkflowId { get; } = workflowId;
-    public Guid TaskGuid { get; } = taskGuid;
+    public Guid TaskGuid { get; set;  }
     public TaskId TaskId { get; set; }
     public string AssignedTo { get; set; } = null!;
     public string AssignedBy { get; set; } = null!;
