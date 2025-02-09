@@ -7,9 +7,11 @@ public static class GlobalConstants
         public const string TaskComment = "TaskComment";
         public const string TaskDelegatedTo = "TaskDelegatedTo";
         public const string TaskDescription = "TaskDescription";
+        public const string SignerTask = "SignerTask";
         public const string TaskDueDate = "TaskDueDate";
         public const string TaskEditor = "TaskEditor";
         public const string TaskExecutors = "TaskExecutors";
+        public const string TaskSigners = "TaskSigners";
         public const string TaskOutcome = "TaskOutcome";
         public const string TaskTitle = "TaskTitle";
     }

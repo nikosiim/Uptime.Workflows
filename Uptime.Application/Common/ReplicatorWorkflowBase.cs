@@ -1,34 +1,50 @@
 ﻿using Uptime.Application.Enums;
 using Uptime.Application.Interfaces;
+using Uptime.Domain.Common;
 using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Common;
 
-/// <summary>
-/// Base class for workflows that use one or more replicators.
-/// Handles replicator execution, task lifecycle management, and workflow state updates.
-/// </summary>
-/// <typeparam name="TContext">The workflow context type, implementing <see cref="IWorkflowContext"/>.</typeparam>
-/// <typeparam name="TData">The data type managed by the replicator, implementing <see cref="IReplicatorItem"/>.</typeparam>
-public abstract class ReplicatorWorkflowBase<TContext, TData>(IWorkflowService workflowService, ITaskService taskService) : WorkflowBase<TContext>(workflowService)
-    where TContext : IWorkflowContext, new() where TData : IReplicatorItem
+public abstract class ReplicatorWorkflowBase<TContext, TData>(IWorkflowService workflowService, ITaskService taskService, IWorkflowActivityFactory<TData> activityFactory)
+    : WorkflowBase<TContext>(workflowService)
+    where TContext : class, IReplicatorWorkflowContext<TData>, new()
+    where TData : IReplicatorItem
 {
-    /// <summary>
-    /// Gets the task service used for handling workflow tasks.
-    /// </summary>
-    protected ITaskService TaskService => taskService;
+    private ReplicatorManager<TData>? _replicatorManager;
 
-    /// <summary>
-    /// Retrieves the list of replicator states associated with the workflow.
-    /// </summary>
-    /// <returns>A list of <see cref="ReplicatorState{TData}"/> instances representing the state of each replicator.</returns>
-    protected abstract List<ReplicatorState<TData>> GetReplicatorStates();
+    protected override void OnWorkflowActivated(IWorkflowPayload payload)
+    {
+        List<ReplicatorPhase<TData>> replicatorPhases = GetReplicatorPhases(payload, WorkflowId);
 
-    /// <summary>
-    /// Handles user-driven task alterations in workflows that contain user-interrupting tasks.
-    /// </summary>
-    /// <param name="payload">The payload containing task modification details.</param>
-    /// <returns>The updated workflow status after processing the task alteration.</returns>
+        Dictionary<string, ReplicatorState<TData>> replicatorStates = replicatorPhases.ToDictionary(
+            phase => phase.PhaseName,
+            phase => new ReplicatorState<TData>
+            {
+                Type = ReplicatorType.Sequential,
+                Items = phase.TaskData.Select(data => new ReplicatorItem<TData>
+                {
+                    Data = data,
+                    TaskGuid = Guid.NewGuid(),
+                    IsCompleted = false
+                }).ToList()
+            });
+
+        WorkflowContext.ReplicatorStates = replicatorStates;
+        EnsureReplicatorManagerInitialized();
+    }
+
+    protected async Task RunReplicatorAsync(string phaseName)
+    {
+        EnsureReplicatorManagerInitialized();
+        await _replicatorManager!.RunReplicatorAsync(phaseName);
+    }
+
+    protected UserTaskActivity? CreateChildActivity(WorkflowTaskContext context)
+    {
+        TData? taskData = GetTaskDataForContext(context);
+        return taskData != null ? activityFactory.CreateActivity(context.WorkflowId, taskData, context.TaskGuid) as UserTaskActivity : null;
+    }
+    
     public async Task<WorkflowStatus> AlterTaskAsync(AlterTaskPayload payload)
     {
         WorkflowTaskContext? context = await taskService.GetWorkflowTaskContextAsync(payload.TaskId);
@@ -41,78 +57,50 @@ public abstract class ReplicatorWorkflowBase<TContext, TData>(IWorkflowService w
 
         await taskActivity.OnTaskChanged(payload);
         UpdateReplicatorState(context.TaskGuid, taskActivity.IsCompleted);
-        await RunReplicatorsAsync();
+
+        if (taskActivity.IsCompleted)
+        {
+            string? phaseName = WorkflowContext.ReplicatorStates
+                .FirstOrDefault(kvp => kvp.Value.Items.Any(item => item.TaskGuid == context.TaskGuid)).Key;
+
+            if (phaseName != null)
+            {
+                await RunReplicatorAsync(phaseName);
+            }
+        }
 
         return await CommitWorkflowStateAsync();
     }
 
-    /// <summary>
-    /// Executes all replicators in the workflow, ensuring task execution and state transitions.
-    /// </summary>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    protected async Task RunReplicatorsAsync()
+    protected override void UpdateReplicatorState(Guid taskGuid, bool isCompleted)
     {
-        foreach (ReplicatorState<TData> replicatorState in GetReplicatorStates())
+        foreach (ReplicatorState<TData> state in WorkflowContext.ReplicatorStates.Values)
         {
-            var replicator = new Replicator<TData>
+            foreach (ReplicatorItem<TData> item in state.Items.Where(t => t.TaskGuid == taskGuid))
             {
-                Type = replicatorState.Type,
-                Items = replicatorState.Items,
-                ChildActivityFactory = CreateChildActivity,
-                OnChildInitialized = OnReplicatorChildInitialized,
-                OnChildCompleted = OnReplicatorChildCompleted,
-                OnAllTasksCompleted = async () => await OnAllTasksCompleted(replicatorState)
-            };
-
-            await replicator.ExecuteAsync();
+                item.IsCompleted = isCompleted;
+                return;
+            }
         }
     }
 
-    /// <summary>
-    /// Updates the state of a replicator when a task is completed.
-    /// </summary>
-    /// <param name="taskGuid">The unique identifier of the completed task.</param>
-    /// <param name="isCompleted">A boolean indicating whether the task is completed.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    protected abstract void UpdateReplicatorState(Guid taskGuid, bool isCompleted);
+    protected abstract List<ReplicatorPhase<TData>> GetReplicatorPhases(IWorkflowPayload payload, WorkflowId workflowId);
 
-    /// <summary>
-    /// Creates a child activity for the given replicator data item.
-    /// </summary>
-    /// <param name="data">The replicator item data.</param>
-    /// <returns>An instance of <see cref="IWorkflowActivity"/> representing the created activity.</returns>
-    protected abstract IWorkflowActivity CreateChildActivity(TData data);
-
-    /// <summary>
-    /// Creates a user-driven task activity for a given workflow task context.
-    /// </summary>
-    /// <param name="context">The task context containing task details.</param>
-    /// <returns>An instance of <see cref="UserTaskActivity"/> representing the created activity.</returns>
-    protected abstract UserTaskActivity CreateChildActivity(WorkflowTaskContext context);
-
-    /// <summary>
-    /// Invoked when a child activity is initialized in a replicator.
-    /// This method can be overridden to modify task context before execution.
-    /// </summary>
-    /// <param name="data">The replicator item data.</param>
-    /// <param name="activity">The initialized workflow activity.</param>
-    protected virtual void OnReplicatorChildInitialized(TData data, IWorkflowActivity activity) { }
-
-    /// <summary>
-    /// Invoked when a child activity is completed in a replicator.
-    /// This method can be overridden to process any post-task completion logic.
-    /// </summary>
-    /// <param name="data">The replicator item data.</param>
-    /// <param name="activity">The completed workflow activity.</param>
-    protected virtual void OnReplicatorChildCompleted(TData data, IWorkflowActivity activity) { }
-
-    /// <summary>
-    /// Invoked when all tasks within a replicator have been completed.
-    /// </summary>
-    /// <param name="replicatorState">The state of the completed replicator.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    protected virtual async Task OnAllTasksCompleted(ReplicatorState<TData> replicatorState)
+    private TData? GetTaskDataForContext(WorkflowTaskContext context)
     {
-        await FireAsync(WorkflowTrigger.AllTasksCompleted);
+        ReplicatorItem<TData>? item = WorkflowContext.ReplicatorStates
+            .SelectMany(kvp => kvp.Value.Items)
+            .FirstOrDefault(item => item.TaskGuid == context.TaskGuid);
+
+        return item != null ? item.Data : default;
+    }
+
+    private void EnsureReplicatorManagerInitialized()
+    {
+        if (_replicatorManager == null)
+        {
+            _replicatorManager = new ReplicatorManager<TData>(WorkflowId, activityFactory, this);
+            _replicatorManager.LoadReplicators(WorkflowContext.ReplicatorStates);
+        }
     }
 }

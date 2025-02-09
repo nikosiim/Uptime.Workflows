@@ -1,6 +1,5 @@
 using Uptime.Application;
 using Uptime.Persistence;
-using Uptime.WorkflowAPI;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 

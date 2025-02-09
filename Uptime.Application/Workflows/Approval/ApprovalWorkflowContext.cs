@@ -4,11 +4,11 @@ using Uptime.Application.Interfaces;
 
 namespace Uptime.Application.Workflows.Approval;
 
-public sealed class ApprovalWorkflowContext : IWorkflowContext
+public sealed class ApprovalWorkflowContext : IReplicatorWorkflowContext<ApprovalTaskData>
 {
     public bool AnyTaskRejected { get; set; }
     public Dictionary<string, string?> Storage { get; set; } = new();
-    public ReplicatorState<ApprovalTaskData> ReplicatorState { get; set; } = new();
+    public Dictionary<string, ReplicatorState<ApprovalTaskData>> ReplicatorStates { get; set; } = new();
 
     public string Serialize() => JsonSerializer.Serialize(this);
 
@@ -19,7 +19,7 @@ public sealed class ApprovalWorkflowContext : IWorkflowContext
         {
             AnyTaskRejected = obj.AnyTaskRejected;
             Storage = obj.Storage;
-            ReplicatorState = obj.ReplicatorState;
+            ReplicatorStates = obj.ReplicatorStates;
         }
     }
 }

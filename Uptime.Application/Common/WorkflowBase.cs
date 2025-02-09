@@ -8,7 +8,7 @@ using Uptime.Shared.Enums;
 namespace Uptime.Application.Common;
 
 public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
-    : IWorkflow<TContext> where TContext : IWorkflowContext, new()
+    : IWorkflowMachine, IWorkflow<TContext> where TContext : class, IWorkflowContext, new()
 {
     protected StateMachine<WorkflowStatus, WorkflowTrigger> Machine = null!;
 
@@ -18,12 +18,17 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
 
     public IWorkflowService WorkflowService => workflowService;
 
+    public async Task FireAsync(string phaseName, WorkflowTrigger trigger)
+    {
+        await Machine.FireAsync(trigger);
+    }
+
     public virtual async Task<WorkflowStatus> StartAsync(IWorkflowPayload payload)
     {
         InitializeStateMachine(WorkflowStatus.NotStarted);
         WorkflowId = await WorkflowService.CreateWorkflowInstanceAsync(payload);
 
-        OnWorkflowActivated(WorkflowId, payload);
+        OnWorkflowActivated(payload);
         await FireAsync(WorkflowTrigger.Start);
         await WorkflowService.UpdateWorkflowStateAsync(WorkflowId, WorkflowStatus.InProgress, WorkflowContext);
 
@@ -53,13 +58,18 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
         ConfigureStateMachine();
     }
 
+    protected virtual void UpdateReplicatorState(Guid taskGuid, bool isCompleted)
+    {
+        // Default implementation: does nothing
+    }
+
     protected virtual async Task<WorkflowStatus> CommitWorkflowStateAsync()
     {
         await WorkflowService.UpdateWorkflowStateAsync(WorkflowId, Machine.State, WorkflowContext);
         return Machine.State;
     }
 
-    protected abstract void OnWorkflowActivated(WorkflowId workflowId, IWorkflowPayload payload);
+    protected abstract void OnWorkflowActivated(IWorkflowPayload payload);
 
     protected abstract void ConfigureStateMachine();
 }

@@ -14,18 +14,16 @@ public record AlterTaskCommand : IRequest<WorkflowStatus>
     public Dictionary<string, string?> Storage { get; init; } = new();
 }
 
-public class AlterTaskCommandHandler(IWorkflowService workflowService, ITaskService taskService) 
+public class AlterTaskCommandHandler(ApprovalWorkflow approvalWorkflow) 
     : IRequestHandler<AlterTaskCommand, WorkflowStatus>
 {
     public async Task<WorkflowStatus> Handle(AlterTaskCommand request, CancellationToken cancellationToken)
     {
-        var workflow = new ApprovalWorkflow(workflowService, taskService);
-
-        bool isRehydrated = await workflow.ReHydrateAsync(request.WorkflowId);
+        bool isRehydrated = await approvalWorkflow.ReHydrateAsync(request.WorkflowId);
         if (isRehydrated)
         {
             var payload = new AlterTaskPayload(request.TaskId, request.WorkflowId, request.Storage);
-            return await workflow.AlterTaskAsync(payload);
+            return await approvalWorkflow.AlterTaskAsync(payload);
         }
 
         return WorkflowStatus.Invalid;

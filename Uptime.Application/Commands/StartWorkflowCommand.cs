@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using Uptime.Application.Common;
 using Uptime.Application.DTOs;
-using Uptime.Application.Interfaces;
 using Uptime.Application.Queries;
 using Uptime.Application.Workflows.Approval;
 using Uptime.Domain.Common;
@@ -17,7 +16,7 @@ public record StartWorkflowCommand : IRequest<WorkflowStatus>
     public Dictionary<string, string?> Storage { get; init; } = new();
 }
 
-public class StartWorkflowCommandHandler(IWorkflowService workflowService, ITaskService taskService, IMediator mediator)
+public class StartWorkflowCommandHandler(ApprovalWorkflow approvalWorkflow, IMediator mediator)
     : IRequestHandler<StartWorkflowCommand, WorkflowStatus>
 {
     public async Task<WorkflowStatus> Handle(StartWorkflowCommand request, CancellationToken cancellationToken)
@@ -39,8 +38,7 @@ public class StartWorkflowCommandHandler(IWorkflowService workflowService, ITask
                 Storage = request.Storage
             };
 
-            var workflow = new ApprovalWorkflow(workflowService, taskService);
-            return await workflow.StartAsync(payload);
+            return await approvalWorkflow.StartAsync(payload);
         }
         
         if (workflowTemplate.WorkflowBaseId == "BA0E8F92-5030-4E24-8BC8-A2A9DF622133")
