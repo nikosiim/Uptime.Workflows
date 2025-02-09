@@ -10,7 +10,7 @@ public class ApprovalWorkflowActivityFactory(ITaskService taskService) : IWorkfl
     {
         return new ApprovalTaskActivity(taskService, context)
         {
-            InitiationData = data
+            TaskData = data
         };
     }
 

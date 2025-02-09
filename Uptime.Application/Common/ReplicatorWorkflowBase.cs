@@ -2,6 +2,7 @@
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
+using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Common;
 
@@ -39,8 +40,8 @@ public abstract class ReplicatorWorkflowBase<TContext, TData>(IWorkflowService w
         TData? taskData = GetTaskDataForContext(context);
         return taskData != null ? activityFactory.CreateActivity(taskData, context) as UserTaskActivity : null;
     }
-    
-    public async Task<WorkflowPhase> AlterTaskAsync(AlterTaskPayload payload)
+
+    protected override async Task<WorkflowPhase> AlterTaskInternalAsync(IAlterTaskPayload payload)
     {
         WorkflowTaskContext? context = await taskService.GetWorkflowTaskContextAsync(payload.TaskId);
         if (context == null) return Machine.State;

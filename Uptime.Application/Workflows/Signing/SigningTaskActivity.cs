@@ -4,16 +4,16 @@ using Uptime.Shared.Enums;
 using Uptime.Shared.Extensions;
 using static Uptime.Shared.GlobalConstants;
 
-namespace Uptime.Application.Workflows.Approval;
+namespace Uptime.Application.Workflows.Signing;
 
-public class ApprovalTaskActivity(ITaskService taskService, WorkflowTaskContext context)
+public class SigningTaskActivity(ITaskService taskService, WorkflowTaskContext context)
     : UserTaskActivity(taskService, context)
 {
     protected override void ExecuteTaskLogicAsync()
     {
         if (TaskData is null) return;
 
-        Context.Storage.SetValueAsString(TaskStorageKeys.TaskTitle, "Kinnitamine");
+        Context.Storage.SetValueAsString(TaskStorageKeys.TaskTitle, "Allkirjastamine");
         Context.Storage.SetValueAsEnum<TaskOutcome>(TaskStorageKeys.TaskOutcome, TaskOutcome.Pending);
     }
 
@@ -23,7 +23,7 @@ public class ApprovalTaskActivity(ITaskService taskService, WorkflowTaskContext 
         string? comment = payload.Storage.GetValueAsString(TaskStorageKeys.TaskComment);
         string? delegatedTo = payload.Storage.GetValueAsString(TaskStorageKeys.TaskDelegatedTo);
 
-        Context.TaskId = payload.TaskId;// TODO: miks siin contexti peab täitma, millegipärast on väärtused siit puudu
+        Context.TaskId = payload.TaskId;// Enam pole vist vaja seda
 
         if (payload.Storage.TryGetValueAsEnum(TaskStorageKeys.TaskOutcome, out TaskOutcome? taskOutcome))
         {

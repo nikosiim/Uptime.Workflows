@@ -58,6 +58,14 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
         await WorkflowService.UpdateWorkflowStateAsync(WorkflowId, Machine.State, WorkflowContext);
     }
 
+    public async Task<WorkflowPhase> TryAlterTaskAsync(IAlterTaskPayload payload)
+    {
+        if (!CanAlterTaskAsync())
+            return WorkflowPhase.Completed;
+
+        return await AlterTaskInternalAsync(payload);
+    }
+
     protected void InitializeStateMachine(WorkflowPhase initialPhase)
     {
         Machine = new StateMachine<WorkflowPhase, WorkflowTrigger>(initialPhase);
@@ -78,4 +86,17 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
     protected abstract void OnWorkflowActivated(IWorkflowPayload payload);
 
     protected abstract void ConfigureStateMachine();
+
+    protected abstract Task<WorkflowPhase> AlterTaskInternalAsync(IAlterTaskPayload payload);
+    
+    private bool CanAlterTaskAsync()
+    {
+        if (Machine.State == WorkflowPhase.Completed)
+        {
+            Console.WriteLine("Workflow is already completed. No modifications allowed.");
+            return false;
+        }
+
+        return true;
+    }
 }

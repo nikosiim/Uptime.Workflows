@@ -3,12 +3,36 @@ using Uptime.Domain.Common;
 
 namespace Uptime.Application.Common;
 
-public abstract class UserTaskActivity(ITaskService taskService, WorkflowTaskContext context) : IWorkflowActivity
+public abstract class UserTaskActivity(ITaskService taskService, WorkflowTaskContext context) : IUserTaskActivity
 {
+    public WorkflowTaskContext Context => context;
     public ITaskService TaskService => taskService;
     public WorkflowId WorkflowId => context.WorkflowId;
-    public WorkflowTaskContext Context => context;
+
     public bool IsCompleted { get; set; }
-    public abstract Task ExecuteAsync();
+    public IUserTaskActivityData? TaskData { get; set; }
+
     public abstract Task OnTaskChanged(IAlterTaskPayload payload);
+    protected abstract void ExecuteTaskLogicAsync();
+
+    public async Task ExecuteAsync()
+    {
+        Context.TaskGuid = Guid.NewGuid();
+
+        InitializeContext();
+        ExecuteTaskLogicAsync();
+
+        Context.TaskId = await TaskService.CreateWorkflowTaskAsync(Context);
+    }
+
+    protected virtual void InitializeContext()
+    {
+        if (TaskData != null)
+        {
+            Context.AssignedTo = TaskData.AssignedTo;
+            Context.AssignedBy = TaskData.AssignedBy;
+            Context.DueDate = TaskData.DueDate;
+            Context.TaskDescription = TaskData.TaskDescription;
+        }
+    }
 }

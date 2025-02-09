@@ -23,7 +23,7 @@ public class AlterTaskCommandHandler(ApprovalWorkflow approvalWorkflow)
         if (isRehydrated)
         {
             var payload = new AlterTaskPayload(request.TaskId, request.WorkflowId, request.Storage);
-            WorkflowPhase phase = await approvalWorkflow.AlterTaskAsync(payload);
+            WorkflowPhase phase = await approvalWorkflow.TryAlterTaskAsync(payload);
 
             return phase.MapToWorkflowStatus();
         }
