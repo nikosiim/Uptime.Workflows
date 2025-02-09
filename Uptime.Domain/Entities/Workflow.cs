@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Uptime.Shared.Enums;
+using Uptime.Domain.Enums;
 
 namespace Uptime.Domain.Entities;
 
 public class Workflow : BaseEntity
 {
-    public WorkflowStatus Status { get; set; }
+    public WorkflowPhase Phase { get; set; }
     [StringLength(128)]
     public string? Originator { get; set; }
     public DateTime StartDate { get; set; }

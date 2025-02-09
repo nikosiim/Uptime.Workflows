@@ -2,33 +2,37 @@
 using Uptime.Application.Enums;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
-using Uptime.Shared.Enums;
-using Uptime.Shared.Extensions;
-using static Uptime.Shared.GlobalConstants;
+using Uptime.Domain.Enums;
 
 namespace Uptime.Application.Workflows.Approval;
 
 public class ApprovalWorkflow(IWorkflowService workflowService, ITaskService taskService, IWorkflowActivityFactory<ApprovalTaskData> activityFactory)
     : ReplicatorWorkflowBase<ApprovalWorkflowContext, ApprovalTaskData>(workflowService, taskService, activityFactory)
 {
+    public static class Phases
+    {
+        public const string ApprovalPhase = "ApprovalPhase";
+        public const string SigningPhase = "SigningPhase";
+    }
+
     protected override void ConfigureStateMachine()
     {
-        Machine.Configure(WorkflowStatus.NotStarted)
-            .Permit(WorkflowTrigger.Start, WorkflowStatus.ApprovalInProgress);
+        Machine.Configure(WorkflowPhase.NotStarted)
+            .Permit(WorkflowTrigger.Start, WorkflowPhase.Approval);
 
-        Machine.Configure(WorkflowStatus.ApprovalInProgress)
-            .OnEntryAsync(() => RunReplicatorAsync(WorkflowStatus.ApprovalInProgress.ToString()))
-            .Permit(WorkflowTrigger.AllTasksCompleted, WorkflowStatus.SigningInProgress)
-            .Permit(WorkflowTrigger.TaskRejected, WorkflowStatus.Rejected);
+        Machine.Configure(WorkflowPhase.Approval)
+            .OnEntryAsync(() => RunReplicatorAsync(Phases.ApprovalPhase))
+            .Permit(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Signing)
+            .Permit(WorkflowTrigger.TaskRejected, WorkflowPhase.Rejected);
 
-        Machine.Configure(WorkflowStatus.SigningInProgress)
-            .OnEntryAsync(() => RunReplicatorAsync(WorkflowStatus.SigningInProgress.ToString()))
-            .Permit(WorkflowTrigger.AllTasksCompleted, WorkflowStatus.Completed);
+        Machine.Configure(WorkflowPhase.Signing)
+            .OnEntryAsync(() => RunReplicatorAsync(Phases.SigningPhase))
+            .Permit(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Completed);
 
-        Machine.Configure(WorkflowStatus.Completed)
+        Machine.Configure(WorkflowPhase.Completed)
             .OnEntry(() => Console.WriteLine("Workflow completed successfully."));
 
-        Machine.Configure(WorkflowStatus.Rejected)
+        Machine.Configure(WorkflowPhase.Rejected)
             .OnEntry(() => Console.WriteLine("Workflow was rejected."));
     }
 
@@ -43,13 +47,13 @@ public class ApprovalWorkflow(IWorkflowService workflowService, ITaskService tas
         [
             new ReplicatorPhase<ApprovalTaskData>
             {
-                PhaseName = "ApprovalInProgress",
+                PhaseName = Phases.ApprovalPhase,
                 TaskData = payload.GetApprovalTasks(workflowId)
             },
 
             new ReplicatorPhase<ApprovalTaskData>
             {
-                PhaseName = "SigningInProgress",
+                PhaseName = Phases.SigningPhase,
                 TaskData = payload.GetSigningTasks(workflowId)
             }
         ];

@@ -2,6 +2,7 @@
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
+using Uptime.Domain.Enums;
 using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Commands;
@@ -20,7 +21,7 @@ public class CreateWorkflowInstanceCommandHandler(IWorkflowDbContext dbContext)
     {
         var instance = new Workflow
         {
-            Status = WorkflowStatus.NotStarted,
+            Phase = WorkflowPhase.NotStarted,
             StorageJson = null,
             Originator = request.Originator,
             StartDate = DateTime.UtcNow,

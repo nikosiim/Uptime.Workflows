@@ -81,7 +81,7 @@ namespace Uptime.Persistence.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Status = table.Column<int>(type: "int", nullable: false),
+                    Phase = table.Column<int>(type: "int", nullable: false),
                     Originator = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),

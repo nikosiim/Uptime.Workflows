@@ -3,14 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
-using Uptime.Shared.Enums;
+using Uptime.Domain.Enums;
 
 namespace Uptime.Application.Commands;
 
 public class UpdateWorkflowStateCommand : IRequest
 {
     public WorkflowId WorkflowId { get; set; }
-    public WorkflowStatus Status { get; set; }
+    public WorkflowPhase Phase { get; set; }
     public string? StorageJson { get; set; }
 }
 
@@ -25,7 +25,7 @@ public class UpdateWorkflowStateCommandHandler(IWorkflowDbContext dbContext)
             throw new Exception($"Workflow {request.WorkflowId} not found.");
         }
 
-        instance.Status = request.Status;
+        instance.Phase = request.Phase;
         instance.StorageJson = request.StorageJson;
 
         await dbContext.SaveChangesAsync(ct);

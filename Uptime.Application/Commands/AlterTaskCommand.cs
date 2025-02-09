@@ -1,8 +1,8 @@
 ﻿using MediatR;
 using Uptime.Application.Common;
-using Uptime.Application.Interfaces;
 using Uptime.Application.Workflows.Approval;
 using Uptime.Domain.Common;
+using Uptime.Domain.Enums;
 using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Commands;
@@ -23,7 +23,9 @@ public class AlterTaskCommandHandler(ApprovalWorkflow approvalWorkflow)
         if (isRehydrated)
         {
             var payload = new AlterTaskPayload(request.TaskId, request.WorkflowId, request.Storage);
-            return await approvalWorkflow.AlterTaskAsync(payload);
+            WorkflowPhase phase = await approvalWorkflow.AlterTaskAsync(payload);
+
+            return phase.MapToWorkflowStatus();
         }
 
         return WorkflowStatus.Invalid;

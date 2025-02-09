@@ -24,7 +24,7 @@ public class ReplicatorManager<TData>(WorkflowId workflowId, IWorkflowActivityFa
             {
                 Type = state.Type,
                 Items = state.Items,
-                ChildActivityFactory = data => activityFactory.CreateActivity(workflowId, data, new WorkflowTaskContext(workflowId)),
+                ChildActivityFactory = data => activityFactory.CreateActivity(data, new WorkflowTaskContext(workflowId)),
                 OnChildInitialized = (data, activity) => activityFactory.OnChildInitialized(phase, data, activity),
                 OnChildCompleted = (data, activity) => activityFactory.OnChildCompleted(phase, data, activity),
                 OnAllTasksCompleted = async () => await workflowMachine.FireAsync(phase, WorkflowTrigger.AllTasksCompleted)

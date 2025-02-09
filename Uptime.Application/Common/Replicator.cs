@@ -3,6 +3,7 @@ using Uptime.Application.Interfaces;
 
 namespace Uptime.Application.Common;
 
+// TODO: remove duplicated code
 public class Replicator<TItem> : IReplicator<TItem>
 {
     public ReplicatorType Type { get; set; } = ReplicatorType.Sequential;

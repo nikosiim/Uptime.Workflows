@@ -6,3 +6,9 @@
 
 	- Project Uptime.Persistence → Ensures migrations are added to the Persistence project.
 	- StartupProject Uptime.API → Ensures EF Core loads the connection string from appsettings.json.
+
+
+
+Tasks:
+1. Testida töövoogu, milles on 2 user activitit ja 1 logimise activity
+2. StartWorkflowCommand WorkflowBaseId kasutamine

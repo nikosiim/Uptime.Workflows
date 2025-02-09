@@ -2,13 +2,7 @@
 
 public enum WorkflowStatus
 {
-    NotStarted = 1,
-    InProgress = 2,
-    Rejected = 3,
-    Completed = 4,
-    Cancelled = 5,
-    Terminated = 6,
-    Invalid = 7,
-    ApprovalInProgress = 8,
-    SigningInProgress = 9
+    InProgress = 1,
+    Completed = 2,
+    Invalid = 3
 }

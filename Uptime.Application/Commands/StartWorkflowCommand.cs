@@ -4,11 +4,11 @@ using Uptime.Application.DTOs;
 using Uptime.Application.Queries;
 using Uptime.Application.Workflows.Approval;
 using Uptime.Domain.Common;
-using Uptime.Shared.Enums;
+using Uptime.Domain.Enums;
 
 namespace Uptime.Application.Commands;
 
-public record StartWorkflowCommand : IRequest<WorkflowStatus>
+public record StartWorkflowCommand : IRequest<WorkflowPhase>
 {
     public required string Originator { get; init; }
     public required DocumentId DocumentId { get; init; }
@@ -17,19 +17,18 @@ public record StartWorkflowCommand : IRequest<WorkflowStatus>
 }
 
 public class StartWorkflowCommandHandler(ApprovalWorkflow approvalWorkflow, IMediator mediator)
-    : IRequestHandler<StartWorkflowCommand, WorkflowStatus>
+    : IRequestHandler<StartWorkflowCommand, WorkflowPhase>
 {
-    public async Task<WorkflowStatus> Handle(StartWorkflowCommand request, CancellationToken cancellationToken)
+    public async Task<WorkflowPhase> Handle(StartWorkflowCommand request, CancellationToken cancellationToken)
     {
         WorkflowTemplateDto? workflowTemplate = await mediator.Send(new GetWorkflowTemplateQuery(request.WorkflowTemplateId), cancellationToken);
         if (workflowTemplate == null)
         {
-            return WorkflowStatus.Invalid;
+            return WorkflowPhase.Invalid;
         }
 
         if (workflowTemplate.WorkflowBaseId == "16778969-6d4c-4367-9106-1b0ae4a4594f")
         {
-            // TODO: use mapping if desired
             var payload = new StartWorkflowPayload
             {
                 Originator = request.Originator,
@@ -37,7 +36,7 @@ public class StartWorkflowCommandHandler(ApprovalWorkflow approvalWorkflow, IMed
                 WorkflowTemplateId = request.WorkflowTemplateId,
                 Storage = request.Storage
             };
-
+            
             return await approvalWorkflow.StartAsync(payload);
         }
         
@@ -46,6 +45,6 @@ public class StartWorkflowCommandHandler(ApprovalWorkflow approvalWorkflow, IMed
             // Signing workflow
         }
 
-        return WorkflowStatus.Invalid;
+        return WorkflowPhase.Invalid;
     }
 }

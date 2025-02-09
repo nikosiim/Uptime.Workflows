@@ -17,7 +17,7 @@ public class DocumentsController(IMediator mediator) : ControllerBase
         var query = new GetDocumentWorkflowsQuery((DocumentId)documentId);
         List<DocumentWorkflowDto> workflows = await mediator.Send(query);
 
-        if (!workflows.Any())
+        if (workflows.Count == 0)
         {
             return NotFound($"No workflow instances found for document ID {documentId}.");
         }
@@ -31,7 +31,7 @@ public class DocumentsController(IMediator mediator) : ControllerBase
         var query = new GetDocumentWorkflowTasksQuery((DocumentId)documentId);
         List<DocumentWorkflowTaskDto> tasks = await mediator.Send(query);
 
-        if (!tasks.Any())
+        if (tasks.Count == 0)
         {
             return NotFound($"No tasks found for document ID {documentId}.");
         }

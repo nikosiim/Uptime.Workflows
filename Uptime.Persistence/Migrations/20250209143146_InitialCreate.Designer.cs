@@ -12,7 +12,7 @@ using Uptime.Persistence;
 namespace Uptime.Persistence.Migrations
 {
     [DbContext(typeof(WorkflowDbContext))]
-    [Migration("20250208111920_InitialCreate")]
+    [Migration("20250209143146_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -204,11 +204,11 @@ namespace Uptime.Persistence.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
+                    b.Property<int>("Phase")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
 
                     b.Property<string>("StorageJson")
                         .HasMaxLength(4096)

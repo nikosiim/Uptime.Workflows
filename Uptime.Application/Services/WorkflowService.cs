@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using Uptime.Application.Commands;
 using Uptime.Application.Common;
@@ -7,7 +6,7 @@ using Uptime.Application.DTOs;
 using Uptime.Application.Interfaces;
 using Uptime.Application.Queries;
 using Uptime.Domain.Common;
-using Uptime.Shared.Enums;
+using Uptime.Domain.Enums;
 
 namespace Uptime.Application.Services;
 
@@ -30,7 +29,7 @@ public sealed class WorkflowService(IMediator mediator) : IWorkflowService
         return await mediator.Send(new GetWorkflowQuery(workflowId));
     }
 
-    public async Task UpdateWorkflowStateAsync<TContext>(WorkflowId workflowId, WorkflowStatus status, TContext context) 
+    public async Task UpdateWorkflowStateAsync<TContext>(WorkflowId workflowId, WorkflowPhase phase, TContext context) 
         where TContext : IWorkflowContext, new()
     {
         WorkflowDto? existingWorkflow = await GetWorkflowInstanceAsync(workflowId);
@@ -46,7 +45,7 @@ public sealed class WorkflowService(IMediator mediator) : IWorkflowService
         await mediator.Send(new UpdateWorkflowStateCommand
         {
             WorkflowId = workflowId,
-            Status = status,
+            Phase = phase,
             StorageJson = JsonSerializer.Serialize(context)
         });
     }

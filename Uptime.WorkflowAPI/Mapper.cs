@@ -1,4 +1,5 @@
 ﻿using Uptime.Application.Commands;
+using Uptime.Application.Common;
 using Uptime.Application.DTOs;
 using Uptime.Domain.Common;
 using Uptime.Shared.Models.Documents;
@@ -22,7 +23,7 @@ public static class Mapper
             WorkflowTemplateName = dto.WorkflowTemplateName,
             StartDate = dto.StartDate,
             EndDate = dto.EndDate,
-            Status = dto.Status
+            Status = dto.Phase.MapToWorkflowStatus()
         }).ToList();
     }
 
@@ -75,7 +76,7 @@ public static class Mapper
     {
         return new WorkflowResponse
         {
-            Status = source.Status,
+            Status = source.Phase.MapToWorkflowStatus(),
             Originator = source.Originator,
             StartDate = source.StartDate,
             EndDate = source.EndDate,

@@ -16,7 +16,7 @@ public class GetWorkflowQueryHandler(IWorkflowDbContext dbContext) : IRequestHan
             .Where(x => x.Id == request.WorkflowId.Value)
             .Select(w => new WorkflowDto
             {
-                Status = w.Status,
+                Phase = w.Phase,
                 StartDate = w.StartDate,
                 EndDate = w.EndDate,
                 Originator = w.Originator,

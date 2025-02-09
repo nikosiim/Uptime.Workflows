@@ -1,9 +1,11 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Application.Commands;
+using Uptime.Application.Common;
 using Uptime.Application.DTOs;
 using Uptime.Application.Queries;
 using Uptime.Domain.Common;
+using Uptime.Domain.Enums;
 using Uptime.Shared.Enums;
 using Uptime.Shared.Models.Workflows;
 
@@ -44,12 +46,12 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<Task<WorkflowStatus>>> StartWorkflow([FromBody] StartWorkflowRequest request)
     {
         StartWorkflowCommand query = Mapper.MapToStartWorkflowCommand(request);
-        WorkflowStatus status = await mediator.Send(query);
+        WorkflowPhase phase = await mediator.Send(query);
 
-        if (status == WorkflowStatus.Invalid)
+        if (phase == WorkflowPhase.Invalid)
             return BadRequest("Invalid workflow type.");
 
-        return Ok(status);
+        return Ok(phase.MapToWorkflowStatus());
     }
 
     [HttpPost("{workflowId:int}/cancel-workflow")]

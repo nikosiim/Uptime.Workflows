@@ -1,16 +1,17 @@
 ﻿using Stateless;
 using System.Text.Json;
+using Uptime.Application.DTOs;
 using Uptime.Application.Enums;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
-using Uptime.Shared.Enums;
+using Uptime.Domain.Enums;
 
 namespace Uptime.Application.Common;
 
 public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
     : IWorkflowMachine, IWorkflow<TContext> where TContext : class, IWorkflowContext, new()
 {
-    protected StateMachine<WorkflowStatus, WorkflowTrigger> Machine = null!;
+    protected StateMachine<WorkflowPhase, WorkflowTrigger> Machine = null!;
 
     protected WorkflowId WorkflowId;
 
@@ -23,9 +24,9 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
         await Machine.FireAsync(trigger);
     }
 
-    public virtual async Task<WorkflowStatus> StartAsync(IWorkflowPayload payload)
+    public virtual async Task<WorkflowPhase> StartAsync(IWorkflowPayload payload)
     {
-        InitializeStateMachine(WorkflowStatus.NotStarted);
+        InitializeStateMachine(WorkflowPhase.NotStarted);
         WorkflowId = await WorkflowService.CreateWorkflowInstanceAsync(payload);
 
         OnWorkflowActivated(payload);
@@ -37,13 +38,13 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
 
     public virtual async Task<bool> ReHydrateAsync(WorkflowId workflowId)
     {
-        var workflowInstance = await WorkflowService.GetWorkflowInstanceAsync(workflowId);
+        WorkflowDto? workflowInstance = await WorkflowService.GetWorkflowInstanceAsync(workflowId);
         if (workflowInstance is null) return false;
 
         WorkflowContext = JsonSerializer.Deserialize<TContext>(workflowInstance.InstanceDataJson ?? string.Empty) ?? new TContext();
         WorkflowId = workflowId;
 
-        InitializeStateMachine(workflowInstance.Status);
+        InitializeStateMachine(workflowInstance.Phase);
         return true;
     }
 
@@ -57,9 +58,9 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
         await WorkflowService.UpdateWorkflowStateAsync(WorkflowId, Machine.State, WorkflowContext);
     }
 
-    protected void InitializeStateMachine(WorkflowStatus initialState)
+    protected void InitializeStateMachine(WorkflowPhase initialPhase)
     {
-        Machine = new StateMachine<WorkflowStatus, WorkflowTrigger>(initialState);
+        Machine = new StateMachine<WorkflowPhase, WorkflowTrigger>(initialPhase);
         ConfigureStateMachine();
     }
 
@@ -68,7 +69,7 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
         // Default implementation: does nothing
     }
 
-    protected virtual async Task<WorkflowStatus> CommitWorkflowStateAsync()
+    protected virtual async Task<WorkflowPhase> CommitWorkflowStateAsync()
     {
         await UpdateWorkflowStateAsync();
         return Machine.State;
