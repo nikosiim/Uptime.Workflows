@@ -52,7 +52,7 @@ public class SigningWorkflow(IWorkflowService workflowService, ITaskService task
     {
         WorkflowTaskContext? context = await taskService.GetWorkflowTaskContextAsync(payload.TaskId);
         if (context == null) 
-            return Machine.State;
+            return Machine.CurrentState;
 
         var taskActivity = new SigningTaskActivity(taskService, context)
         {

@@ -1,5 +1,4 @@
-﻿using Stateless;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Uptime.Application.DTOs;
 using Uptime.Application.Enums;
 using Uptime.Application.Interfaces;
@@ -8,17 +7,17 @@ using Uptime.Domain.Enums;
 
 namespace Uptime.Application.Common;
 
-public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
-    : IWorkflowMachine, IWorkflow<TContext> where TContext : class, IWorkflowContext, new()
+public abstract class WorkflowBase<TContext>(IWorkflowService workflowService) : IWorkflowMachine, IWorkflow<TContext>
+    where TContext : class, IWorkflowContext, new()
 {
-    protected StateMachine<WorkflowPhase, WorkflowTrigger> Machine = null!;
+    protected IStateMachine<WorkflowPhase, WorkflowTrigger> Machine = null!;
 
     protected WorkflowId WorkflowId;
 
     public TContext WorkflowContext { get; private set; } = new();
 
-    public IWorkflowService WorkflowService => workflowService;
-    
+    public IWorkflowService WorkflowService { get; } = workflowService;
+
     public virtual async Task<WorkflowPhase> StartAsync(IWorkflowPayload payload)
     {
         InitializeStateMachine(WorkflowPhase.NotStarted);
@@ -28,42 +27,30 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
         await FireAsync(WorkflowTrigger.Start);
         await UpdateWorkflowStateAsync();
 
-        return Machine.State;
+        return Machine.CurrentState;
     }
 
     public virtual async Task<bool> ReHydrateAsync(WorkflowId workflowId)
     {
         WorkflowDto? workflowInstance = await WorkflowService.GetWorkflowInstanceAsync(workflowId);
-        if (workflowInstance is null) return false;
+        if (workflowInstance is null)
+            return false;
 
-        WorkflowContext = JsonSerializer.Deserialize<TContext>(workflowInstance.InstanceDataJson ?? string.Empty) ?? new TContext();
+        WorkflowContext = JsonSerializer.Deserialize<TContext>(
+            workflowInstance.InstanceDataJson ?? string.Empty) ?? new TContext();
         WorkflowId = workflowId;
 
         InitializeStateMachine(workflowInstance.Phase);
         return true;
     }
 
-    public async Task FireAsync(string phaseName, WorkflowTrigger trigger, bool autoCommit = true)
-    {
-        Console.WriteLine($"Triggering workflow state change: {Machine.State} -> {trigger}");
-    
-        await Machine.FireAsync(trigger);
-    
-        Console.WriteLine($"New workflow state: {Machine.State}");
-
-        if (autoCommit)
-        {
-            await CommitWorkflowStateAsync();
-        }
-    }
-
     public virtual async Task FireAsync(WorkflowTrigger trigger, bool autoCommit = true)
     {
-        Console.WriteLine($"Triggering workflow state change: {Machine.State} -> {trigger}");
-    
+        Console.WriteLine($"Triggering workflow state change: {Machine.CurrentState} -> {trigger}");
+
         await Machine.FireAsync(trigger);
-    
-        Console.WriteLine($"New workflow state: {Machine.State}");
+
+        Console.WriteLine($"New workflow state: {Machine.CurrentState}");
 
         if (autoCommit)
         {
@@ -73,7 +60,7 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
 
     public async Task UpdateWorkflowStateAsync()
     {
-        await WorkflowService.UpdateWorkflowStateAsync(WorkflowId, Machine.State, WorkflowContext);
+        await WorkflowService.UpdateWorkflowStateAsync(WorkflowId, Machine.CurrentState, WorkflowContext);
     }
 
     public async Task<WorkflowPhase> TryAlterTaskAsync(IAlterTaskPayload payload)
@@ -86,7 +73,7 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
 
     protected void InitializeStateMachine(WorkflowPhase initialPhase)
     {
-        Machine = new StateMachine<WorkflowPhase, WorkflowTrigger>(initialPhase);
+        Machine = StateMachineFactory.Create<WorkflowPhase, WorkflowTrigger>(initialPhase);
         ConfigureStateMachine();
     }
 
@@ -98,7 +85,7 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
     protected virtual async Task<WorkflowPhase> CommitWorkflowStateAsync()
     {
         await UpdateWorkflowStateAsync();
-        return Machine.State;
+        return Machine.CurrentState;
     }
 
     protected abstract void OnWorkflowActivated(IWorkflowPayload payload);
@@ -106,10 +93,10 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService)
     protected abstract void ConfigureStateMachine();
 
     protected abstract Task<WorkflowPhase> AlterTaskInternalAsync(IAlterTaskPayload payload);
-    
+
     private bool CanAlterTaskAsync()
     {
-        if (Machine.State == WorkflowPhase.Completed)
+        if (Machine.CurrentState == WorkflowPhase.Completed)
         {
             Console.WriteLine("Workflow is already completed. No modifications allowed.");
             return false;

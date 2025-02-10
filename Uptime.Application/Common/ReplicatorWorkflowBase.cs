@@ -44,7 +44,7 @@ public abstract class ReplicatorWorkflowBase<TContext, TData>(IWorkflowService w
     protected override async Task<WorkflowPhase> AlterTaskInternalAsync(IAlterTaskPayload payload)
     {
         WorkflowTaskContext? context = await taskService.GetWorkflowTaskContextAsync(payload.TaskId);
-        if (context == null) return Machine.State;
+        if (context == null) return Machine.CurrentState;
 
         if (CreateChildActivity(context) is not { } taskActivity)
         {
