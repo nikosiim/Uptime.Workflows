@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using Uptime.Application.Commands;
 using Uptime.Application.Common;
 using Uptime.Application.Interfaces;
 using Uptime.Application.Services;
@@ -25,8 +26,12 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IWorkflowPersistenceService, WorkflowPersistenceService>();
         services.AddScoped<ITaskService, TaskService>();
         services.AddScoped(typeof(IWorkflowStateRepository<>), typeof(WorkflowStateRepository<>));
+        services.AddScoped(typeof(IReplicatorPhaseBuilder<>), typeof(ReplicatorPhaseBuilder<>));
 
         services.AddScoped(typeof(ReplicatorManager<>));
         services.AddScoped<IWorkflowActivityFactory<ApprovalTaskData>, ApprovalWorkflowActivityFactory>();
+
+        services.AddScoped<IReplicatorPhaseBuilder<ApprovalTaskData>>(provider =>
+            new ReplicatorPhaseBuilder<ApprovalTaskData>(ApprovalWorkflow.PhaseConfiguration));
     }
 }

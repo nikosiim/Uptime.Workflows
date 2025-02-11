@@ -11,6 +11,7 @@ public abstract class ReplicatorWorkflowBase<TContext, TData>(
     IWorkflowPersistenceService workflowService, 
     ITaskService taskService, 
     IWorkflowActivityFactory<TData> activityFactory,
+    IReplicatorPhaseBuilder<TData> replicatorPhaseBuilder,
     ILogger<WorkflowBase<TContext>> logger)
     : WorkflowBase<TContext>(stateRepository, workflowService, logger)
     where TContext : class, IReplicatorWorkflowContext<TData>, new()
@@ -20,7 +21,7 @@ public abstract class ReplicatorWorkflowBase<TContext, TData>(
 
     protected override void OnWorkflowActivated(IWorkflowPayload payload)
     {
-        List<ReplicatorPhase<TData>> replicatorPhases = GetReplicatorPhases(payload, WorkflowId);
+        List<ReplicatorPhase<TData>> replicatorPhases = replicatorPhaseBuilder.BuildPhases(payload, WorkflowId);
 
         Dictionary<string, ReplicatorState<TData>> replicatorStates = replicatorPhases.ToDictionary(
             phase => phase.PhaseName,
@@ -84,9 +85,7 @@ public abstract class ReplicatorWorkflowBase<TContext, TData>(
             }
         }
     }
-
-    protected abstract List<ReplicatorPhase<TData>> GetReplicatorPhases(IWorkflowPayload payload, WorkflowId workflowId);
-
+    
     private TData? GetTaskDataForContext(WorkflowTaskContext context)
     {
         ReplicatorItem<TData>? item = WorkflowContext.ReplicatorStates

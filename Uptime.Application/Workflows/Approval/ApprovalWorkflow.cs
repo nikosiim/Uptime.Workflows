@@ -10,15 +10,23 @@ public class ApprovalWorkflow(
     IWorkflowStateRepository<ApprovalWorkflowContext> stateRepository,
     IWorkflowPersistenceService workflowService, 
     ITaskService taskService, 
+    IReplicatorPhaseBuilder<ApprovalTaskData> replicatorPhaseBuilder,
     IWorkflowActivityFactory<ApprovalTaskData> activityFactory, 
     ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
-    : ReplicatorWorkflowBase<ApprovalWorkflowContext, ApprovalTaskData>(stateRepository, workflowService, taskService, activityFactory, logger)
+    : ReplicatorWorkflowBase<ApprovalWorkflowContext, ApprovalTaskData>(stateRepository, workflowService, taskService, activityFactory, replicatorPhaseBuilder, logger)
 {
     public static class Phases
     {
         public const string ApprovalPhase = "ApprovalPhase";
         public const string SigningPhase = "SigningPhase";
     }
+    
+    public static Dictionary<string, Func<IWorkflowPayload, WorkflowId, IEnumerable<ApprovalTaskData>>> PhaseConfiguration
+        => new()
+        {
+            { Phases.ApprovalPhase, (payload, workflowId) => payload.GetApprovalTasks(workflowId) },
+            { Phases.SigningPhase, (payload, workflowId) => payload.GetSigningTasks(workflowId) }
+        };
 
     protected override void ConfigureStateMachine()
     {
@@ -43,23 +51,5 @@ public class ApprovalWorkflow(
     protected override void OnWorkflowActivated(IWorkflowPayload payload)
     {
         base.OnWorkflowActivated(payload);
-    }
-
-    protected override List<ReplicatorPhase<ApprovalTaskData>> GetReplicatorPhases(IWorkflowPayload payload, WorkflowId workflowId)
-    {
-        return
-        [
-            new ReplicatorPhase<ApprovalTaskData>
-            {
-                PhaseName = Phases.ApprovalPhase,
-                TaskData = payload.GetApprovalTasks(workflowId)
-            },
-
-            new ReplicatorPhase<ApprovalTaskData>
-            {
-                PhaseName = Phases.SigningPhase,
-                TaskData = payload.GetSigningTasks(workflowId)
-            }
-        ];
     }
 }
