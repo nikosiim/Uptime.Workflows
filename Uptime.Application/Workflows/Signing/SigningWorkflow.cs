@@ -1,14 +1,14 @@
-﻿using Uptime.Application.Common;
+﻿using Microsoft.Extensions.Logging;
+using Uptime.Application.Common;
 using Uptime.Application.Enums;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Enums;
 using Uptime.Shared;
 using Uptime.Shared.Extensions;
-
 namespace Uptime.Application.Workflows.Signing;
 
-public class SigningWorkflow(IWorkflowService workflowService, ITaskService taskService)
-    : WorkflowBase<SigningWorkflowContext>(workflowService)
+public class SigningWorkflow(IWorkflowService workflowService, ITaskService taskService, ILogger<WorkflowBase<SigningWorkflowContext>> logger)
+    : WorkflowBase<SigningWorkflowContext>(workflowService, logger)
 {
     protected override void ConfigureStateMachine()
     {
@@ -66,7 +66,7 @@ public class SigningWorkflow(IWorkflowService workflowService, ITaskService task
             await FireAsync(WorkflowTrigger.TaskCompleted);
         }
 
-        return await CommitWorkflowStateAsync();
+        return await SaveWorkflowStateAsync();
     }
 
     private async Task StartSigningTask()

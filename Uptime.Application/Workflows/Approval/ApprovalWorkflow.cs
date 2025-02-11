@@ -1,13 +1,17 @@
-﻿using Uptime.Application.Common;
+﻿using Microsoft.Extensions.Logging;
+using Uptime.Application.Common;
 using Uptime.Application.Enums;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
-
 namespace Uptime.Application.Workflows.Approval;
 
-public class ApprovalWorkflow(IWorkflowService workflowService, ITaskService taskService, IWorkflowActivityFactory<ApprovalTaskData> activityFactory)
-    : ReplicatorWorkflowBase<ApprovalWorkflowContext, ApprovalTaskData>(workflowService, taskService, activityFactory)
+public class ApprovalWorkflow(
+    IWorkflowService workflowService, 
+    ITaskService taskService, 
+    IWorkflowActivityFactory<ApprovalTaskData> activityFactory, 
+    ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
+    : ReplicatorWorkflowBase<ApprovalWorkflowContext, ApprovalTaskData>(workflowService, taskService, activityFactory, logger)
 {
     public static class Phases
     {
@@ -24,7 +28,6 @@ public class ApprovalWorkflow(IWorkflowService workflowService, ITaskService tas
             .OnEntryAsync(() => RunReplicatorAsync(Phases.ApprovalPhase))
             .Permit(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Signing)
             .Permit(WorkflowTrigger.TaskRejected, WorkflowPhase.Rejected);
-
         Machine.Configure(WorkflowPhase.Signing)
             .OnEntryAsync(() => RunReplicatorAsync(Phases.SigningPhase))
             .Permit(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Completed);

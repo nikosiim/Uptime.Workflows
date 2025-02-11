@@ -38,6 +38,6 @@ public class StartWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflow
             Storage = request.Storage
         };
 
-        return await workflowFactory.StartWorkflowAsync(workflowBaseId, payload);
+        return await workflowFactory.StartWorkflowAsync(workflowBaseId, payload, cancellationToken);
     }
 }

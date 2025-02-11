@@ -1,6 +1,4 @@
-﻿using Uptime.Application.Enums;
-
-namespace Uptime.Application.Interfaces;
+﻿namespace Uptime.Application.Interfaces;
 
 public interface IWorkflow<out TData>
 {
@@ -8,9 +6,4 @@ public interface IWorkflow<out TData>
     /// The in-memory data object with any replicator info, counters, child status, etc.
     /// </summary>
     TData WorkflowContext { get; }
-
-    /// <summary>
-    /// (Optional) An asynchronous version of Fire if needed.
-    /// </summary>
-    Task FireAsync(WorkflowTrigger trigger, bool autoCommit = true);
 }

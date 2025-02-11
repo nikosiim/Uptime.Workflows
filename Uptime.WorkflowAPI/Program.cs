@@ -12,6 +12,8 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Workflow API", Version = "v1" });
 });
 
+builder.Logging.SetMinimumLevel(LogLevel.Debug);
+
 WebApplication app = builder.Build();
 
 app.UseSwagger();

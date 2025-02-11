@@ -14,11 +14,11 @@ public class WorkflowFactory : IWorkflowFactory
         _workflowMap = workflows.ToDictionary(GetWorkflowBaseId, workflow => workflow);
     }
 
-    public async Task<WorkflowPhase> StartWorkflowAsync(Guid workflowBaseId, IWorkflowPayload payload)
+    public async Task<WorkflowPhase> StartWorkflowAsync(Guid workflowBaseId, IWorkflowPayload payload, CancellationToken cancellationToken)
     {
         if (_workflowMap.TryGetValue(workflowBaseId, out IWorkflowMachine? workflow))
         {
-            return await workflow.StartAsync(payload);
+            return await workflow.StartAsync(payload, cancellationToken);
         }
 
         Console.WriteLine($"No workflow found for WorkflowBaseId: {workflowBaseId}");

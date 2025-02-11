@@ -1,13 +1,17 @@
-﻿using Uptime.Application.Enums;
+﻿using Microsoft.Extensions.Logging;
+using Uptime.Application.Enums;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
-using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Common;
 
-public abstract class ReplicatorWorkflowBase<TContext, TData>(IWorkflowService workflowService, ITaskService taskService, IWorkflowActivityFactory<TData> activityFactory)
-    : WorkflowBase<TContext>(workflowService)
+public abstract class ReplicatorWorkflowBase<TContext, TData>(
+    IWorkflowService workflowService, 
+    ITaskService taskService, 
+    IWorkflowActivityFactory<TData> activityFactory,
+    ILogger<WorkflowBase<TContext>> logger)
+    : WorkflowBase<TContext>(workflowService, logger)
     where TContext : class, IReplicatorWorkflowContext<TData>, new()
     where TData : IReplicatorItem
 {
@@ -65,7 +69,7 @@ public abstract class ReplicatorWorkflowBase<TContext, TData>(IWorkflowService w
             }
         }
 
-        return await CommitWorkflowStateAsync();
+        return await SaveWorkflowStateAsync();
     }
 
     protected override void UpdateReplicatorState(Guid taskGuid, bool isCompleted)
