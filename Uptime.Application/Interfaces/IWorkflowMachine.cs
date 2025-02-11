@@ -7,7 +7,7 @@ namespace Uptime.Application.Interfaces;
 public interface IWorkflowMachine
 {
     Task<WorkflowPhase> StartAsync(IWorkflowPayload payload, CancellationToken cancellationToken);
-    Task FireAsync(WorkflowTrigger trigger, bool autoCommit = true, CancellationToken cancellationToken = default);
-    Task<bool> ReHydrateAsync(WorkflowId workflowId, CancellationToken cancellationToken);
-    Task<WorkflowPhase> TryAlterTaskAsync(IAlterTaskPayload payload);
+    Task TriggerTransitionAsync(WorkflowTrigger trigger, bool autoCommit = true, CancellationToken cancellationToken = default);
+    Task<bool> RehydrateAsync(WorkflowId workflowId, CancellationToken cancellationToken);
+    Task<WorkflowPhase> AlterTaskCoreAsync(IAlterTaskPayload payload);
 }

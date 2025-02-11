@@ -63,7 +63,7 @@ public class SigningWorkflow(IWorkflowService workflowService, ITaskService task
 
         if (taskActivity.IsCompleted)
         {
-            await FireAsync(WorkflowTrigger.TaskCompleted);
+            await TriggerTransitionAsync(WorkflowTrigger.TaskCompleted);
         }
 
         return await SaveWorkflowStateAsync();
@@ -74,7 +74,7 @@ public class SigningWorkflow(IWorkflowService workflowService, ITaskService task
         if (WorkflowContext.SigningTask == null)
         {
             Console.WriteLine("No signing task available, skipping to TaskCompleted.");
-            await FireAsync(WorkflowTrigger.TaskCompleted); // TODO: complete task but workflow outcome should be invalid or something
+            await TriggerTransitionAsync(WorkflowTrigger.TaskCompleted); // TODO: complete task but workflow outcome should be invalid or something
             return;
         }
 

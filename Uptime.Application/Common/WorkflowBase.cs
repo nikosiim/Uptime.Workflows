@@ -8,24 +8,27 @@ using Uptime.Domain.Enums;
 
 namespace Uptime.Application.Common;
 
-public abstract class WorkflowBase<TContext>(IWorkflowService workflowService, ILogger<WorkflowBase<TContext>> logger) : IWorkflowMachine, IWorkflow<TContext>
-    where TContext : class, IWorkflowContext, new()
+public abstract class WorkflowBase<TContext>(IWorkflowService workflowService, ILogger<WorkflowBase<TContext>> logger) 
+    : IWorkflowMachine, IWorkflow<TContext> where TContext : class, IWorkflowContext, new()
 {
-    protected IStateMachine<WorkflowPhase, WorkflowTrigger> Machine = null!;
+    #region Fields & Properties
 
+    protected IStateMachine<WorkflowPhase, WorkflowTrigger> Machine = null!;
     protected WorkflowId WorkflowId;
 
     public TContext WorkflowContext { get; private set; } = new();
 
-    public IWorkflowService WorkflowService { get; } = workflowService;
-    
     private readonly AsyncLockHelper _asyncLockHelper = new();
 
-    public virtual async Task<WorkflowPhase> StartAsync(IWorkflowPayload payload, CancellationToken cancellationToken = default)
+    #endregion
+
+    #region Public Methods
+
+    public async Task<WorkflowPhase> StartAsync(IWorkflowPayload payload, CancellationToken cancellationToken = default)
     {
         InitializeStateMachine(WorkflowPhase.NotStarted);
 
-        WorkflowId = await WorkflowService.CreateWorkflowInstanceAsync(payload);
+        WorkflowId = await workflowService.CreateWorkflowInstanceAsync(payload);
 
         OnWorkflowActivated(payload);
 
@@ -33,23 +36,12 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService, I
 
         return await SaveWorkflowStateAsync();
     }
-    
-    public async Task FireAsync(WorkflowTrigger trigger, bool autoCommit = true, CancellationToken cancellationToken = default)
-    {
-        var transitionQueue = new StateTransitionQueue<WorkflowPhase, WorkflowTrigger>(Machine, logger);
-        await transitionQueue.EnqueueTriggerAsync(trigger, cancellationToken);
 
-        if (autoCommit)
-        {
-            await SaveWorkflowStateAsync();
-        }
-    }
-
-    public virtual async Task<bool> ReHydrateAsync(WorkflowId workflowId, CancellationToken cancellationToken)
+    public async Task<bool> RehydrateAsync(WorkflowId workflowId, CancellationToken cancellationToken)
     {
         return await _asyncLockHelper.ExecuteSynchronizedAsync(async () =>
         {
-            WorkflowDto? workflowInstance = await WorkflowService.GetWorkflowInstanceAsync(workflowId);
+            WorkflowDto? workflowInstance = await workflowService.GetWorkflowInstanceAsync(workflowId);
             if (workflowInstance is null)
             {
                 logger.LogWarning("Workflow instance {WorkflowId} was not found.", workflowId);
@@ -81,38 +73,59 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService, I
         }, cancellationToken);
     }
 
-    public async Task<WorkflowPhase> TryAlterTaskAsync(IAlterTaskPayload payload)
+    public async Task TriggerTransitionAsync(WorkflowTrigger trigger, bool autoCommit = true, CancellationToken cancellationToken = default)
     {
-        if (!CanAlterTaskAsync())
+        var transitionQueue = new StateTransitionQueue<WorkflowPhase, WorkflowTrigger>(Machine, logger);
+        await transitionQueue.EnqueueTriggerAsync(trigger, cancellationToken);
+
+        if (autoCommit)
+        {
+            await SaveWorkflowStateAsync();
+        }
+    }
+
+    public async Task<WorkflowPhase> AlterTaskCoreAsync(IAlterTaskPayload payload)
+    {
+        if (!CanAlterTask())
             return WorkflowPhase.Completed;
 
         return await AlterTaskInternalAsync(payload);
     }
 
-    protected void InitializeStateMachine(WorkflowPhase initialPhase)
-    {
-        Machine = StateMachineFactory.Create<WorkflowPhase, WorkflowTrigger>(initialPhase);
-        ConfigureStateMachine();
-    }
+    #endregion
 
+    #region Protected Methods
+    
+    protected virtual async Task<WorkflowPhase> SaveWorkflowStateAsync()
+    {
+        await workflowService.UpdateWorkflowStateAsync(WorkflowId, Machine.CurrentState, WorkflowContext);
+        return Machine.CurrentState;
+    }
+    
     protected virtual void UpdateReplicatorState(Guid taskGuid, bool isCompleted)
     {
         // Default implementation: does nothing
     }
 
-    protected virtual async Task<WorkflowPhase> SaveWorkflowStateAsync()
-    {
-        await WorkflowService.UpdateWorkflowStateAsync(WorkflowId, Machine.CurrentState, WorkflowContext);
-        return Machine.CurrentState;
-    }
+    #endregion
+
+    #region Abstract Methods 
 
     protected abstract void OnWorkflowActivated(IWorkflowPayload payload);
-
     protected abstract void ConfigureStateMachine();
-
     protected abstract Task<WorkflowPhase> AlterTaskInternalAsync(IAlterTaskPayload payload);
 
-    private bool CanAlterTaskAsync()
+    #endregion
+
+    #region Private Methods
+
+    private void InitializeStateMachine(WorkflowPhase initialPhase)
+    {
+        Machine = StateMachineFactory.Create<WorkflowPhase, WorkflowTrigger>(initialPhase);
+        ConfigureStateMachine();
+    }
+
+    private bool CanAlterTask()
     {
         if (Machine.CurrentState == WorkflowPhase.Completed)
         {
@@ -122,4 +135,6 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService, I
 
         return true;
     }
+
+    #endregion
 }

@@ -34,7 +34,7 @@ public class AlterTaskCommandHandler(IWorkflowDbContext dbContext, IWorkflowFact
             return WorkflowPhase.Invalid;
         }
 
-        bool isRehydrated = await workflow.ReHydrateAsync(request.WorkflowId, cancellationToken);
+        bool isRehydrated = await workflow.RehydrateAsync(request.WorkflowId, cancellationToken);
         if (!isRehydrated)
         {
             return WorkflowPhase.Invalid;
@@ -42,6 +42,6 @@ public class AlterTaskCommandHandler(IWorkflowDbContext dbContext, IWorkflowFact
 
         var payload = new AlterTaskPayload(request.TaskId, request.WorkflowId, request.Storage);
 
-        return await workflow.TryAlterTaskAsync(payload);
+        return await workflow.AlterTaskCoreAsync(payload);
     }
 }
