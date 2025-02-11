@@ -10,7 +10,7 @@ using Uptime.Domain.Enums;
 
 namespace Uptime.Application.Services;
 
-public sealed class WorkflowService(IMediator mediator) : IWorkflowService
+public sealed class WorkflowPersistenceService(IMediator mediator) : IWorkflowPersistenceService
 {
     public async Task<WorkflowId> CreateWorkflowInstanceAsync(IWorkflowPayload payload)
     {

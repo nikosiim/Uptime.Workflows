@@ -4,7 +4,7 @@ using Uptime.Domain.Enums;
 
 namespace Uptime.Application.Interfaces;
 
-public interface IWorkflowService
+public interface IWorkflowPersistenceService
 {
     Task<WorkflowId> CreateWorkflowInstanceAsync(IWorkflowPayload payload);
     Task<WorkflowDto?> GetWorkflowInstanceAsync(WorkflowId workflowId);

@@ -7,11 +7,12 @@ using Uptime.Domain.Enums;
 namespace Uptime.Application.Workflows.Approval;
 
 public class ApprovalWorkflow(
-    IWorkflowService workflowService, 
+    IWorkflowStateRepository<ApprovalWorkflowContext> stateRepository,
+    IWorkflowPersistenceService workflowService, 
     ITaskService taskService, 
     IWorkflowActivityFactory<ApprovalTaskData> activityFactory, 
     ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
-    : ReplicatorWorkflowBase<ApprovalWorkflowContext, ApprovalTaskData>(workflowService, taskService, activityFactory, logger)
+    : ReplicatorWorkflowBase<ApprovalWorkflowContext, ApprovalTaskData>(stateRepository, workflowService, taskService, activityFactory, logger)
 {
     public static class Phases
     {

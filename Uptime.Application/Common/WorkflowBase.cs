@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using Uptime.Application.DTOs;
 using Uptime.Application.Enums;
 using Uptime.Application.Interfaces;
@@ -8,7 +7,10 @@ using Uptime.Domain.Enums;
 
 namespace Uptime.Application.Common;
 
-public abstract class WorkflowBase<TContext>(IWorkflowService workflowService, ILogger<WorkflowBase<TContext>> logger) 
+public abstract class WorkflowBase<TContext>(
+    IWorkflowStateRepository<TContext> stateRepository,
+    IWorkflowPersistenceService persistenceService, 
+    ILogger<WorkflowBase<TContext>> logger) 
     : IWorkflowMachine, IWorkflow<TContext> where TContext : class, IWorkflowContext, new()
 {
     #region Fields & Properties
@@ -28,7 +30,7 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService, I
     {
         InitializeStateMachine(WorkflowPhase.NotStarted);
 
-        WorkflowId = await workflowService.CreateWorkflowInstanceAsync(payload);
+        WorkflowId = await persistenceService.CreateWorkflowInstanceAsync(payload);
 
         OnWorkflowActivated(payload);
 
@@ -39,38 +41,15 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService, I
 
     public async Task<bool> RehydrateAsync(WorkflowId workflowId, CancellationToken cancellationToken)
     {
-        return await _asyncLockHelper.ExecuteSynchronizedAsync(async () =>
-        {
-            WorkflowDto? workflowInstance = await workflowService.GetWorkflowInstanceAsync(workflowId);
-            if (workflowInstance is null)
-            {
-                logger.LogWarning("Workflow instance {WorkflowId} was not found.", workflowId);
-                return false;
-            }
+        WorkflowStateData<TContext>? stateData = await stateRepository.GetWorkflowStateAsync(workflowId);
+        if (stateData == null)
+            return false;
 
-            if (string.IsNullOrWhiteSpace(workflowInstance.InstanceDataJson))
-            {
-                logger.LogWarning("Workflow instance {WorkflowId} has empty or missing instance data JSON. Using a new {TContext} instance.", workflowId, typeof(TContext).Name);
-                WorkflowContext = new TContext();
-            }
-            else
-            {
-                try
-                {
-                    WorkflowContext = JsonSerializer.Deserialize<TContext>(workflowInstance.InstanceDataJson) ?? new TContext();
-                }
-                catch (JsonException ex)
-                {
-                    logger.LogError(ex, "Failed to deserialize workflow instance data for WorkflowId {WorkflowId}. Using a new {TContext} instance.", workflowId, typeof(TContext).Name);
-                    WorkflowContext = new TContext();
-                }
-            }
+        WorkflowContext = stateData.Context;
+        WorkflowId = workflowId;
+        InitializeStateMachine(stateData.Phase);
 
-            WorkflowId = workflowId;
-            InitializeStateMachine(workflowInstance.Phase);
-
-            return true;
-        }, cancellationToken);
+        return true;
     }
 
     public async Task TriggerTransitionAsync(WorkflowTrigger trigger, bool autoCommit = true, CancellationToken cancellationToken = default)
@@ -98,7 +77,7 @@ public abstract class WorkflowBase<TContext>(IWorkflowService workflowService, I
     
     protected virtual async Task<WorkflowPhase> SaveWorkflowStateAsync()
     {
-        await workflowService.UpdateWorkflowStateAsync(WorkflowId, Machine.CurrentState, WorkflowContext);
+        await persistenceService.UpdateWorkflowStateAsync(WorkflowId, Machine.CurrentState, WorkflowContext);
         return Machine.CurrentState;
     }
     

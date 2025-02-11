@@ -7,8 +7,12 @@ using Uptime.Shared;
 using Uptime.Shared.Extensions;
 namespace Uptime.Application.Workflows.Signing;
 
-public class SigningWorkflow(IWorkflowService workflowService, ITaskService taskService, ILogger<WorkflowBase<SigningWorkflowContext>> logger)
-    : WorkflowBase<SigningWorkflowContext>(workflowService, logger)
+public class SigningWorkflow(
+    IWorkflowStateRepository<SigningWorkflowContext> stateRepository,
+    IWorkflowPersistenceService workflowService, 
+    ITaskService taskService, 
+    ILogger<WorkflowBase<SigningWorkflowContext>> logger)
+    : WorkflowBase<SigningWorkflowContext>(stateRepository, workflowService, logger)
 {
     protected override void ConfigureStateMachine()
     {

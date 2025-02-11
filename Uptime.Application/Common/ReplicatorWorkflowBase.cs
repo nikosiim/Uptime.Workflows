@@ -7,11 +7,12 @@ using Uptime.Domain.Enums;
 namespace Uptime.Application.Common;
 
 public abstract class ReplicatorWorkflowBase<TContext, TData>(
-    IWorkflowService workflowService, 
+    IWorkflowStateRepository<TContext> stateRepository,
+    IWorkflowPersistenceService workflowService, 
     ITaskService taskService, 
     IWorkflowActivityFactory<TData> activityFactory,
     ILogger<WorkflowBase<TContext>> logger)
-    : WorkflowBase<TContext>(workflowService, logger)
+    : WorkflowBase<TContext>(stateRepository, workflowService, logger)
     where TContext : class, IReplicatorWorkflowContext<TData>, new()
     where TData : IReplicatorItem
 {
