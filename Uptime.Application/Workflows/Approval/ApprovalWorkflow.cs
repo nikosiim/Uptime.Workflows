@@ -1,18 +1,17 @@
 ﻿using Microsoft.Extensions.Logging;
-using Uptime.Application.Common;
-using Uptime.Application.Enums;
-using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
+using Uptime.Domain.Interfaces;
+
 namespace Uptime.Application.Workflows.Approval;
 
 public class ApprovalWorkflow(
+    IStateMachineFactory<WorkflowPhase, WorkflowTrigger> stateMachineFactory,
     IWorkflowStateRepository<ApprovalWorkflowContext> stateRepository,
-    IWorkflowTaskRepository taskService, 
     IReplicatorPhaseBuilder<ApprovalTaskData> replicatorPhaseBuilder,
     IWorkflowActivityFactory<ApprovalTaskData> activityFactory, 
     ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
-    : ReplicatorWorkflowBase<ApprovalWorkflowContext, ApprovalTaskData>(stateRepository, activityFactory, replicatorPhaseBuilder, logger)
+    : ReplicatorWorkflowBase<ApprovalWorkflowContext, ApprovalTaskData>(stateMachineFactory, stateRepository, activityFactory, replicatorPhaseBuilder, logger)
 {
     public static class Phases
     {

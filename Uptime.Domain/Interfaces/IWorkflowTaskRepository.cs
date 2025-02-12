@@ -1,9 +1,7 @@
-﻿using Uptime.Application.Common;
-using Uptime.Domain.Common;
-using Uptime.Domain.Interfaces;
+﻿using Uptime.Domain.Common;
 using Uptime.Shared.Enums;
 
-namespace Uptime.Application.Interfaces;
+namespace Uptime.Domain.Interfaces;
 
 public interface IWorkflowTaskRepository
 {

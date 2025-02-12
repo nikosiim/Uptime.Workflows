@@ -1,8 +1,7 @@
-﻿using Uptime.Application.Common;
-using Uptime.Application.Interfaces;
-using Uptime.Domain.Common;
+﻿using Uptime.Domain.Common;
+using Uptime.Domain.Interfaces;
 
-namespace Uptime.Application.Commands;
+namespace Uptime.Application.Common;
 
 /// <summary>
 /// A default implementation of <see cref="IReplicatorPhaseBuilder{TData}"/> that builds replicator phases

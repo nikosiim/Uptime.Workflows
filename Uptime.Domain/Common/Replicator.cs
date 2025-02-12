@@ -1,9 +1,7 @@
-﻿using Uptime.Application.Enums;
-using Uptime.Application.Interfaces;
-using Uptime.Domain.Common;
+﻿using Uptime.Domain.Enums;
 using Uptime.Domain.Interfaces;
 
-namespace Uptime.Application.Common;
+namespace Uptime.Domain.Common;
 
 // TODO: remove duplicated code
 public class Replicator<TItem> : IReplicator<TItem>

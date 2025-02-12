@@ -3,6 +3,7 @@ using System.Text.Json;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
+using Uptime.Domain.Interfaces;
 using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Common;

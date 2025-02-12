@@ -1,4 +1,5 @@
 ﻿using Uptime.Domain.Enums;
+using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application.Interfaces;
 

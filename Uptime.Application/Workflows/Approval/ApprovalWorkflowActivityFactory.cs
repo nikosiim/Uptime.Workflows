@@ -1,5 +1,6 @@
 ﻿using Uptime.Application.Common;
-using Uptime.Application.Interfaces;
+using Uptime.Domain.Common;
+using Uptime.Domain.Interfaces;
 using static Uptime.Application.Workflows.Approval.ApprovalWorkflow;
 
 namespace Uptime.Application.Workflows.Approval;

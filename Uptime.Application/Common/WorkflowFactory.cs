@@ -2,6 +2,7 @@
 using Uptime.Application.Workflows.Approval;
 using Uptime.Application.Workflows.Signing;
 using Uptime.Domain.Enums;
+using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application.Common;
 

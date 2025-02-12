@@ -1,10 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using Uptime.Application.Commands;
 using Uptime.Application.Common;
 using Uptime.Application.Interfaces;
 using Uptime.Application.Workflows.Approval;
 using Uptime.Application.Workflows.Signing;
+using Uptime.Domain.Common;
+using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application;
 
@@ -29,7 +30,9 @@ public static class ApplicationServiceRegistration
         services.AddScoped(typeof(ReplicatorManager<>));
         services.AddScoped<IWorkflowActivityFactory<ApprovalTaskData>, ApprovalWorkflowActivityFactory>();
 
-        services.AddScoped<IReplicatorPhaseBuilder<ApprovalTaskData>>(provider =>
+        services.AddScoped<IReplicatorPhaseBuilder<ApprovalTaskData>>(_ =>
             new ReplicatorPhaseBuilder<ApprovalTaskData>(ApprovalWorkflow.PhaseConfiguration));
+
+        services.AddTransient(typeof(IStateMachineFactory<,>), typeof(StatelessStateMachineFactory<,>));
     }
 }

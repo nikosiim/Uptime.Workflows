@@ -1,5 +1,5 @@
-﻿using Uptime.Application.Interfaces;
-using Uptime.Domain.Common;
+﻿using Uptime.Domain.Common;
+using Uptime.Domain.Interfaces;
 using Uptime.Shared.Extensions;
 using static Uptime.Shared.GlobalConstants;
 

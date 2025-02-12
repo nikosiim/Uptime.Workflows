@@ -1,6 +1,4 @@
-﻿using Uptime.Domain.Interfaces;
-
-namespace Uptime.Application.Interfaces;
+﻿namespace Uptime.Domain.Interfaces;
 
 internal interface IUserTaskActivity : IWorkflowActivity
 {

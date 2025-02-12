@@ -1,4 +1,4 @@
-﻿namespace Uptime.Application.Enums;
+﻿namespace Uptime.Domain.Enums;
 
 public enum WorkflowTrigger
 {

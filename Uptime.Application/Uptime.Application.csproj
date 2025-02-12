@@ -7,12 +7,45 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Commands\CreateUserTaskCommand.cs" />
+    <Compile Remove="Commands\UpdateUserTaskCommand.cs" />
+    <Compile Remove="Commands\UpdateWorkflowStateCommand.cs" />
+    <Compile Remove="Common\ActivityWorkflowBase.cs" />
     <Compile Remove="Common\AlterTaskPayload.cs" />
-    <Compile Remove="Enums\WorkflowStatus.cs" />
-    <Compile Remove="Enums\WorkflowTaskStatus.cs" />
+    <Compile Remove="Common\AsyncLockHelper.cs" />
+    <Compile Remove="Common\Replicator.cs" />
+    <Compile Remove="Common\ReplicatorItem.cs" />
+    <Compile Remove="Common\ReplicatorManager.cs" />
+    <Compile Remove="Common\ReplicatorPhase.cs" />
+    <Compile Remove="Common\ReplicatorState.cs" />
+    <Compile Remove="Common\ReplicatorWorkflowBase.cs" />
+    <Compile Remove="Common\StateTransitionQueue.cs" />
+    <Compile Remove="Common\UserTaskActivity.cs" />
+    <Compile Remove="Common\WorkflowBase.cs" />
+    <Compile Remove="Common\WorkflowTaskContext.cs" />
+    <Compile Remove="DTOs\WorkflowInstanceData.cs" />
+    <Compile Remove="DTOs\WorkflowStateData.cs" />
     <Compile Remove="Interfaces\IActivityContext.cs" />
+    <Compile Remove="Interfaces\IActivityWorkflowMachine.cs" />
     <Compile Remove="Interfaces\IAlterTaskPayload.cs" />
+    <Compile Remove="Interfaces\IReplicator.cs" />
+    <Compile Remove="Interfaces\IReplicatorItem.cs" />
+    <Compile Remove="Interfaces\IReplicatorPhaseBuilder.cs" />
+    <Compile Remove="Interfaces\IReplicatorWorkflowContext.cs" />
+    <Compile Remove="Interfaces\IStateMachine.cs" />
+    <Compile Remove="Interfaces\IUserTaskActivity.cs" />
     <Compile Remove="Interfaces\IUserTaskActivityContext.cs" />
+    <Compile Remove="Interfaces\IUserTaskActivityData.cs" />
+    <Compile Remove="Interfaces\IWorkflow.cs" />
+    <Compile Remove="Interfaces\IWorkflowActivity.cs" />
+    <Compile Remove="Interfaces\IWorkflowActivityFactory.cs" />
+    <Compile Remove="Interfaces\IWorkflowContext.cs" />
+    <Compile Remove="Interfaces\IWorkflowMachine.cs" />
+    <Compile Remove="Interfaces\IWorkflowPayload.cs" />
+    <Compile Remove="Interfaces\IWorkflowStateRepository.cs" />
+    <Compile Remove="Interfaces\IWorkflowTask.cs" />
+    <Compile Remove="Interfaces\IWorkflowTaskRepository.cs" />
+    <Compile Remove="Queries\GetWorkflowTaskStorageQuery.cs" />
   </ItemGroup>
 
   <ItemGroup>

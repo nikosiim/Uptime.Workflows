@@ -1,17 +1,18 @@
 ﻿using Microsoft.Extensions.Logging;
-using Uptime.Application.Common;
-using Uptime.Application.Enums;
-using Uptime.Application.Interfaces;
+using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
+using Uptime.Domain.Interfaces;
 using Uptime.Shared;
 using Uptime.Shared.Extensions;
+
 namespace Uptime.Application.Workflows.Signing;
 
 public class SigningWorkflow(
+    IStateMachineFactory<WorkflowPhase, WorkflowTrigger> stateMachineFactory,
     IWorkflowStateRepository<SigningWorkflowContext> stateRepository,
     IWorkflowTaskRepository taskService, 
     ILogger<WorkflowBase<SigningWorkflowContext>> logger)
-    : ActivityWorkflowBase<SigningWorkflowContext>(stateRepository, logger)
+    : ActivityWorkflowBase<SigningWorkflowContext>(stateMachineFactory, stateRepository, logger)
 {
     protected override void ConfigureStateMachine()
     {

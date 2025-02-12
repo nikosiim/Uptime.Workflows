@@ -1,11 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using Uptime.Application.DTOs;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
+using Uptime.Domain.DTOs;
 using Uptime.Domain.Entities;
 using Uptime.Domain.Enums;
+using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application.Common;
 

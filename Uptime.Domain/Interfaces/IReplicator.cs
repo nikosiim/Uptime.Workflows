@@ -1,8 +1,7 @@
-﻿using Uptime.Application.Common;
-using Uptime.Application.Enums;
-using Uptime.Domain.Common;
+﻿using Uptime.Domain.Common;
+using Uptime.Domain.Enums;
 
-namespace Uptime.Application.Interfaces;
+namespace Uptime.Domain.Interfaces;
 
 public interface IReplicator<TItem>
 {

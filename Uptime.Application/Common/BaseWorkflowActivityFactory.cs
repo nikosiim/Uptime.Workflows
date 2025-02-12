@@ -1,4 +1,5 @@
-﻿using Uptime.Application.Interfaces;
+﻿using Uptime.Domain.Common;
+using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application.Common;
 

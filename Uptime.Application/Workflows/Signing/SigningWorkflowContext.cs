@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using Uptime.Application.Interfaces;
+using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application.Workflows.Signing;
 

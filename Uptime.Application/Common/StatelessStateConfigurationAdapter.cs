@@ -1,5 +1,5 @@
 ﻿using Stateless;
-using Uptime.Application.Interfaces;
+using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application.Common;
 
