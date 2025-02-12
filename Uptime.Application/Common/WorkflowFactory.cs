@@ -1,4 +1,5 @@
-﻿using Uptime.Application.Interfaces;
+﻿using Microsoft.Extensions.Logging;
+using Uptime.Application.Interfaces;
 using Uptime.Application.Workflows.Approval;
 using Uptime.Application.Workflows.Signing;
 using Uptime.Domain.Enums;
@@ -8,10 +9,13 @@ namespace Uptime.Application.Common;
 
 public class WorkflowFactory : IWorkflowFactory
 {
+    private readonly ILogger<WorkflowFactory> _logger;
     private readonly Dictionary<Guid, IWorkflowMachine> _workflowMap;
 
-    public WorkflowFactory(IEnumerable<IWorkflowMachine> workflows)
+    public WorkflowFactory(IEnumerable<IWorkflowMachine> workflows, ILogger<WorkflowFactory> logger)
     {
+        _logger = logger;
+
         // Build the mapping based on a unique identifier for each workflow.
         _workflowMap = workflows.ToDictionary(GetWorkflowBaseId, workflow => workflow);
     }
@@ -23,7 +27,8 @@ public class WorkflowFactory : IWorkflowFactory
             return await workflow.StartAsync(payload, cancellationToken);
         }
 
-        Console.WriteLine($"No workflow found for WorkflowBaseId: {workflowBaseId}");
+        _logger.LogWarning("No workflow found for WorkflowBaseId: {WorkflowBaseId}", workflowBaseId);
+
         return WorkflowPhase.Invalid;
     }
 

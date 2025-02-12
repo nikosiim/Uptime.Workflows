@@ -13,7 +13,7 @@ namespace Uptime.Application.Common;
 public class WorkflowStateRepository<TContext>(IWorkflowDbContext dbContext, ILogger<WorkflowStateRepository<TContext>> logger)
     : IWorkflowStateRepository<TContext> where TContext : IWorkflowContext, new()
 {
-    public async Task<WorkflowId> CreateWorkflowStateAsync(IWorkflowPayload payload)
+    public async Task<WorkflowId> CreateWorkflowStateAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
         var instance = new Workflow
         {
@@ -26,14 +26,14 @@ public class WorkflowStateRepository<TContext>(IWorkflowDbContext dbContext, ILo
         };
 
         dbContext.Workflows.Add(instance);
-        await dbContext.SaveChangesAsync(CancellationToken.None);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return (WorkflowId)instance.Id;
     }
 
-    public async Task<WorkflowStateData<TContext>?> GetWorkflowStateAsync(WorkflowId workflowId)
+    public async Task<WorkflowStateData<TContext>?> GetWorkflowStateAsync(WorkflowId workflowId, CancellationToken cancellationToken)
     {
-        Workflow? instance = await dbContext.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId.Value);
+        Workflow? instance = await dbContext.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId.Value, cancellationToken);
         if (instance == null)
         {
             logger.LogWarning("Workflow instance {WorkflowId} not found.", workflowId);
@@ -67,9 +67,9 @@ public class WorkflowStateRepository<TContext>(IWorkflowDbContext dbContext, ILo
         };
     }
 
-    public async Task SaveWorkflowStateAsync(WorkflowId workflowId, WorkflowPhase phase, TContext context)
+    public async Task SaveWorkflowStateAsync(WorkflowId workflowId, WorkflowPhase phase, TContext context, CancellationToken cancellationToken)
     {
-        Workflow? instance = await dbContext.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId.Value);
+        Workflow? instance = await dbContext.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId.Value, cancellationToken: cancellationToken);
         if (instance == null)
         {
             throw new InvalidOperationException($"Workflow with ID {workflowId} not found.");
@@ -88,6 +88,6 @@ public class WorkflowStateRepository<TContext>(IWorkflowDbContext dbContext, ILo
             instance.EndDate = DateTime.Now.ToUniversalTime();
         }
 
-        await dbContext.SaveChangesAsync(CancellationToken.None);
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

@@ -1,30 +1,31 @@
 ﻿using Microsoft.Extensions.Logging;
+using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
 using Uptime.Domain.Interfaces;
 
-namespace Uptime.Domain.Common;
+namespace Uptime.Domain.Workflows;
 
 public abstract class ActivityWorkflowBase<TContext>(
     IStateMachineFactory<WorkflowPhase, WorkflowTrigger> stateMachineFactory,
-    IWorkflowStateRepository<TContext> stateRepository, 
+    IWorkflowStateRepository<TContext> stateRepository,
     ILogger<WorkflowBase<TContext>> logger)
     : WorkflowBase<TContext>(stateMachineFactory, stateRepository, logger), IActivityWorkflowMachine
     where TContext : class, IWorkflowContext, new()
 {
     private readonly ILogger<WorkflowBase<TContext>> _logger = logger;
-    
-    public async Task AlterTaskCoreAsync(WorkflowTaskContext context)
+
+    public async Task AlterTaskCoreAsync(WorkflowTaskContext context, CancellationToken cancellationToken)
     {
         if (CanAlterTask())
         {
-            await AlterTaskInternalAsync(context);
-            await SaveWorkflowStateAsync();
+            await AlterTaskInternalAsync(context, cancellationToken);
+            await SaveWorkflowStateAsync(cancellationToken);
         }
     }
-    
-    protected abstract override void ConfigureStateMachine();
-    protected abstract override void OnWorkflowActivated(IWorkflowPayload payload);
-    protected abstract Task AlterTaskInternalAsync(WorkflowTaskContext context);
+
+    protected abstract override void ConfigureStateMachineAsync(CancellationToken cancellationToken);
+    protected abstract override void OnWorkflowActivatedAsync(IWorkflowPayload payload, CancellationToken cancellationToken);
+    protected abstract Task AlterTaskInternalAsync(WorkflowTaskContext context, CancellationToken cancellationToken);
 
     private bool CanAlterTask()
     {

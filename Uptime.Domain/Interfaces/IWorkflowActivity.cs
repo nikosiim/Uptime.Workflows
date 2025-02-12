@@ -3,5 +3,5 @@
 public interface IWorkflowActivity
 {
     bool IsCompleted { get; }
-    Task ExecuteAsync();
+    Task ExecuteAsync(CancellationToken cancellationToken);
 }

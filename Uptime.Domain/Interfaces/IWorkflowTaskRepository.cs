@@ -5,7 +5,6 @@ namespace Uptime.Domain.Interfaces;
 
 public interface IWorkflowTaskRepository
 {
-    Task<WorkflowTaskContext?> GetWorkflowTaskContextAsync(TaskId taskId);
-    Task<TaskId> CreateWorkflowTaskAsync(IWorkflowTask task);
-    Task SaveWorkflowTaskAsync(IWorkflowTask task, WorkflowTaskStatus status);
+    Task<TaskId> CreateWorkflowTaskAsync(IWorkflowTask task, CancellationToken cancellationToken);
+    Task SaveWorkflowTaskAsync(IWorkflowTask task, WorkflowTaskStatus status, CancellationToken cancellationToken);
 }

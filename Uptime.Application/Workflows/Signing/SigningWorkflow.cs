@@ -2,6 +2,7 @@
 using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
 using Uptime.Domain.Interfaces;
+using Uptime.Domain.Workflows;
 using Uptime.Shared;
 using Uptime.Shared.Extensions;
 
@@ -14,14 +15,14 @@ public class SigningWorkflow(
     ILogger<WorkflowBase<SigningWorkflowContext>> logger)
     : ActivityWorkflowBase<SigningWorkflowContext>(stateMachineFactory, stateRepository, logger)
 {
-    protected override void ConfigureStateMachine()
+    protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {
         Machine.Configure(WorkflowPhase.NotStarted)
             .Permit(WorkflowTrigger.Start, WorkflowPhase.Signing);
 
         Machine.Configure(WorkflowPhase.Signing)
-            .OnEntryAsync(StartSigningTask)
-            .OnExitAsync(OnSigningTaskCompleted) 
+            .OnEntryAsync(() => StartSigningTask(cancellationToken))
+            .OnExit(OnSigningTaskCompleted) 
             .Permit(WorkflowTrigger.TaskCompleted, WorkflowPhase.Completed)
             .Permit(WorkflowTrigger.TaskRejected, WorkflowPhase.Rejected);
 
@@ -30,10 +31,10 @@ public class SigningWorkflow(
 
         Machine.Configure(WorkflowPhase.Rejected)
             .OnEntry(() => Console.WriteLine("Signing workflow was rejected."))
-            .OnExitAsync(OnWorkflowCompletion);
+            .OnExit(OnWorkflowCompletion);
     }
 
-    protected override void OnWorkflowActivated(IWorkflowPayload payload)
+    protected override void OnWorkflowActivatedAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
         if (payload.Storage.TryGetValue(GlobalConstants.TaskStorageKeys.TaskSigners, out string? signer) && !string.IsNullOrWhiteSpace(signer))
         {
@@ -52,27 +53,27 @@ public class SigningWorkflow(
         }             
     }
 
-    protected override async Task AlterTaskInternalAsync(WorkflowTaskContext context)
+    protected override async Task AlterTaskInternalAsync(WorkflowTaskContext context, CancellationToken cancellationToken)
     {
         var taskActivity = new SigningTaskActivity(taskService, context)
         {
             TaskData = WorkflowContext.SigningTask
         };
 
-        await taskActivity.OnTaskChanged(context.Storage);
+        await taskActivity.OnTaskChangedAsync(context.Storage, cancellationToken);
 
         if (taskActivity.IsCompleted)
         {
-            await TriggerTransitionAsync(WorkflowTrigger.TaskCompleted);
+            await TriggerTransitionAsync(WorkflowTrigger.TaskCompleted, cancellationToken);
         }
     }
 
-    private async Task StartSigningTask()
+    private async Task StartSigningTask(CancellationToken cancellationToken)
     {
         if (WorkflowContext.SigningTask == null)
         {
             Console.WriteLine("No signing task available, skipping to TaskCompleted.");
-            await TriggerTransitionAsync(WorkflowTrigger.TaskCompleted); // TODO: complete task but workflow outcome should be invalid or something
+            await TriggerTransitionAsync(WorkflowTrigger.TaskCompleted, cancellationToken); // TODO: complete task but workflow outcome should be invalid or something
             return;
         }
 
@@ -82,17 +83,16 @@ public class SigningWorkflow(
             TaskData = taskData
         };
 
-        await taskActivity.ExecuteAsync();
+        await taskActivity.ExecuteAsync(cancellationToken);
+    }
+    
+    private static void OnSigningTaskCompleted()
+    {
+  
     }
 
-    private static Task OnSigningTaskCompleted()
+    private static void OnWorkflowCompletion()
     {
-        // TODO: add some logic that need to accomplish after task creation
-       return Task.CompletedTask;
-    }
-
-    private static Task OnWorkflowCompletion()
-    {
-        return Task.CompletedTask;
+       
     }
 }

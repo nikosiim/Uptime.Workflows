@@ -2,6 +2,7 @@
 using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
 using Uptime.Domain.Interfaces;
+using Uptime.Domain.Workflows;
 
 namespace Uptime.Application.Workflows.Approval;
 
@@ -26,17 +27,17 @@ public class ApprovalWorkflow(
             { Phases.SigningPhase, (payload, workflowId) => payload.GetSigningTasks(workflowId) }
         };
 
-    protected override void ConfigureStateMachine()
+    protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {
         Machine.Configure(WorkflowPhase.NotStarted)
             .Permit(WorkflowTrigger.Start, WorkflowPhase.Approval);
-
+        
         Machine.Configure(WorkflowPhase.Approval)
-            .OnEntryAsync(() => RunReplicatorAsync(Phases.ApprovalPhase))
+            .OnEntryAsync(() => RunReplicatorAsync(Phases.ApprovalPhase, cancellationToken))
             .Permit(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Signing)
             .Permit(WorkflowTrigger.TaskRejected, WorkflowPhase.Rejected);
         Machine.Configure(WorkflowPhase.Signing)
-            .OnEntryAsync(() => RunReplicatorAsync(Phases.SigningPhase))
+            .OnEntryAsync(() => RunReplicatorAsync(Phases.SigningPhase, cancellationToken))
             .Permit(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Completed);
 
         Machine.Configure(WorkflowPhase.Completed)
@@ -46,8 +47,8 @@ public class ApprovalWorkflow(
             .OnEntry(() => Console.WriteLine("Workflow was rejected."));
     }
 
-    protected override void OnWorkflowActivated(IWorkflowPayload payload)
+    protected override void OnWorkflowActivatedAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
-        base.OnWorkflowActivated(payload);
+        base.OnWorkflowActivatedAsync(payload, cancellationToken);
     }
 }

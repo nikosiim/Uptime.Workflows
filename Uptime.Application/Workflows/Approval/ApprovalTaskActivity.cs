@@ -9,7 +9,7 @@ namespace Uptime.Application.Workflows.Approval;
 public class ApprovalTaskActivity(IWorkflowTaskRepository taskService, WorkflowTaskContext context)
     : UserTaskActivity(taskService, context)
 {
-    protected override void ExecuteTaskLogicAsync()
+    protected override void ExecuteTaskLogic()
     {
         if (TaskData is null) return;
 
@@ -17,7 +17,7 @@ public class ApprovalTaskActivity(IWorkflowTaskRepository taskService, WorkflowT
         Context.Storage.SetValueAsEnum<TaskOutcome>(TaskStorageKeys.TaskOutcome, TaskOutcome.Pending);
     }
 
-    public override async Task OnTaskChanged(Dictionary<string, string?> storage)
+    public override async Task OnTaskChangedAsync(Dictionary<string, string?> storage, CancellationToken cancellationToken)
     {
         string? editor = storage.GetValueAsString(TaskStorageKeys.TaskEditor);
         string? comment = storage.GetValueAsString(TaskStorageKeys.TaskComment);
@@ -25,11 +25,11 @@ public class ApprovalTaskActivity(IWorkflowTaskRepository taskService, WorkflowT
         
         if (storage.TryGetValueAsEnum(TaskStorageKeys.TaskOutcome, out TaskOutcome? taskOutcome))
         {
-            await SetTaskOutcome(taskOutcome!.Value, editor, comment, delegatedTo);
+            await SetTaskOutcomeAsync(taskOutcome!.Value, editor, comment, delegatedTo, cancellationToken);
         }
     }
     
-    private async Task SetTaskOutcome(TaskOutcome outcome, string? editor, string? comment, string? delegatedTo = null)
+    private async Task SetTaskOutcomeAsync(TaskOutcome outcome, string? editor, string? comment, string? delegatedTo = null, CancellationToken cancellationToken = default)
     {
         IsCompleted = true;
         Context.Storage.SetValueAsString(TaskStorageKeys.TaskEditor, editor);
@@ -41,6 +41,6 @@ public class ApprovalTaskActivity(IWorkflowTaskRepository taskService, WorkflowT
             Context.Storage.SetValueAsString(TaskStorageKeys.TaskDelegatedTo, delegatedTo);
         }
 
-        await TaskService.SaveWorkflowTaskAsync(Context, WorkflowTaskStatus.Completed);
+        await TaskService.SaveWorkflowTaskAsync(Context, WorkflowTaskStatus.Completed, cancellationToken);
     }
 }

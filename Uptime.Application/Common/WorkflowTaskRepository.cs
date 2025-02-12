@@ -10,9 +10,9 @@ namespace Uptime.Application.Common;
 
 public class WorkflowTaskRepository(IWorkflowDbContext dbContext) : IWorkflowTaskRepository
 {
-    public async Task<TaskId> CreateWorkflowTaskAsync(IWorkflowTask request)
+    public async Task<TaskId> CreateWorkflowTaskAsync(IWorkflowTask request, CancellationToken cancellationToken)
     {
-        bool workflowExists = await dbContext.Workflows.AnyAsync(w => w.Id == request.WorkflowId.Value);
+        bool workflowExists = await dbContext.Workflows.AnyAsync(w => w.Id == request.WorkflowId.Value, cancellationToken: cancellationToken);
         if (!workflowExists)
         {
             throw new InvalidOperationException($"Workflow with ID {request.WorkflowId} does not exist.");
@@ -31,32 +31,14 @@ public class WorkflowTaskRepository(IWorkflowDbContext dbContext) : IWorkflowTas
         };
 
         dbContext.WorkflowTasks.Add(task);
-        await dbContext.SaveChangesAsync(CancellationToken.None);
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         return (TaskId)task.Id;
     }
-
-    public async Task<WorkflowTaskContext?> GetWorkflowTaskContextAsync(TaskId taskId)
+    
+    public async Task SaveWorkflowTaskAsync(IWorkflowTask request, WorkflowTaskStatus taskStatus, CancellationToken cancellationToken)
     {
-        WorkflowTask? workflowTask = await dbContext.WorkflowTasks.Where(task => task.Id == taskId.Value).FirstOrDefaultAsync();
-        if (workflowTask is null)
-            return null;
-
-        return new WorkflowTaskContext((WorkflowId)workflowTask.WorkflowId)
-        {
-            TaskId = taskId,
-            TaskGuid = workflowTask.TaskGuid,
-            AssignedTo = workflowTask.AssignedTo,
-            AssignedBy = workflowTask.AssignedBy,
-            TaskDescription = workflowTask.Description,
-            DueDate = workflowTask.DueDate,
-            Storage = JsonSerializer.Deserialize<Dictionary<string, string?>>(workflowTask.StorageJson ?? "{}") ?? new Dictionary<string, string?>()
-        };
-    }
-
-    public async Task SaveWorkflowTaskAsync(IWorkflowTask request, WorkflowTaskStatus taskStatus)
-    {
-        WorkflowTask? task = dbContext.WorkflowTasks.FirstOrDefault(t => t.Id == request.TaskId.Value);
+        WorkflowTask? task = await dbContext.WorkflowTasks.FirstOrDefaultAsync(t => t.Id == request.TaskId.Value, cancellationToken);
 
         if (task == null)
         {
@@ -71,6 +53,6 @@ public class WorkflowTaskRepository(IWorkflowDbContext dbContext) : IWorkflowTas
         task.Status = taskStatus;
         task.StorageJson = JsonSerializer.Serialize(request.Storage);
 
-        await dbContext.SaveChangesAsync(CancellationToken.None);
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

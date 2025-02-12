@@ -16,7 +16,7 @@ public class Replicator<TItem> : IReplicator<TItem>
     public Func<TItem, IWorkflowActivity> ChildActivityFactory { get; set; }
         = _ => throw new InvalidOperationException("No factory set.");
 
-    public async Task ExecuteAsync()
+    public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         if (Items.Count == 0)
         {
@@ -30,10 +30,10 @@ public class Replicator<TItem> : IReplicator<TItem>
         switch (Type)
         {
             case ReplicatorType.Sequential:
-                await ExecuteSequentialAsync();
+                await ExecuteSequentialAsync(cancellationToken);
                 break;
             case ReplicatorType.Parallel:
-                await ExecuteParallelAsync();
+                await ExecuteParallelAsync(cancellationToken);
                 break;
             default:
                 throw new NotSupportedException($"Replicator type '{Type}' is not supported.");
@@ -45,7 +45,7 @@ public class Replicator<TItem> : IReplicator<TItem>
         }
     }
 
-    private async Task ExecuteSequentialAsync()
+    private async Task ExecuteSequentialAsync(CancellationToken cancellationToken)
     {
         for (var i = 0; i < Items.Count; i++)
         {
@@ -56,7 +56,7 @@ public class Replicator<TItem> : IReplicator<TItem>
 
             IWorkflowActivity activity = ChildActivityFactory(item.Data);
             OnChildInitialized?.Invoke(item.Data, activity);
-            await activity.ExecuteAsync();
+            await activity.ExecuteAsync(cancellationToken);
 
             if (activity is UserTaskActivity userTaskActivity)
             {
@@ -75,7 +75,7 @@ public class Replicator<TItem> : IReplicator<TItem>
         }
     }
 
-    private async Task ExecuteParallelAsync()
+    private async Task ExecuteParallelAsync(CancellationToken cancellationToken)
     {
         var tasks = new List<Task>();
 
@@ -91,7 +91,7 @@ public class Replicator<TItem> : IReplicator<TItem>
             {
                 IWorkflowActivity activity = ChildActivityFactory(item.Data);
                 OnChildInitialized?.Invoke(item.Data, activity);
-                await activity.ExecuteAsync();
+                await activity.ExecuteAsync(cancellationToken);
 
                 if (activity is UserTaskActivity userTaskActivity)
                 {
@@ -103,7 +103,7 @@ public class Replicator<TItem> : IReplicator<TItem>
                     OnChildCompleted?.Invoke(item.Data, activity);
                     Items[j].IsCompleted = true; // Mark as completed
                 }
-            }));
+            }, cancellationToken));
         }
 
         await Task.WhenAll(tasks);

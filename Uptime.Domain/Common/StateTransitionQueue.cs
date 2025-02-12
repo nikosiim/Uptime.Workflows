@@ -9,7 +9,7 @@ public class StateTransitionQueue<TState, TTrigger>(IStateMachine<TState, TTrigg
     private readonly Queue<TTrigger> _triggerQueue = new();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
-    public async Task EnqueueTriggerAsync(TTrigger trigger, CancellationToken cancellationToken = default)
+    public async Task EnqueueTriggerAsync(TTrigger trigger, CancellationToken cancellationToken)
     {
         lock (_triggerQueue)
         {
@@ -52,7 +52,7 @@ public class StateTransitionQueue<TState, TTrigger>(IStateMachine<TState, TTrigg
         }
     }
 
-    private async Task ExecuteSynchronizedAsync(Func<Task> action, CancellationToken cancellationToken = default)
+    private async Task ExecuteSynchronizedAsync(Func<Task> action, CancellationToken cancellationToken)
     {
         await _semaphore.WaitAsync(cancellationToken);
 

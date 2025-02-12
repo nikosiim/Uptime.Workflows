@@ -9,6 +9,11 @@ public class StatelessStateMachineAdapter<TState, TTrigger>(TState initialState)
 
     public TState CurrentState => _machine.State;
 
+    public void Fire(TTrigger trigger)
+    {
+        _machine.Fire(trigger);
+    }
+
     public Task FireAsync(TTrigger trigger)
     {
         return _machine.FireAsync(trigger);

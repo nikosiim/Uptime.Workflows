@@ -22,10 +22,10 @@ public class AlterTaskCommandHandler(IWorkflowDbContext dbContext, IWorkflowFact
 {
     public async Task<WorkflowPhase> Handle(AlterTaskCommand request, CancellationToken cancellationToken)
     {
-        WorkflowTask? workflowTask = dbContext.WorkflowTasks
+        WorkflowTask? workflowTask = await dbContext.WorkflowTasks
             .Include(x => x.Workflow)
             .ThenInclude(w => w.WorkflowTemplate)
-            .FirstOrDefault(task => task.Id == request.TaskId.Value);
+            .FirstOrDefaultAsync(task => task.Id == request.TaskId.Value, cancellationToken);
 
         if (workflowTask is null) 
             return WorkflowPhase.Invalid;
@@ -59,7 +59,7 @@ public class AlterTaskCommandHandler(IWorkflowDbContext dbContext, IWorkflowFact
             Storage = JsonSerializer.Deserialize<Dictionary<string, string?>>(workflowTask.StorageJson ?? "{}") ?? new Dictionary<string, string?>()
         };
 
-        await machine.AlterTaskCoreAsync(taskContext);
+        await machine.AlterTaskCoreAsync(taskContext, cancellationToken);
 
         return machine.CurrentState;
     }

@@ -3,6 +3,7 @@
 public interface IStateMachine<TState, in TTrigger>
 {
     TState CurrentState { get; }
+    void Fire(TTrigger trigger);
     Task FireAsync(TTrigger trigger);
     IStateConfiguration<TState, TTrigger> Configure(TState state);
 }

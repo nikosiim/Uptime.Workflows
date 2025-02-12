@@ -17,7 +17,7 @@ public class StatelessStateConfigurationAdapter<TState, TTrigger>(StateMachine<T
         stateConfig.OnEntry(action);
         return this;
     }
-
+    
     public IStateConfiguration<TState, TTrigger> OnEntryAsync(Func<Task> action)
     {
         stateConfig.OnEntryAsync(action);

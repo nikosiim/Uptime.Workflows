@@ -11,7 +11,7 @@ public class ReplicatorManager<TData>(WorkflowId workflowId, IWorkflowActivityFa
     /// <summary>
     /// Initializes replicators from the workflow context.
     /// </summary>
-    public void LoadReplicators(Dictionary<string, ReplicatorState<TData>> replicatorStates)
+    public void LoadReplicatorsAsync(Dictionary<string, ReplicatorState<TData>> replicatorStates, CancellationToken cancellationToken)
     {
         _replicators.Clear();
         
@@ -26,7 +26,7 @@ public class ReplicatorManager<TData>(WorkflowId workflowId, IWorkflowActivityFa
                 ChildActivityFactory = data => activityFactory.CreateActivity(data, new WorkflowTaskContext(workflowId)),
                 OnChildInitialized = (data, activity) => activityFactory.OnChildInitialized(phase, data, activity),
                 OnChildCompleted = (data, activity) => activityFactory.OnChildCompleted(phase, data, activity),
-                OnAllTasksCompleted = async () => await workflowMachine.TriggerTransitionAsync(WorkflowTrigger.AllTasksCompleted)
+                OnAllTasksCompleted = async () => await workflowMachine.TriggerTransitionAsync(WorkflowTrigger.AllTasksCompleted, cancellationToken)
             };
 
             _replicators[phase] = replicator;
@@ -36,11 +36,11 @@ public class ReplicatorManager<TData>(WorkflowId workflowId, IWorkflowActivityFa
     /// <summary>
     /// Runs all replicators for the specified phase.
     /// </summary>
-    public async Task RunReplicatorAsync(string phaseName)
+    public async Task RunReplicatorAsync(string phaseName, CancellationToken cancellationToken)
     {
         if (!_replicators.TryGetValue(phaseName, out Replicator<TData>? replicator))
             return; // No replicator for this phase
         
-        await replicator.ExecuteAsync();
+        await replicator.ExecuteAsync(cancellationToken);
     }
 }

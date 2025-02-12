@@ -6,24 +6,19 @@ public abstract class UserTaskActivity(IWorkflowTaskRepository taskService, Work
 {
     public WorkflowTaskContext Context => context;
     public IWorkflowTaskRepository TaskService => taskService;
-    public WorkflowId WorkflowId => context.WorkflowId;
 
     public bool IsCompleted { get; set; }
     public IUserTaskActivityData? TaskData { get; set; }
-
-    public abstract Task OnTaskChanged(Dictionary<string, string?> storage);
-    protected abstract void ExecuteTaskLogicAsync();
-
-    public async Task ExecuteAsync()
+    
+    public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         Context.TaskGuid = Guid.NewGuid();
 
         InitializeContext();
-        ExecuteTaskLogicAsync();
+        ExecuteTaskLogic();
 
-        Context.TaskId = await TaskService.CreateWorkflowTaskAsync(Context);
+        Context.TaskId = await TaskService.CreateWorkflowTaskAsync(Context, cancellationToken);
     }
-
     protected virtual void InitializeContext()
     {
         if (TaskData != null)
@@ -34,4 +29,7 @@ public abstract class UserTaskActivity(IWorkflowTaskRepository taskService, Work
             Context.TaskDescription = TaskData.TaskDescription;
         }
     }
+
+    protected abstract void ExecuteTaskLogic();
+    public abstract Task OnTaskChangedAsync(Dictionary<string, string?> storage, CancellationToken cancellationToken);
 }
