@@ -1,5 +1,4 @@
-﻿using System.Threading;
-using Uptime.Domain.Common;
+﻿using Uptime.Domain.Common;
 using Uptime.Domain.Interfaces;
 using Uptime.Shared.Enums;
 using Uptime.Shared.Extensions;
@@ -7,8 +6,8 @@ using static Uptime.Shared.GlobalConstants;
 
 namespace Uptime.Application.Workflows.Signing;
 
-public class SigningTaskActivity(IWorkflowTaskRepository taskService, WorkflowTaskContext context)
-    : UserTaskActivity(taskService, context)
+public class SigningTaskActivity(IWorkflowRepository repository, WorkflowTaskContext context)
+    : UserTaskActivity(repository, context)
 {
     protected override void ExecuteTaskLogic()
     {
@@ -42,6 +41,6 @@ public class SigningTaskActivity(IWorkflowTaskRepository taskService, WorkflowTa
             Context.Storage.SetValueAsString(TaskStorageKeys.TaskDelegatedTo, delegatedTo);
         }
 
-        await TaskService.SaveWorkflowTaskAsync(Context, WorkflowTaskStatus.Completed, cancellationToken);
+        await repository.SaveWorkflowTaskAsync(Context, WorkflowTaskStatus.Completed, cancellationToken);
     }
 }

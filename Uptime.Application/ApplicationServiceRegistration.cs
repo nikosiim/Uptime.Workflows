@@ -23,8 +23,7 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IWorkflowMachine>(sp => sp.GetRequiredService<SigningWorkflow>());
 
         services.AddScoped<IWorkflowFactory, WorkflowFactory>();
-        services.AddScoped<IWorkflowTaskRepository, WorkflowTaskRepository>();
-        services.AddScoped(typeof(IWorkflowStateRepository<>), typeof(WorkflowStateRepository<>));
+        services.AddScoped<IWorkflowRepository, WorkflowRepository>();
         services.AddScoped(typeof(IReplicatorPhaseBuilder<>), typeof(ReplicatorPhaseBuilder<>));
 
         services.AddScoped(typeof(ReplicatorManager<>));

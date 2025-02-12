@@ -7,9 +7,9 @@ namespace Uptime.Domain.Workflows;
 
 public abstract class ActivityWorkflowBase<TContext>(
     IStateMachineFactory<WorkflowPhase, WorkflowTrigger> stateMachineFactory,
-    IWorkflowStateRepository<TContext> stateRepository,
+    IWorkflowRepository repository, 
     ILogger<WorkflowBase<TContext>> logger)
-    : WorkflowBase<TContext>(stateMachineFactory, stateRepository, logger), IActivityWorkflowMachine
+    : WorkflowBase<TContext>(stateMachineFactory, repository, logger), IActivityWorkflowMachine
     where TContext : class, IWorkflowContext, new()
 {
     private readonly ILogger<WorkflowBase<TContext>> _logger = logger;

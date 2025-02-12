@@ -2,10 +2,9 @@
 
 namespace Uptime.Domain.Common;
 
-public abstract class UserTaskActivity(IWorkflowTaskRepository taskService, WorkflowTaskContext context) : IUserTaskActivity
+public abstract class UserTaskActivity(IWorkflowRepository repository, WorkflowTaskContext context) : IUserTaskActivity
 {
     public WorkflowTaskContext Context => context;
-    public IWorkflowTaskRepository TaskService => taskService;
 
     public bool IsCompleted { get; set; }
     public IUserTaskActivityData? TaskData { get; set; }
@@ -17,7 +16,7 @@ public abstract class UserTaskActivity(IWorkflowTaskRepository taskService, Work
         InitializeContext();
         ExecuteTaskLogic();
 
-        Context.TaskId = await TaskService.CreateWorkflowTaskAsync(Context, cancellationToken);
+        Context.TaskId = await repository.CreateWorkflowTaskAsync(Context, cancellationToken);
     }
     protected virtual void InitializeContext()
     {

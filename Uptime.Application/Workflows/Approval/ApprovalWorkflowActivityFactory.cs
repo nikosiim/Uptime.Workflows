@@ -5,11 +5,11 @@ using static Uptime.Application.Workflows.Approval.ApprovalWorkflow;
 
 namespace Uptime.Application.Workflows.Approval;
 
-public class ApprovalWorkflowActivityFactory(IWorkflowTaskRepository taskService) : BaseWorkflowActivityFactory<ApprovalTaskData>(taskService)
+public class ApprovalWorkflowActivityFactory(IWorkflowRepository repository) : BaseWorkflowActivityFactory<ApprovalTaskData>(repository)
 {
     public override IWorkflowActivity CreateActivity(ApprovalTaskData data, WorkflowTaskContext context)
     {
-        return new ApprovalTaskActivity(TaskService, context)
+        return new ApprovalTaskActivity(Repository, context)
         {
             TaskData = data
         };

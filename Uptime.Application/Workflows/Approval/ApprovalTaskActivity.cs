@@ -6,8 +6,8 @@ using static Uptime.Shared.GlobalConstants;
 
 namespace Uptime.Application.Workflows.Approval;
 
-public class ApprovalTaskActivity(IWorkflowTaskRepository taskService, WorkflowTaskContext context)
-    : UserTaskActivity(taskService, context)
+public class ApprovalTaskActivity(IWorkflowRepository repository, WorkflowTaskContext context)
+    : UserTaskActivity(repository, context)
 {
     protected override void ExecuteTaskLogic()
     {
@@ -41,6 +41,6 @@ public class ApprovalTaskActivity(IWorkflowTaskRepository taskService, WorkflowT
             Context.Storage.SetValueAsString(TaskStorageKeys.TaskDelegatedTo, delegatedTo);
         }
 
-        await TaskService.SaveWorkflowTaskAsync(Context, WorkflowTaskStatus.Completed, cancellationToken);
+        await repository.SaveWorkflowTaskAsync(Context, WorkflowTaskStatus.Completed, cancellationToken);
     }
 }

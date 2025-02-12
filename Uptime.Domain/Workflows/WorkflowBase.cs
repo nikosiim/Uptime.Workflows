@@ -1,14 +1,15 @@
 ﻿using Microsoft.Extensions.Logging;
 using Uptime.Domain.Common;
-using Uptime.Domain.DTOs;
+using Uptime.Domain.Entities;
 using Uptime.Domain.Enums;
 using Uptime.Domain.Interfaces;
 
 namespace Uptime.Domain.Workflows;
 
 public abstract class WorkflowBase<TContext>(
-    IStateMachineFactory<WorkflowPhase, WorkflowTrigger> stateMachineFactory,
-    IWorkflowStateRepository<TContext> stateRepository, ILogger<WorkflowBase<TContext>> logger)
+    IStateMachineFactory<WorkflowPhase, WorkflowTrigger> stateMachineFactory, 
+    IWorkflowRepository repository, 
+    ILogger<WorkflowBase<TContext>> logger)
     : IWorkflowMachine, IWorkflow<TContext> where TContext : class, IWorkflowContext, new()
 {
     #region Fields & Properties
@@ -27,7 +28,7 @@ public abstract class WorkflowBase<TContext>(
     {
         InitializeStateMachineAsync(WorkflowPhase.NotStarted, cancellationToken);
 
-        WorkflowId = await stateRepository.CreateWorkflowStateAsync(payload, cancellationToken);
+        WorkflowId = await repository.CreateWorkflowInstanceAsync(payload, cancellationToken);
 
         OnWorkflowActivatedAsync(payload, cancellationToken);
 
@@ -39,14 +40,14 @@ public abstract class WorkflowBase<TContext>(
 
     public async Task<bool> RehydrateAsync(WorkflowId workflowId, CancellationToken cancellationToken)
     {
-        WorkflowStateData<TContext>? stateData = await stateRepository.GetWorkflowStateAsync(workflowId, cancellationToken);
-        if (stateData == null)
+        Workflow? instance = await repository.GetWorkflowInstanceAsync(workflowId, cancellationToken);
+        if (instance == null)
             return false;
 
-        WorkflowContext = stateData.Context;
+        WorkflowContext = WorkflowContextHelper.Deserialize<TContext>(instance.StorageJson);
         WorkflowId = workflowId;
 
-        InitializeStateMachineAsync(stateData.Phase, cancellationToken);
+        InitializeStateMachineAsync(instance.Phase, cancellationToken);
 
         return true;
     }
@@ -65,10 +66,10 @@ public abstract class WorkflowBase<TContext>(
     #endregion
 
     #region Protected Methods
-
+    
     protected virtual async Task SaveWorkflowStateAsync(CancellationToken cancellationToken)
     {
-        await stateRepository.SaveWorkflowStateAsync(WorkflowId, Machine.CurrentState, WorkflowContext, cancellationToken);
+        await repository.SaveWorkflowStateAsync(WorkflowId, Machine.CurrentState, WorkflowContext, cancellationToken);
     }
 
     #endregion

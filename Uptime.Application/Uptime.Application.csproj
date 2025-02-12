@@ -20,9 +20,12 @@
     <Compile Remove="Common\ReplicatorState.cs" />
     <Compile Remove="Common\ReplicatorWorkflowBase.cs" />
     <Compile Remove="Common\StateTransitionQueue.cs" />
+    <Compile Remove="Common\StorageExtensions.cs" />
     <Compile Remove="Common\UserTaskActivity.cs" />
     <Compile Remove="Common\WorkflowBase.cs" />
+    <Compile Remove="Common\WorkflowStateRepository.cs" />
     <Compile Remove="Common\WorkflowTaskContext.cs" />
+    <Compile Remove="Common\WorkflowTaskRepository.cs" />
     <Compile Remove="DTOs\WorkflowInstanceData.cs" />
     <Compile Remove="DTOs\WorkflowStateData.cs" />
     <Compile Remove="Interfaces\IActivityContext.cs" />

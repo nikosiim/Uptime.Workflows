@@ -10,11 +10,12 @@ namespace Uptime.Application.Workflows.Signing;
 
 public class SigningWorkflow(
     IStateMachineFactory<WorkflowPhase, WorkflowTrigger> stateMachineFactory,
-    IWorkflowStateRepository<SigningWorkflowContext> stateRepository,
-    IWorkflowTaskRepository taskService, 
+    IWorkflowRepository repository,
     ILogger<WorkflowBase<SigningWorkflowContext>> logger)
-    : ActivityWorkflowBase<SigningWorkflowContext>(stateMachineFactory, stateRepository, logger)
+    : ActivityWorkflowBase<SigningWorkflowContext>(stateMachineFactory, repository, logger)
 {
+    private readonly IWorkflowRepository _repository = repository;
+
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {
         Machine.Configure(WorkflowPhase.NotStarted)
@@ -55,7 +56,7 @@ public class SigningWorkflow(
 
     protected override async Task AlterTaskInternalAsync(WorkflowTaskContext context, CancellationToken cancellationToken)
     {
-        var taskActivity = new SigningTaskActivity(taskService, context)
+        var taskActivity = new SigningTaskActivity(_repository, context)
         {
             TaskData = WorkflowContext.SigningTask
         };
@@ -78,7 +79,7 @@ public class SigningWorkflow(
         }
 
         SigningTaskData taskData = WorkflowContext.SigningTask!;
-        var taskActivity = new SigningTaskActivity(taskService, new WorkflowTaskContext(WorkflowId))
+        var taskActivity = new SigningTaskActivity(_repository, new WorkflowTaskContext(WorkflowId))
         {
             TaskData = taskData
         };
