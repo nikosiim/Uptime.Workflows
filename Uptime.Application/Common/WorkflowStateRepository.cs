@@ -83,7 +83,7 @@ public class WorkflowStateRepository<TContext>(IWorkflowDbContext dbContext, ILo
         instance.Phase = phase;
         instance.StorageJson = JsonSerializer.Serialize(context);
 
-        if (phase == WorkflowPhase.Completed)
+        if (phase.IsFinal())
         {
             instance.EndDate = DateTime.Now.ToUniversalTime();
         }

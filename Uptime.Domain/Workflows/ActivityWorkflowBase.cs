@@ -29,7 +29,7 @@ public abstract class ActivityWorkflowBase<TContext>(
 
     private bool CanAlterTask()
     {
-        if (Machine.CurrentState == WorkflowPhase.Completed)
+        if (Machine.CurrentState.IsFinal())
         {
             _logger.LogDebug("Workflow is already completed. No modifications allowed.");
             return false;
