@@ -9,10 +9,9 @@ namespace Uptime.Application.Workflows.Signing;
 
 public class SigningWorkflow(
     IWorkflowStateRepository<SigningWorkflowContext> stateRepository,
-    IWorkflowPersistenceService workflowService, 
-    ITaskService taskService, 
+    IWorkflowTaskRepository taskService, 
     ILogger<WorkflowBase<SigningWorkflowContext>> logger)
-    : WorkflowBase<SigningWorkflowContext>(stateRepository, workflowService, logger)
+    : ActivityWorkflowBase<SigningWorkflowContext>(stateRepository, logger)
 {
     protected override void ConfigureStateMachine()
     {
@@ -52,25 +51,19 @@ public class SigningWorkflow(
         }             
     }
 
-    protected override async Task<WorkflowPhase> AlterTaskInternalAsync(IAlterTaskPayload payload)
+    protected override async Task AlterTaskInternalAsync(WorkflowTaskContext context)
     {
-        WorkflowTaskContext? context = await taskService.GetWorkflowTaskContextAsync(payload.TaskId);
-        if (context == null) 
-            return Machine.CurrentState;
-
         var taskActivity = new SigningTaskActivity(taskService, context)
         {
             TaskData = WorkflowContext.SigningTask
         };
 
-        await taskActivity.OnTaskChanged(payload);
+        await taskActivity.OnTaskChanged(context.Storage);
 
         if (taskActivity.IsCompleted)
         {
             await TriggerTransitionAsync(WorkflowTrigger.TaskCompleted);
         }
-
-        return await SaveWorkflowStateAsync();
     }
 
     private async Task StartSigningTask()

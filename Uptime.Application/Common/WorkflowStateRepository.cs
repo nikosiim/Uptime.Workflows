@@ -1,38 +1,47 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using Uptime.Application.DTOs;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
+using Uptime.Domain.Entities;
+using Uptime.Domain.Enums;
 
 namespace Uptime.Application.Common;
 
-/// <summary>
-/// Repository responsible for retrieving and materializing the workflow state data
-/// from the persistence layer.
-/// </summary>
-/// <typeparam name="TContext">The type of the workflow context.</typeparam>
-public class WorkflowStateRepository<TContext>(IWorkflowPersistenceService workflowService, ILogger<WorkflowStateRepository<TContext>> logger) 
+public class WorkflowStateRepository<TContext>(IWorkflowDbContext dbContext, ILogger<WorkflowStateRepository<TContext>> logger)
     : IWorkflowStateRepository<TContext> where TContext : IWorkflowContext, new()
 {
-    /// <summary>
-    /// Retrieves the persisted state of the workflow instance and materializes it into a <see cref="WorkflowStateData{TContext}"/> object.
-    /// </summary>
-    /// <param name="workflowId">The unique identifier of the workflow instance.</param>
-    /// <returns>
-    /// A <see cref="WorkflowStateData{TContext}"/> containing the current phase and deserialized workflow context,
-    /// or <c>null</c> if the workflow instance cannot be found.
-    /// </returns>
+    public async Task<WorkflowId> CreateWorkflowStateAsync(IWorkflowPayload payload)
+    {
+        var instance = new Workflow
+        {
+            Phase = WorkflowPhase.NotStarted,
+            StorageJson = null,
+            Originator = payload.Originator,
+            StartDate = DateTime.UtcNow,
+            DocumentId = payload.DocumentId.Value,
+            WorkflowTemplateId = payload.WorkflowTemplateId.Value
+        };
+
+        dbContext.Workflows.Add(instance);
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        return (WorkflowId)instance.Id;
+    }
+
     public async Task<WorkflowStateData<TContext>?> GetWorkflowStateAsync(WorkflowId workflowId)
     {
-        WorkflowDto? dto = await workflowService.GetWorkflowInstanceAsync(workflowId);
-        if (dto == null)
+        Workflow? instance = await dbContext.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId.Value);
+        if (instance == null)
         {
-            logger.LogWarning("Workflow instance {WorkflowId} was not found.", workflowId);
+            logger.LogWarning("Workflow instance {WorkflowId} not found.", workflowId);
             return null;
         }
-
+        
         TContext context;
-        if (string.IsNullOrWhiteSpace(dto.InstanceDataJson))
+
+        if (string.IsNullOrWhiteSpace(instance.StorageJson))
         {
             logger.LogWarning("Workflow instance {WorkflowId} has empty or missing instance data JSON. Using a new {TContext} instance.", workflowId, typeof(TContext).Name);
             context = new TContext();
@@ -41,7 +50,7 @@ public class WorkflowStateRepository<TContext>(IWorkflowPersistenceService workf
         {
             try
             {
-                context = JsonSerializer.Deserialize<TContext>(dto.InstanceDataJson) ?? new TContext();
+                context = JsonSerializer.Deserialize<TContext>(instance.StorageJson) ?? new TContext();
             }
             catch (JsonException ex)
             {
@@ -52,8 +61,32 @@ public class WorkflowStateRepository<TContext>(IWorkflowPersistenceService workf
 
         return new WorkflowStateData<TContext>
         {
-            Phase = dto.Phase,
+            Phase = instance.Phase,
             Context = context
         };
+    }
+
+    public async Task SaveWorkflowStateAsync(WorkflowId workflowId, WorkflowPhase phase, TContext context)
+    {
+        Workflow? instance = await dbContext.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId.Value);
+        if (instance == null)
+        {
+            throw new InvalidOperationException($"Workflow with ID {workflowId} not found.");
+        }
+
+        // Merge the existing context's storage with the updated context's storage.
+        TContext existingContext = new();
+        existingContext.Deserialize(instance.StorageJson ?? "{}");
+        existingContext.Storage.MergeWith(context.Storage);
+
+        instance.Phase = phase;
+        instance.StorageJson = JsonSerializer.Serialize(context);
+
+        if (phase == WorkflowPhase.Completed)
+        {
+            instance.EndDate = DateTime.Now.ToUniversalTime();
+        }
+
+        await dbContext.SaveChangesAsync(CancellationToken.None);
     }
 }

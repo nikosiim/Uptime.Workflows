@@ -7,10 +7,7 @@ using Uptime.Domain.Enums;
 
 namespace Uptime.Application.Common;
 
-public abstract class WorkflowBase<TContext>(
-    IWorkflowStateRepository<TContext> stateRepository,
-    IWorkflowPersistenceService persistenceService, 
-    ILogger<WorkflowBase<TContext>> logger) 
+public abstract class WorkflowBase<TContext>(IWorkflowStateRepository<TContext> stateRepository, ILogger<WorkflowBase<TContext>> logger) 
     : IWorkflowMachine, IWorkflow<TContext> where TContext : class, IWorkflowContext, new()
 {
     #region Fields & Properties
@@ -19,24 +16,24 @@ public abstract class WorkflowBase<TContext>(
     protected WorkflowId WorkflowId;
 
     public TContext WorkflowContext { get; private set; } = new();
-
-    private readonly AsyncLockHelper _asyncLockHelper = new();
-
+    public WorkflowPhase CurrentState => Machine.CurrentState;
+    
     #endregion
 
     #region Public Methods
-
+    
     public async Task<WorkflowPhase> StartAsync(IWorkflowPayload payload, CancellationToken cancellationToken = default)
     {
         InitializeStateMachine(WorkflowPhase.NotStarted);
 
-        WorkflowId = await persistenceService.CreateWorkflowInstanceAsync(payload);
+        WorkflowId = await stateRepository.CreateWorkflowStateAsync(payload);
 
         OnWorkflowActivated(payload);
 
         await Machine.FireAsync(WorkflowTrigger.Start);
+        await SaveWorkflowStateAsync();
 
-        return await SaveWorkflowStateAsync();
+        return Machine.CurrentState;
     }
 
     public async Task<bool> RehydrateAsync(WorkflowId workflowId, CancellationToken cancellationToken)
@@ -47,6 +44,7 @@ public abstract class WorkflowBase<TContext>(
 
         WorkflowContext = stateData.Context;
         WorkflowId = workflowId;
+
         InitializeStateMachine(stateData.Phase);
 
         return true;
@@ -62,28 +60,14 @@ public abstract class WorkflowBase<TContext>(
             await SaveWorkflowStateAsync();
         }
     }
-
-    public async Task<WorkflowPhase> AlterTaskCoreAsync(IAlterTaskPayload payload)
-    {
-        if (!CanAlterTask())
-            return WorkflowPhase.Completed;
-
-        return await AlterTaskInternalAsync(payload);
-    }
-
+    
     #endregion
 
     #region Protected Methods
     
-    protected virtual async Task<WorkflowPhase> SaveWorkflowStateAsync()
+    protected virtual async Task SaveWorkflowStateAsync()
     {
-        await persistenceService.UpdateWorkflowStateAsync(WorkflowId, Machine.CurrentState, WorkflowContext);
-        return Machine.CurrentState;
-    }
-    
-    protected virtual void UpdateReplicatorState(Guid taskGuid, bool isCompleted)
-    {
-        // Default implementation: does nothing
+        await stateRepository.SaveWorkflowStateAsync(WorkflowId, Machine.CurrentState, WorkflowContext);
     }
 
     #endregion
@@ -92,7 +76,6 @@ public abstract class WorkflowBase<TContext>(
 
     protected abstract void OnWorkflowActivated(IWorkflowPayload payload);
     protected abstract void ConfigureStateMachine();
-    protected abstract Task<WorkflowPhase> AlterTaskInternalAsync(IAlterTaskPayload payload);
 
     #endregion
 
@@ -103,17 +86,6 @@ public abstract class WorkflowBase<TContext>(
         Machine = StateMachineFactory.Create<WorkflowPhase, WorkflowTrigger>(initialPhase);
         ConfigureStateMachine();
     }
-
-    private bool CanAlterTask()
-    {
-        if (Machine.CurrentState == WorkflowPhase.Completed)
-        {
-            logger.LogDebug("Workflow is already completed. No modifications allowed.");
-            return false;
-        }
-
-        return true;
-    }
-
+    
     #endregion
 }

@@ -7,9 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Common\AlterTaskPayload.cs" />
     <Compile Remove="Enums\WorkflowStatus.cs" />
     <Compile Remove="Enums\WorkflowTaskStatus.cs" />
     <Compile Remove="Interfaces\IActivityContext.cs" />
+    <Compile Remove="Interfaces\IAlterTaskPayload.cs" />
     <Compile Remove="Interfaces\IUserTaskActivityContext.cs" />
   </ItemGroup>
 

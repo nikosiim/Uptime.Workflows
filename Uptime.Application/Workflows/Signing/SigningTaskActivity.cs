@@ -6,7 +6,7 @@ using static Uptime.Shared.GlobalConstants;
 
 namespace Uptime.Application.Workflows.Signing;
 
-public class SigningTaskActivity(ITaskService taskService, WorkflowTaskContext context)
+public class SigningTaskActivity(IWorkflowTaskRepository taskService, WorkflowTaskContext context)
     : UserTaskActivity(taskService, context)
 {
     protected override void ExecuteTaskLogicAsync()
@@ -17,13 +17,13 @@ public class SigningTaskActivity(ITaskService taskService, WorkflowTaskContext c
         Context.Storage.SetValueAsEnum<TaskOutcome>(TaskStorageKeys.TaskOutcome, TaskOutcome.Pending);
     }
 
-    public override async Task OnTaskChanged(IAlterTaskPayload payload)
+    public override async Task OnTaskChanged(Dictionary<string, string?> storage)
     {
-        string? editor = payload.Storage.GetValueAsString(TaskStorageKeys.TaskEditor);
-        string? comment = payload.Storage.GetValueAsString(TaskStorageKeys.TaskComment);
-        string? delegatedTo = payload.Storage.GetValueAsString(TaskStorageKeys.TaskDelegatedTo);
+        string? editor = storage.GetValueAsString(TaskStorageKeys.TaskEditor);
+        string? comment = storage.GetValueAsString(TaskStorageKeys.TaskComment);
+        string? delegatedTo = storage.GetValueAsString(TaskStorageKeys.TaskDelegatedTo);
         
-        if (payload.Storage.TryGetValueAsEnum(TaskStorageKeys.TaskOutcome, out TaskOutcome? taskOutcome))
+        if (storage.TryGetValueAsEnum(TaskStorageKeys.TaskOutcome, out TaskOutcome? taskOutcome))
         {
             await SetTaskOutcome(taskOutcome!.Value, editor, comment, delegatedTo);
         }
@@ -41,6 +41,6 @@ public class SigningTaskActivity(ITaskService taskService, WorkflowTaskContext c
             Context.Storage.SetValueAsString(TaskStorageKeys.TaskDelegatedTo, delegatedTo);
         }
 
-        await TaskService.UpdateWorkflowTaskAsync(Context, WorkflowTaskStatus.Completed);
+        await TaskService.SaveWorkflowTaskAsync(Context, WorkflowTaskStatus.Completed);
     }
 }

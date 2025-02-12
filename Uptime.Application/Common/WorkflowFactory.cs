@@ -11,6 +11,7 @@ public class WorkflowFactory : IWorkflowFactory
 
     public WorkflowFactory(IEnumerable<IWorkflowMachine> workflows)
     {
+        // Build the mapping based on a unique identifier for each workflow.
         _workflowMap = workflows.ToDictionary(GetWorkflowBaseId, workflow => workflow);
     }
 
@@ -32,6 +33,7 @@ public class WorkflowFactory : IWorkflowFactory
 
     private static Guid GetWorkflowBaseId(IWorkflowMachine workflow)
     {
+        // Determine the base ID based on the workflow's type.
         return workflow switch
         {
             ApprovalWorkflow => Guid.Parse("16778969-6d4c-4367-9106-1b0ae4a4594f"),

@@ -8,12 +8,11 @@ namespace Uptime.Application.Workflows.Approval;
 
 public class ApprovalWorkflow(
     IWorkflowStateRepository<ApprovalWorkflowContext> stateRepository,
-    IWorkflowPersistenceService workflowService, 
-    ITaskService taskService, 
+    IWorkflowTaskRepository taskService, 
     IReplicatorPhaseBuilder<ApprovalTaskData> replicatorPhaseBuilder,
     IWorkflowActivityFactory<ApprovalTaskData> activityFactory, 
     ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
-    : ReplicatorWorkflowBase<ApprovalWorkflowContext, ApprovalTaskData>(stateRepository, workflowService, taskService, activityFactory, replicatorPhaseBuilder, logger)
+    : ReplicatorWorkflowBase<ApprovalWorkflowContext, ApprovalTaskData>(stateRepository, activityFactory, replicatorPhaseBuilder, logger)
 {
     public static class Phases
     {

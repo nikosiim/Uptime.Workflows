@@ -3,16 +3,16 @@ using Uptime.Domain.Common;
 
 namespace Uptime.Application.Common;
 
-public abstract class UserTaskActivity(ITaskService taskService, WorkflowTaskContext context) : IUserTaskActivity
+public abstract class UserTaskActivity(IWorkflowTaskRepository taskService, WorkflowTaskContext context) : IUserTaskActivity
 {
     public WorkflowTaskContext Context => context;
-    public ITaskService TaskService => taskService;
+    public IWorkflowTaskRepository TaskService => taskService;
     public WorkflowId WorkflowId => context.WorkflowId;
 
     public bool IsCompleted { get; set; }
     public IUserTaskActivityData? TaskData { get; set; }
 
-    public abstract Task OnTaskChanged(IAlterTaskPayload payload);
+    public abstract Task OnTaskChanged(Dictionary<string, string?> storage);
     protected abstract void ExecuteTaskLogicAsync();
 
     public async Task ExecuteAsync()

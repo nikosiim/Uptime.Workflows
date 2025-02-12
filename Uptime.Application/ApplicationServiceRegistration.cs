@@ -3,7 +3,6 @@ using System.Reflection;
 using Uptime.Application.Commands;
 using Uptime.Application.Common;
 using Uptime.Application.Interfaces;
-using Uptime.Application.Services;
 using Uptime.Application.Workflows.Approval;
 using Uptime.Application.Workflows.Signing;
 
@@ -23,8 +22,7 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IWorkflowMachine>(sp => sp.GetRequiredService<SigningWorkflow>());
 
         services.AddScoped<IWorkflowFactory, WorkflowFactory>();
-        services.AddScoped<IWorkflowPersistenceService, WorkflowPersistenceService>();
-        services.AddScoped<ITaskService, TaskService>();
+        services.AddScoped<IWorkflowTaskRepository, WorkflowTaskRepository>();
         services.AddScoped(typeof(IWorkflowStateRepository<>), typeof(WorkflowStateRepository<>));
         services.AddScoped(typeof(IReplicatorPhaseBuilder<>), typeof(ReplicatorPhaseBuilder<>));
 

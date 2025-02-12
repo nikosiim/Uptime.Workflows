@@ -4,17 +4,17 @@ using static Uptime.Application.Workflows.Approval.ApprovalWorkflow;
 
 namespace Uptime.Application.Workflows.Approval;
 
-public class ApprovalWorkflowActivityFactory(ITaskService taskService) : IWorkflowActivityFactory<ApprovalTaskData>
+public class ApprovalWorkflowActivityFactory(IWorkflowTaskRepository taskService) : BaseWorkflowActivityFactory<ApprovalTaskData>(taskService)
 {
-    public IWorkflowActivity CreateActivity(ApprovalTaskData data, WorkflowTaskContext context)
+    public override IWorkflowActivity CreateActivity(ApprovalTaskData data, WorkflowTaskContext context)
     {
-        return new ApprovalTaskActivity(taskService, context)
+        return new ApprovalTaskActivity(TaskService, context)
         {
             TaskData = data
         };
     }
 
-    public void OnChildInitialized(string phaseName, ApprovalTaskData data, IWorkflowActivity activity)
+    public override void OnChildInitialized(string phaseName, ApprovalTaskData data, IWorkflowActivity activity)
     {
         if (phaseName == Phases.ApprovalPhase)
         {
@@ -26,7 +26,7 @@ public class ApprovalWorkflowActivityFactory(ITaskService taskService) : IWorkfl
         }
     }
 
-    public void OnChildCompleted(string phaseName, ApprovalTaskData data, IWorkflowActivity activity)
+    public override void OnChildCompleted(string phaseName, ApprovalTaskData data, IWorkflowActivity activity)
     {
         if (phaseName == Phases.ApprovalPhase)
         {

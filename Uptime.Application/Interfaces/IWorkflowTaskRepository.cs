@@ -4,9 +4,9 @@ using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Interfaces;
 
-public interface ITaskService
+public interface IWorkflowTaskRepository
 {
     Task<WorkflowTaskContext?> GetWorkflowTaskContextAsync(TaskId taskId);
     Task<TaskId> CreateWorkflowTaskAsync(IWorkflowTask task);
-    Task UpdateWorkflowTaskAsync(IWorkflowTask task, WorkflowTaskStatus status);
+    Task SaveWorkflowTaskAsync(IWorkflowTask task, WorkflowTaskStatus status);
 }
