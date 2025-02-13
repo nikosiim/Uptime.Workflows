@@ -12,7 +12,7 @@ public abstract class BaseWorkflowActivityFactory<TData>(IWorkflowRepository rep
 {
     protected readonly IWorkflowRepository Repository = repository;
 
-    public abstract IWorkflowActivity CreateActivity(TData data, WorkflowTaskContext context);
+    public abstract IWorkflowActivity CreateActivity(string phaseName, TData data, WorkflowTaskContext context);
 
     public virtual void OnChildInitialized(string phaseName, TData data, IWorkflowActivity activity)
     {

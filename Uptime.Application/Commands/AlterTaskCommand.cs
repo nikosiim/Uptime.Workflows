@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using Uptime.Application.Common;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
@@ -56,7 +57,7 @@ public class AlterTaskCommandHandler(IWorkflowDbContext dbContext, IWorkflowFact
             AssignedBy = workflowTask.AssignedBy,
             TaskDescription = workflowTask.Description,
             DueDate = workflowTask.DueDate,
-            Storage = JsonSerializer.Deserialize<Dictionary<string, string?>>(workflowTask.StorageJson ?? "{}") ?? new Dictionary<string, string?>()
+            Storage = workflowTask.StorageJson.DeserializeStorage()
         };
 
         await machine.AlterTaskCoreAsync(taskContext, cancellationToken);

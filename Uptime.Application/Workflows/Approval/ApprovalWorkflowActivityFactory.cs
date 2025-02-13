@@ -1,4 +1,5 @@
 ﻿using Uptime.Application.Common;
+using Uptime.Application.Workflows.Signing;
 using Uptime.Domain.Common;
 using Uptime.Domain.Interfaces;
 using static Uptime.Application.Workflows.Approval.ApprovalWorkflow;
@@ -8,8 +9,16 @@ namespace Uptime.Application.Workflows.Approval;
 public class ApprovalWorkflowActivityFactory(IWorkflowRepository repository) 
     : BaseWorkflowActivityFactory<ApprovalTaskData>(repository)
 {
-    public override IWorkflowActivity CreateActivity(ApprovalTaskData data, WorkflowTaskContext context)
+    public override IWorkflowActivity CreateActivity(string phaseName, ApprovalTaskData data, WorkflowTaskContext context)
     {
+        if (phaseName == Phases.SigningPhase)
+        {
+            return new SigningTaskActivity(Repository, context)
+            {
+                TaskData = data
+            };
+        }
+
         return new ApprovalTaskActivity(Repository, context)
         {
             TaskData = data

@@ -17,10 +17,10 @@
     <Compile Remove="Common\ReplicatorItem.cs" />
     <Compile Remove="Common\ReplicatorManager.cs" />
     <Compile Remove="Common\ReplicatorPhase.cs" />
+    <Compile Remove="Common\ReplicatorPhaseBuilder.cs" />
     <Compile Remove="Common\ReplicatorState.cs" />
     <Compile Remove="Common\ReplicatorWorkflowBase.cs" />
     <Compile Remove="Common\StateTransitionQueue.cs" />
-    <Compile Remove="Common\StorageExtensions.cs" />
     <Compile Remove="Common\UserTaskActivity.cs" />
     <Compile Remove="Common\WorkflowBase.cs" />
     <Compile Remove="Common\WorkflowStateRepository.cs" />

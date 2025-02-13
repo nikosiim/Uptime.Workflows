@@ -26,7 +26,7 @@ public abstract class ReplicatorWorkflowBase<TContext, TData>(
             phase => phase.PhaseName,
             phase => new ReplicatorState<TData>
             {
-                Type = ReplicatorType.Sequential,
+                Type = ReplicatorType.Sequential, // TODO: replace with dynamical value
                 Items = phase.TaskData.Select(data => new ReplicatorItem<TData> { Data = data }).ToList()
             }
         );
@@ -57,15 +57,16 @@ public abstract class ReplicatorWorkflowBase<TContext, TData>(
     
     protected virtual UserTaskActivity? CreateChildActivity(WorkflowTaskContext context)
     {
-        // Locate the replicator item matching the task GUID.
-        ReplicatorItem<TData>? item = WorkflowContext.ReplicatorStates
-            .SelectMany(kvp => kvp.Value.Items)
-            .FirstOrDefault(item => item.TaskGuid == context.TaskGuid);
+        KeyValuePair<string, ReplicatorState<TData>> phaseEntry = WorkflowContext.ReplicatorStates
+            .FirstOrDefault(kvp => kvp.Value.Items.Any(item => item.TaskGuid == context.TaskGuid));
+        if (phaseEntry.Key == null)
+            return null; // Task not found in any phase
 
+        ReplicatorItem<TData>? item = phaseEntry.Value.Items.FirstOrDefault(i => i.TaskGuid == context.TaskGuid);
         if (item == null)
             return null;
 
-        return activityFactory.CreateActivity(item.Data, context) as UserTaskActivity;
+        return activityFactory.CreateActivity(phaseEntry.Key, item.Data, context) as UserTaskActivity;
     }
     
     protected virtual void UpdateReplicatorState(Guid taskGuid, bool isCompleted)
