@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application.Common;
 
@@ -24,4 +25,24 @@ internal static class StorageExtensions
             existingStorage[kvp.Key] = kvp.Value;
         }
     }
+
+    public static T DeserializeTaskData<T>(this object data) where T : IReplicatorItem
+    {
+        if (data is JsonElement jsonElement)
+        {
+            var result = jsonElement.Deserialize<T>();
+            if (result is null)
+                throw new InvalidOperationException($"Failed to deserialize {typeof(T).Name} from JSON.");
+
+            return result;
+        }
+
+        if (data is T typedData)
+        {
+            return typedData;
+        }
+
+        throw new InvalidOperationException($"Unexpected data type: {data.GetType().Name}, expected {typeof(T).Name}");
+    }
+
 }

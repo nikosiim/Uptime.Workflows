@@ -9,8 +9,6 @@ namespace Uptime.Application.Workflows.Approval;
 public class ApprovalTaskActivity(IWorkflowRepository repository, WorkflowTaskContext context)
     : UserTaskActivity(repository, context)
 {
-    private readonly IWorkflowRepository _repository = repository;
-
     protected override void ExecuteTaskLogic()
     {
         if (TaskData is null) return;
@@ -19,7 +17,7 @@ public class ApprovalTaskActivity(IWorkflowRepository repository, WorkflowTaskCo
         Context.Storage.SetValueAsEnum<TaskOutcome>(TaskStorageKeys.TaskOutcome, TaskOutcome.Pending);
     }
 
-    public override async Task OnTaskChangedAsync(Dictionary<string, string?> storage, CancellationToken cancellationToken)
+    protected override void OnTaskChanged(Dictionary<string, string?> storage)
     {
         string? editor = storage.GetValueAsString(TaskStorageKeys.TaskEditor);
         string? comment = storage.GetValueAsString(TaskStorageKeys.TaskComment);
@@ -27,11 +25,11 @@ public class ApprovalTaskActivity(IWorkflowRepository repository, WorkflowTaskCo
         
         if (storage.TryGetValueAsEnum(TaskStorageKeys.TaskOutcome, out TaskOutcome? taskOutcome))
         {
-            await SetTaskOutcomeAsync(taskOutcome!.Value, editor, comment, delegatedTo, cancellationToken);
+            SetTaskOutcome(taskOutcome!.Value, editor, comment, delegatedTo);
         }
     }
     
-    private async Task SetTaskOutcomeAsync(TaskOutcome outcome, string? editor, string? comment, string? delegatedTo = null, CancellationToken cancellationToken = default)
+    private void SetTaskOutcome(TaskOutcome outcome, string? editor, string? comment, string? delegatedTo = null)
     {
         IsCompleted = true;
         Context.Storage.SetValueAsString(TaskStorageKeys.TaskEditor, editor);
@@ -43,6 +41,6 @@ public class ApprovalTaskActivity(IWorkflowRepository repository, WorkflowTaskCo
             Context.Storage.SetValueAsString(TaskStorageKeys.TaskDelegatedTo, delegatedTo);
         }
 
-        await _repository.SaveWorkflowTaskAsync(Context, WorkflowTaskStatus.Completed, cancellationToken);
+        Context.TaskStatus = WorkflowTaskStatus.Completed;
     }
 }

@@ -31,7 +31,13 @@ public abstract class UserTaskActivity(IWorkflowRepository repository, WorkflowT
         }
     }
 
-    protected abstract void ExecuteTaskLogic();
+    public virtual async Task OnTaskChangedAsync(Dictionary<string, string?> storage, CancellationToken cancellationToken)
+    {
+        OnTaskChanged(storage);
 
-    public abstract Task OnTaskChangedAsync(Dictionary<string, string?> storage, CancellationToken cancellationToken);
+        await repository.SaveWorkflowTaskAsync(Context, cancellationToken);
+    }
+
+    protected abstract void ExecuteTaskLogic();
+    protected abstract void OnTaskChanged(Dictionary<string, string?> storage);
 }

@@ -4,11 +4,11 @@ using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application.Workflows.Approval;
 
-public sealed class ApprovalWorkflowContext : IReplicatorWorkflowContext<ApprovalTaskData>
+public sealed class ApprovalWorkflowContext : IReplicatorWorkflowContext
 {
     public bool AnyTaskRejected { get; set; }
     public Dictionary<string, string?> Storage { get; set; } = new();
-    public Dictionary<string, ReplicatorState<ApprovalTaskData>> ReplicatorStates { get; set; } = new();
+    public Dictionary<string, ReplicatorState> ReplicatorStates { get; set; } = new();
 
     public string Serialize() => JsonSerializer.Serialize(this);
 

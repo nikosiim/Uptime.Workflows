@@ -7,45 +7,49 @@ using static Uptime.Application.Workflows.Approval.ApprovalWorkflow;
 namespace Uptime.Application.Workflows.Approval;
 
 public class ApprovalWorkflowActivityFactory(IWorkflowRepository repository) 
-    : BaseWorkflowActivityFactory<ApprovalTaskData>(repository)
+    : BaseWorkflowActivityFactory(repository)
 {
-    public override IWorkflowActivity CreateActivity(string phaseName, ApprovalTaskData data, WorkflowTaskContext context)
+    public override IWorkflowActivity CreateActivity(string phaseName, object data, WorkflowTaskContext context)
     {
         if (phaseName == Phases.SigningPhase)
         {
             return new SigningTaskActivity(Repository, context)
             {
-                TaskData = data
+                TaskData = (SigningTaskData)data
             };
         }
 
         return new ApprovalTaskActivity(Repository, context)
         {
-            TaskData = data
+            TaskData = data.DeserializeTaskData<ApprovalTaskData>()
         };
     }
 
-    public override void OnChildInitialized(string phaseName, ApprovalTaskData data, IWorkflowActivity activity)
+    public override void OnChildInitialized(string phaseName, object data, IWorkflowActivity activity)
     {
         if (phaseName == Phases.ApprovalPhase)
         {
-            Console.WriteLine($"Approval task initialized for {data.AssignedTo}");
+            var taskData = data.DeserializeTaskData<ApprovalTaskData>();
+            Console.WriteLine($"Approval task initialized for {taskData.AssignedTo}");
         }
         else if (phaseName == Phases.SigningPhase)
         {
-            Console.WriteLine($"Signing task initialized for {data.AssignedTo}");
+            var taskData = (SigningTaskData)data;
+            Console.WriteLine($"Signing task initialized for {taskData.AssignedTo}");
         }
     }
 
-    public override void OnChildCompleted(string phaseName, ApprovalTaskData data, IWorkflowActivity activity)
+    public override void OnChildCompleted(string phaseName, object data, IWorkflowActivity activity)
     {
         if (phaseName == Phases.ApprovalPhase)
         {
-            Console.WriteLine($"Approval task completed for {data.AssignedTo}");
+            var taskData = data.DeserializeTaskData<ApprovalTaskData>();
+            Console.WriteLine($"Approval task completed for {taskData.AssignedTo}");
         }
         else if (phaseName == Phases.SigningPhase)
         {
-            Console.WriteLine($"Signing task completed for {data.AssignedTo}");
+            var taskData = (SigningTaskData)data;
+            Console.WriteLine($"Signing task completed for {taskData.AssignedTo}");
         }
     }
 }

@@ -92,7 +92,7 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
         return (TaskId)task.Id;
     }
     
-    public async Task SaveWorkflowTaskAsync(IWorkflowTask request, WorkflowTaskStatus taskStatus, CancellationToken cancellationToken)
+    public async Task SaveWorkflowTaskAsync(IWorkflowTask request, CancellationToken cancellationToken)
     {
         WorkflowTask? task = await dbContext.WorkflowTasks.FirstOrDefaultAsync(t => t.Id == request.TaskId.Value, cancellationToken);
 
@@ -106,7 +106,7 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
         task.AssignedBy = request.AssignedBy;
         task.Description = request.TaskDescription;
         task.DueDate = request.DueDate;
-        task.Status = taskStatus;
+        task.Status = request.TaskStatus;
         task.StorageJson = JsonSerializer.Serialize(request.Storage);
 
         await dbContext.SaveChangesAsync(cancellationToken);

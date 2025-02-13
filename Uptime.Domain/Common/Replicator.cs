@@ -6,8 +6,7 @@ namespace Uptime.Domain.Common;
 /// <summary>
 /// Manages the execution of tasks in a workflow replicator, supporting sequential and parallel execution.
 /// </summary>
-/// <typeparam name="TItem">The type of data associated with each task.</typeparam>
-public class Replicator<TItem> : IReplicator<TItem>
+public class Replicator : IReplicator
 {
     /// <summary>
     /// Gets or sets the execution type of the replicator (Sequential or Parallel).
@@ -17,7 +16,7 @@ public class Replicator<TItem> : IReplicator<TItem>
     /// <summary>
     /// The collection of items managed by the replicator.
     /// </summary>
-    public List<ReplicatorItem<TItem>> Items { get; set; } = [];
+    public List<ReplicatorItem> Items { get; set; } = [];
 
     /// <summary>
     /// Determines whether all tasks in the replicator have been completed.
@@ -27,12 +26,12 @@ public class Replicator<TItem> : IReplicator<TItem>
     /// <summary>
     /// Event triggered when a child activity is initialized.
     /// </summary>
-    public Action<TItem, IWorkflowActivity>? OnChildInitialized { get; set; }
+    public Action<object, IWorkflowActivity>? OnChildInitialized { get; set; }
 
     /// <summary>
     /// Event triggered when a child activity is completed.
     /// </summary>
-    public Action<TItem, IWorkflowActivity>? OnChildCompleted { get; set; }
+    public Action<object, IWorkflowActivity>? OnChildCompleted { get; set; }
 
     /// <summary>
     /// Event triggered when all tasks in the replicator are completed.
@@ -42,7 +41,7 @@ public class Replicator<TItem> : IReplicator<TItem>
     /// <summary>
     /// Factory function for creating workflow activities for each replicator item.
     /// </summary>
-    public Func<TItem, IWorkflowActivity> ChildActivityFactory { get; set; }
+    public Func<object, IWorkflowActivity> ChildActivityFactory { get; set; }
         = _ => throw new InvalidOperationException("No factory set.");
 
     /// <summary>
@@ -50,7 +49,7 @@ public class Replicator<TItem> : IReplicator<TItem>
     /// </summary>
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        if (!Items.Any())
+        if (Items.Count == 0)
         {
             if (OnAllTasksCompleted != null)
             {
@@ -80,7 +79,7 @@ public class Replicator<TItem> : IReplicator<TItem>
     /// </summary>
     private async Task ExecuteSequentialAsync(CancellationToken cancellationToken)
     {
-        foreach (ReplicatorItem<TItem> item in Items.Where(item => !item.IsCompleted))
+        foreach (ReplicatorItem item in Items.Where(item => !item.IsCompleted))
         {
             IWorkflowActivity activity = await InitializeActivityAsync(item, cancellationToken);
 
@@ -119,7 +118,7 @@ public class Replicator<TItem> : IReplicator<TItem>
     /// <summary>
     /// Initializes and executes an activity for the given replicator item.
     /// </summary>
-    private async Task<IWorkflowActivity> InitializeActivityAsync(ReplicatorItem<TItem> item, CancellationToken cancellationToken)
+    private async Task<IWorkflowActivity> InitializeActivityAsync(ReplicatorItem item, CancellationToken cancellationToken)
     {
         IWorkflowActivity activity = ChildActivityFactory(item.Data);
         OnChildInitialized?.Invoke(item.Data, activity);

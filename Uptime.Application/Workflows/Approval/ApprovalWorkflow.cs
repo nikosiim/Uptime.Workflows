@@ -9,10 +9,10 @@ namespace Uptime.Application.Workflows.Approval;
 public class ApprovalWorkflow(
     IStateMachineFactory<WorkflowPhase, WorkflowTrigger> stateMachineFactory,
     IWorkflowRepository repository, 
-    IReplicatorPhaseBuilder<ApprovalTaskData> replicatorPhaseBuilder,
-    IWorkflowActivityFactory<ApprovalTaskData> activityFactory, 
+    IReplicatorPhaseBuilder replicatorPhaseBuilder,
+    IWorkflowActivityFactory activityFactory, 
     ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
-    : ReplicatorWorkflowBase<ApprovalWorkflowContext, ApprovalTaskData>(stateMachineFactory, repository, activityFactory, replicatorPhaseBuilder, logger)
+    : ReplicatorWorkflowBase<ApprovalWorkflowContext>(stateMachineFactory, repository, activityFactory, replicatorPhaseBuilder, logger)
 {
     public static class Phases
     {
@@ -20,7 +20,7 @@ public class ApprovalWorkflow(
         public const string SigningPhase = "SigningPhase";
     }
     
-    public static Dictionary<string, Func<IWorkflowPayload, WorkflowId, IEnumerable<ApprovalTaskData>>> PhaseConfiguration
+    public static Dictionary<string, Func<IWorkflowPayload, WorkflowId, IEnumerable<object>>> PhaseConfiguration
         => new()
         {
             { Phases.ApprovalPhase, (payload, workflowId) => payload.GetApprovalTasks(workflowId) },

@@ -2,9 +2,9 @@
 
 namespace Uptime.Domain.Interfaces;
 
-public interface IWorkflowActivityFactory<in TData>
+public interface IWorkflowActivityFactory
 {
-    IWorkflowActivity CreateActivity(string phaseName, TData data, WorkflowTaskContext context);
-    void OnChildInitialized(string phaseName, TData data, IWorkflowActivity activity);
-    void OnChildCompleted(string phaseName, TData data, IWorkflowActivity activity);
+    IWorkflowActivity CreateActivity(string phaseName, object data, WorkflowTaskContext context);
+    void OnChildInitialized(string phaseName, object data, IWorkflowActivity activity);
+    void OnChildCompleted(string phaseName, object data, IWorkflowActivity activity);
 }

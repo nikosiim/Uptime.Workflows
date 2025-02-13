@@ -2,7 +2,7 @@
 
 namespace Uptime.Domain.Interfaces;
 
-public interface IReplicatorWorkflowContext<TData> : IWorkflowContext where TData : IReplicatorItem
+public interface IReplicatorWorkflowContext : IWorkflowContext
 {
-    Dictionary<string, ReplicatorState<TData>> ReplicatorStates { get; set; }
+    Dictionary<string, ReplicatorState> ReplicatorStates { get; set; }
 }

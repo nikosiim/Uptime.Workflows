@@ -5,29 +5,28 @@ using Uptime.Domain.Interfaces;
 
 namespace Uptime.Domain.Workflows;
 
-public abstract class ReplicatorWorkflowBase<TContext, TData>(
+public abstract class ReplicatorWorkflowBase<TContext>(
     IStateMachineFactory<WorkflowPhase, WorkflowTrigger> stateMachineFactory,
     IWorkflowRepository repository, 
-    IWorkflowActivityFactory<TData> activityFactory,
-    IReplicatorPhaseBuilder<TData> replicatorPhaseBuilder,
+    IWorkflowActivityFactory activityFactory,
+    IReplicatorPhaseBuilder replicatorPhaseBuilder,
     ILogger<WorkflowBase<TContext>> logger)
     : ActivityWorkflowBase<TContext>(stateMachineFactory, repository, logger)
-    where TContext : class, IReplicatorWorkflowContext<TData>, new()
-    where TData : IReplicatorItem
+    where TContext : class, IReplicatorWorkflowContext, new()
 {
-    private ReplicatorManager<TData>? _replicatorManager;
+    private ReplicatorManager? _replicatorManager;
 
     protected override void OnWorkflowActivatedAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
-        List<ReplicatorPhase<TData>> replicatorPhases = replicatorPhaseBuilder.BuildPhases(payload, WorkflowId);
+        List<ReplicatorPhase> replicatorPhases = replicatorPhaseBuilder.BuildPhases(payload, WorkflowId);
 
         // Convert phases into replicator states and store them in the workflow context.
         WorkflowContext.ReplicatorStates = replicatorPhases.ToDictionary(
             phase => phase.PhaseName,
-            phase => new ReplicatorState<TData>
+            phase => new ReplicatorState
             {
                 Type = ReplicatorType.Sequential, // TODO: replace with dynamical value
-                Items = phase.TaskData.Select(data => new ReplicatorItem<TData> { Data = data }).ToList()
+                Items = phase.TaskData.Select(data => new ReplicatorItem { Data = data }).ToList()
             }
         );
 
@@ -43,8 +42,9 @@ public abstract class ReplicatorWorkflowBase<TContext, TData>(
 
         await taskActivity.OnTaskChangedAsync(context.Storage, cancellationToken);
 
-        UpdateReplicatorState(context.TaskGuid, taskActivity.IsCompleted);
+        UpdateWorkflowContextReplicatorState(context.TaskGuid, taskActivity.IsCompleted);
 
+        // When a task is completed, force the workflow to move forward
         if (taskActivity.IsCompleted)
         {
             string? phaseName = WorkflowContext.ReplicatorStates.FirstOrDefault(kvp => kvp.Value.Items.Any(item => item.TaskGuid == context.TaskGuid)).Key;
@@ -57,23 +57,23 @@ public abstract class ReplicatorWorkflowBase<TContext, TData>(
     
     protected virtual UserTaskActivity? CreateChildActivity(WorkflowTaskContext context)
     {
-        KeyValuePair<string, ReplicatorState<TData>> phaseEntry = WorkflowContext.ReplicatorStates
+        KeyValuePair<string, ReplicatorState> phaseEntry = WorkflowContext.ReplicatorStates
             .FirstOrDefault(kvp => kvp.Value.Items.Any(item => item.TaskGuid == context.TaskGuid));
         if (phaseEntry.Key == null)
             return null; // Task not found in any phase
 
-        ReplicatorItem<TData>? item = phaseEntry.Value.Items.FirstOrDefault(i => i.TaskGuid == context.TaskGuid);
+        ReplicatorItem? item = phaseEntry.Value.Items.FirstOrDefault(i => i.TaskGuid == context.TaskGuid);
         if (item == null)
             return null;
 
         return activityFactory.CreateActivity(phaseEntry.Key, item.Data, context) as UserTaskActivity;
     }
     
-    protected virtual void UpdateReplicatorState(Guid taskGuid, bool isCompleted)
+    protected virtual void UpdateWorkflowContextReplicatorState(Guid taskGuid, bool isCompleted)
     {
-        foreach (ReplicatorState<TData> state in WorkflowContext.ReplicatorStates.Values)
+        foreach (ReplicatorState state in WorkflowContext.ReplicatorStates.Values)
         {
-            foreach (ReplicatorItem<TData> item in state.Items.Where(item => item.TaskGuid == taskGuid))
+            foreach (ReplicatorItem item in state.Items.Where(item => item.TaskGuid == taskGuid))
             {
                 item.IsCompleted = isCompleted;
                 return;
@@ -91,7 +91,7 @@ public abstract class ReplicatorWorkflowBase<TContext, TData>(
     {
         if (_replicatorManager == null)
         {
-            _replicatorManager = new ReplicatorManager<TData>(WorkflowId, activityFactory, this);
+            _replicatorManager = new ReplicatorManager(WorkflowId, activityFactory, this);
             _replicatorManager.LoadReplicatorsAsync(WorkflowContext.ReplicatorStates, cancellationToken);
         }
     }

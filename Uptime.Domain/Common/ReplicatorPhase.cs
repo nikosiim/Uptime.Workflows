@@ -3,8 +3,8 @@
 /// <summary>
 /// Tracks tasks for a specific workflow phase.
 /// </summary>
-public class ReplicatorPhase<TData>
+public class ReplicatorPhase
 {
     public required string PhaseName { get; init; }  // E.g., "ApprovalPhase"
-    public required List<TData> TaskData { get; init; }
+    public required List<object> TaskData { get; init; }
 }
