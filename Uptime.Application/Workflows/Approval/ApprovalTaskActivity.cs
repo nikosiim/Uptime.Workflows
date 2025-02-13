@@ -9,6 +9,8 @@ namespace Uptime.Application.Workflows.Approval;
 public class ApprovalTaskActivity(IWorkflowRepository repository, WorkflowTaskContext context)
     : UserTaskActivity(repository, context)
 {
+    private readonly IWorkflowRepository _repository = repository;
+
     protected override void ExecuteTaskLogic()
     {
         if (TaskData is null) return;
@@ -41,6 +43,6 @@ public class ApprovalTaskActivity(IWorkflowRepository repository, WorkflowTaskCo
             Context.Storage.SetValueAsString(TaskStorageKeys.TaskDelegatedTo, delegatedTo);
         }
 
-        await repository.SaveWorkflowTaskAsync(Context, WorkflowTaskStatus.Completed, cancellationToken);
+        await _repository.SaveWorkflowTaskAsync(Context, WorkflowTaskStatus.Completed, cancellationToken);
     }
 }
