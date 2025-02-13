@@ -3,7 +3,7 @@ using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application.Common;
 
-public abstract class BaseWorkflowActivityFactory(IWorkflowRepository repository) : IWorkflowActivityFactory
+public abstract class ReplicatorActivityProvider(IWorkflowRepository repository) : IReplicatorActivityProvider
 {
     protected readonly IWorkflowRepository Repository = repository;
 

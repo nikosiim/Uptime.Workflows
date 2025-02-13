@@ -15,7 +15,7 @@ public class ReplicatorPhaseBuilder(Dictionary<string, ReplicatorPhaseConfigurat
             {
                 PhaseName = phaseName,
                 Type = config.ReplicatorType(payload),
-                TaskData = config.TaskData(payload, workflowId).ToList()
+                TaskData = config.ActivityData(payload, workflowId).ToList()
             };
 
             phases.Add(phase);

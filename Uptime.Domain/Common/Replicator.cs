@@ -41,7 +41,7 @@ public class Replicator : IReplicator
     /// <summary>
     /// Factory function for creating workflow activities for each replicator item.
     /// </summary>
-    public Func<object, IWorkflowActivity> ChildActivityFactory { get; set; }
+    public Func<object, IWorkflowActivity> ChildActivity { get; set; }
         = _ => throw new InvalidOperationException("No factory set.");
 
     /// <summary>
@@ -120,7 +120,7 @@ public class Replicator : IReplicator
     /// </summary>
     private async Task<IWorkflowActivity> InitializeActivityAsync(ReplicatorItem item, CancellationToken cancellationToken)
     {
-        IWorkflowActivity activity = ChildActivityFactory(item.Data);
+        IWorkflowActivity activity = ChildActivity(item.Data);
         OnChildInitialized?.Invoke(item.Data, activity);
         await activity.ExecuteAsync(cancellationToken);
 

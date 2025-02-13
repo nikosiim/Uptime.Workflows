@@ -6,8 +6,8 @@ using static Uptime.Application.Workflows.Approval.ApprovalWorkflow;
 
 namespace Uptime.Application.Workflows.Approval;
 
-public class ApprovalWorkflowActivityFactory(IWorkflowRepository repository) 
-    : BaseWorkflowActivityFactory(repository)
+public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository) 
+    : ReplicatorActivityProvider(repository)
 {
     public override IWorkflowActivity CreateActivity(string phaseName, object data, WorkflowTaskContext context)
     {

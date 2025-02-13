@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using Uptime.Application.Workflows.Signing;
 using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
 using Uptime.Domain.Interfaces;
@@ -11,7 +10,7 @@ public class ApprovalWorkflow(
     IStateMachineFactory<WorkflowPhase, WorkflowTrigger> stateMachineFactory,
     IWorkflowRepository repository, 
     IReplicatorPhaseBuilder replicatorPhaseBuilder,
-    IWorkflowActivityFactory activityFactory, 
+    IReplicatorActivityProvider activityFactory, 
     ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
     : ReplicatorWorkflowBase<ApprovalWorkflowContext>(stateMachineFactory, repository, activityFactory, replicatorPhaseBuilder, logger)
 {
@@ -27,7 +26,7 @@ public class ApprovalWorkflow(
             Phases.ApprovalPhase,
             new ReplicatorPhaseConfiguration
             {
-                TaskData = (payload, workflowId) => payload.GetApprovalTasks(workflowId),
+                ActivityData = (payload, workflowId) => payload.GetApprovalTasks(workflowId),
                 ReplicatorType = payload => payload.GetReplicatorType(Phases.ApprovalPhase)
             }
         },
@@ -35,7 +34,7 @@ public class ApprovalWorkflow(
             Phases.SigningPhase,
             new ReplicatorPhaseConfiguration
             {
-                TaskData = (payload, workflowId) => payload.GetSigningTasks(workflowId),
+                ActivityData = (payload, workflowId) => payload.GetSigningTasks(workflowId),
                 ReplicatorType = payload => payload.GetReplicatorType(Phases.ApprovalPhase)
             }
         }

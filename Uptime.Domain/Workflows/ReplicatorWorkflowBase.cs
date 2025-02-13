@@ -8,7 +8,7 @@ namespace Uptime.Domain.Workflows;
 public abstract class ReplicatorWorkflowBase<TContext>(
     IStateMachineFactory<WorkflowPhase, WorkflowTrigger> stateMachineFactory,
     IWorkflowRepository repository, 
-    IWorkflowActivityFactory activityFactory,
+    IReplicatorActivityProvider activityFactory,
     IReplicatorPhaseBuilder replicatorPhaseBuilder,
     ILogger<WorkflowBase<TContext>> logger)
     : ActivityWorkflowBase<TContext>(stateMachineFactory, repository, logger)

@@ -26,7 +26,7 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IWorkflowRepository, WorkflowRepository>();
         services.AddTransient(typeof(IStateMachineFactory<,>), typeof(StatelessStateMachineFactory<,>));
 
-        services.AddScoped<IWorkflowActivityFactory, ApprovalWorkflowActivityFactory>();
+        services.AddScoped<IReplicatorActivityProvider, ApprovalWorkflowActivityProvider>();
         services.AddScoped<IReplicatorPhaseBuilder>(_ => new ReplicatorPhaseBuilder(ApprovalWorkflow.PhaseConfiguration));
     }
 }

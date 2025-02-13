@@ -3,7 +3,7 @@ using Uptime.Domain.Interfaces;
 
 namespace Uptime.Domain.Common;
 
-public class ReplicatorManager(WorkflowId workflowId, IWorkflowActivityFactory activityFactory, IWorkflowMachine workflowMachine)
+public class ReplicatorManager(WorkflowId workflowId, IReplicatorActivityProvider activityProvider, IWorkflowMachine workflowMachine)
 {
     private readonly Dictionary<string, Replicator> _replicators = new();
 
@@ -22,9 +22,9 @@ public class ReplicatorManager(WorkflowId workflowId, IWorkflowActivityFactory a
             {
                 Type = state.Type,
                 Items = state.Items,
-                ChildActivityFactory = data => activityFactory.CreateActivity(phase, data, new WorkflowTaskContext(workflowId)),
-                OnChildInitialized = (data, activity) => activityFactory.OnChildInitialized(phase, data, activity),
-                OnChildCompleted = (data, activity) => activityFactory.OnChildCompleted(phase, data, activity),
+                ChildActivity = data => activityProvider.CreateActivity(phase, data, new WorkflowTaskContext(workflowId)),
+                OnChildInitialized = (data, activity) => activityProvider.OnChildInitialized(phase, data, activity),
+                OnChildCompleted = (data, activity) => activityProvider.OnChildCompleted(phase, data, activity),
                 OnAllTasksCompleted = async () => await workflowMachine.TriggerTransitionAsync(WorkflowTrigger.AllTasksCompleted, cancellationToken)
             };
 
