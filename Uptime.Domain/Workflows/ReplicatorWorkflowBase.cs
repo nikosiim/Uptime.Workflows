@@ -25,7 +25,7 @@ public abstract class ReplicatorWorkflowBase<TContext>(
             phase => phase.PhaseName,
             phase => new ReplicatorState
             {
-                Type = ReplicatorType.Sequential, // TODO: replace with dynamical value
+                Type = phase.Type,
                 Items = phase.TaskData.Select(data => new ReplicatorItem { Data = data }).ToList()
             }
         );

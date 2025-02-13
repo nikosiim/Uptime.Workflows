@@ -1,6 +1,6 @@
 ﻿namespace Uptime.Domain.Interfaces;
 
-public interface IReplicatorItem
+public interface IWorkflowTaskData
 {
 
 }

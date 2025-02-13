@@ -1,6 +1,6 @@
 ﻿namespace Uptime.Domain.Interfaces;
 
-public interface IUserTaskActivityData
+public interface IUserTaskActivityData : IWorkflowTaskData
 {
     string AssignedTo { get; }
     string AssignedBy { get; }

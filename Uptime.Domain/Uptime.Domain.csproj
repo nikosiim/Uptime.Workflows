@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Common\StorageExtensions.cs" />
     <Compile Remove="Interfaces\IWorkflowStateRepository.cs" />
     <Compile Remove="Interfaces\IWorkflowTaskRepository.cs" />
   </ItemGroup>

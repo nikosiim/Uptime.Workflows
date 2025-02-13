@@ -2,7 +2,7 @@
 
 namespace Uptime.Application.Workflows.Approval;
 
-public sealed class ApprovalTaskData : IUserTaskActivityData, IReplicatorItem
+public sealed class ApprovalTaskData : IUserTaskActivityData
 {
     public required string AssignedTo { get; set; }
     public required string AssignedBy { get; set; }

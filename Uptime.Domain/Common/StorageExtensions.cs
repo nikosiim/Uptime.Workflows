@@ -13,15 +13,4 @@ internal static class StorageExtensions
             ? new Dictionary<string, string?>()
             : JsonSerializer.Deserialize<Dictionary<string, string?>>(storageJson) ?? new Dictionary<string, string?>();
     }
-
-    /// <summary>
-    /// Merges new storage values with existing ones (overwrites only updated fields).
-    /// </summary>
-    public static void MergeWith(this Dictionary<string, string?> existingStorage, Dictionary<string, string?> newStorage)
-    {
-        foreach (KeyValuePair<string, string?> kvp in newStorage)
-        {
-            existingStorage[kvp.Key] = kvp.Value;
-        }
-    }
 }

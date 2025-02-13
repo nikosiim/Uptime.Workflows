@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application.Common;
 
@@ -13,17 +12,6 @@ internal static class StorageExtensions
         return string.IsNullOrWhiteSpace(storageJson)
             ? new Dictionary<string, string?>()
             : JsonSerializer.Deserialize<Dictionary<string, string?>>(storageJson) ?? new Dictionary<string, string?>();
-    }
-
-    /// <summary>
-    /// Merges new storage values with existing ones (overwrites only updated fields).
-    /// </summary>
-    public static void MergeWith(this Dictionary<string, string?> existingStorage, Dictionary<string, string?> newStorage)
-    {
-        foreach (KeyValuePair<string, string?> kvp in newStorage)
-        {
-            existingStorage[kvp.Key] = kvp.Value;
-        }
     }
 
     public static T DeserializeTaskData<T>(this object data) where T : class
@@ -44,5 +32,4 @@ internal static class StorageExtensions
 
         throw new InvalidOperationException($"Unexpected data type: {data.GetType().Name}, expected {typeof(T).Name}");
     }
-
 }

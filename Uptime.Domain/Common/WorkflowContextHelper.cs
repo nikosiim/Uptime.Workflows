@@ -40,4 +40,15 @@ public static class WorkflowContextHelper
         // Assumes that IWorkflowContext has a Storage property of type Dictionary<string, string?>.
         existing.Storage.MergeWith(updated.Storage);
     }
+    
+    /// <summary>
+    /// Merges new storage values with existing ones (overwrites only updated fields).
+    /// </summary>
+    public static void MergeWith(this Dictionary<string, string?> existingStorage, Dictionary<string, string?> newStorage)
+    {
+        foreach (KeyValuePair<string, string?> kvp in newStorage)
+        {
+            existingStorage[kvp.Key] = kvp.Value;
+        }
+    }
 }

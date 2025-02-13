@@ -1,13 +1,26 @@
 ﻿using Uptime.Application.Workflows.Signing;
 using Uptime.Domain.Common;
+using Uptime.Domain.Enums;
 using Uptime.Domain.Interfaces;
 using Uptime.Shared.Extensions;
 using static Uptime.Shared.GlobalConstants;
 
 namespace Uptime.Application.Workflows.Approval;
 
-internal static class ApprovalWorkflowAuxiliary
+internal static class ApprovalWorkflowDataExtractor
 {
+    public static ReplicatorType GetReplicatorType(this IWorkflowPayload payload, string phaseName)
+    {
+        var replicatorType = ReplicatorType.Sequential;
+
+        return phaseName switch
+        {
+            ApprovalWorkflow.Phases.ApprovalPhase => replicatorType,
+            ApprovalWorkflow.Phases.SigningPhase => replicatorType,
+            _ => throw new InvalidOperationException($"Unknown phase: {phaseName}")
+        };
+    }
+
     public static List<ApprovalTaskData> GetApprovalTasks(this IWorkflowPayload payload, WorkflowId workflowId)
     {
         if (!payload.Storage.TryGetValueAsList(TaskStorageKeys.TaskExecutors, out List<string> executors))

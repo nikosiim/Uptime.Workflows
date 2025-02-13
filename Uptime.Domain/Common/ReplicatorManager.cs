@@ -3,7 +3,7 @@ using Uptime.Domain.Interfaces;
 
 namespace Uptime.Domain.Common;
 
-public class ReplicatorManager(WorkflowId workflowId, IWorkflowActivityFactory activityFactory, IWorkflowMachine workflowMachine) : IReplicatorItem
+public class ReplicatorManager(WorkflowId workflowId, IWorkflowActivityFactory activityFactory, IWorkflowMachine workflowMachine)
 {
     private readonly Dictionary<string, Replicator> _replicators = new();
 

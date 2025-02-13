@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Uptime.Application.Workflows.Signing;
 using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
 using Uptime.Domain.Interfaces;
@@ -19,13 +20,26 @@ public class ApprovalWorkflow(
         public const string ApprovalPhase = "ApprovalPhase";
         public const string SigningPhase = "SigningPhase";
     }
-    
-    public static Dictionary<string, Func<IWorkflowPayload, WorkflowId, IEnumerable<object>>> PhaseConfiguration
-        => new()
+
+    public static Dictionary<string, ReplicatorPhaseConfiguration> PhaseConfiguration => new()
+    {
         {
-            { Phases.ApprovalPhase, (payload, workflowId) => payload.GetApprovalTasks(workflowId) },
-            { Phases.SigningPhase, (payload, workflowId) => payload.GetSigningTasks(workflowId) }
-        };
+            Phases.ApprovalPhase,
+            new ReplicatorPhaseConfiguration
+            {
+                TaskData = (payload, workflowId) => payload.GetApprovalTasks(workflowId),
+                ReplicatorType = payload => payload.GetReplicatorType(Phases.ApprovalPhase)
+            }
+        },
+        {
+            Phases.SigningPhase,
+            new ReplicatorPhaseConfiguration
+            {
+                TaskData = (payload, workflowId) => payload.GetSigningTasks(workflowId),
+                ReplicatorType = payload => payload.GetReplicatorType(Phases.ApprovalPhase)
+            }
+        }
+    };
 
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {
