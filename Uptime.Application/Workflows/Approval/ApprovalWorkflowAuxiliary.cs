@@ -1,4 +1,5 @@
-﻿using Uptime.Domain.Common;
+﻿using Uptime.Application.Workflows.Signing;
+using Uptime.Domain.Common;
 using Uptime.Domain.Interfaces;
 using Uptime.Shared.Extensions;
 using static Uptime.Shared.GlobalConstants;
@@ -24,15 +25,17 @@ internal static class ApprovalWorkflowAuxiliary
         }).ToList();
     }
 
-    public static List<ApprovalTaskData> GetSigningTasks(this IWorkflowPayload payload, WorkflowId workflowId)
+    public static List<SigningTaskData> GetSigningTasks(this IWorkflowPayload payload, WorkflowId workflowId)
     {
-        if (!payload.Storage.TryGetValueAsList(TaskStorageKeys.TaskSigners, out List<string> signers))
-            return [];
+        //if (!payload.Storage.TryGetValueAsList(TaskStorageKeys.TaskSigners, out List<string> signers))
+        //    return [];
+
+        List<string> signers = ["Klient Neli"];
 
         string? taskDescription = payload.Storage.GetValueAsString(TaskStorageKeys.SignerTask);
         DateTime dueDate = payload.Storage.GetValueAsDateTime(TaskStorageKeys.TaskDueDate);
 
-        return signers.Select(executor => new ApprovalTaskData
+        return signers.Select(executor => new SigningTaskData
         {
             AssignedBy = payload.Originator,
             AssignedTo = executor,

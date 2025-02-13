@@ -15,7 +15,7 @@ public class ApprovalWorkflowActivityFactory(IWorkflowRepository repository)
         {
             return new SigningTaskActivity(Repository, context)
             {
-                TaskData = (SigningTaskData)data
+                TaskData = data.DeserializeTaskData<SigningTaskData>()
             };
         }
 
@@ -34,7 +34,7 @@ public class ApprovalWorkflowActivityFactory(IWorkflowRepository repository)
         }
         else if (phaseName == Phases.SigningPhase)
         {
-            var taskData = (SigningTaskData)data;
+            var taskData = data.DeserializeTaskData<SigningTaskData>();
             Console.WriteLine($"Signing task initialized for {taskData.AssignedTo}");
         }
     }
@@ -48,7 +48,7 @@ public class ApprovalWorkflowActivityFactory(IWorkflowRepository repository)
         }
         else if (phaseName == Phases.SigningPhase)
         {
-            var taskData = (SigningTaskData)data;
+            var taskData = data.DeserializeTaskData<SigningTaskData>();
             Console.WriteLine($"Signing task completed for {taskData.AssignedTo}");
         }
     }

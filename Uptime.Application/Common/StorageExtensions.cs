@@ -26,7 +26,7 @@ internal static class StorageExtensions
         }
     }
 
-    public static T DeserializeTaskData<T>(this object data) where T : IReplicatorItem
+    public static T DeserializeTaskData<T>(this object data) where T : class
     {
         if (data is JsonElement jsonElement)
         {
