@@ -45,8 +45,8 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     [HttpPost("start-workflow")]
     public async Task<ActionResult<Task<WorkflowStatus>>> StartWorkflow([FromBody] StartWorkflowRequest request)
     {
-        StartWorkflowCommand query = Mapper.MapToStartWorkflowCommand(request);
-        WorkflowPhase phase = await mediator.Send(query);
+        StartWorkflowCommand cmd = Mapper.MapToStartWorkflowCommand(request);
+        WorkflowPhase phase = await mediator.Send(cmd);
 
         if (phase == WorkflowPhase.Invalid)
             return BadRequest("Invalid workflow type.");
@@ -57,9 +57,8 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     [HttpPost("{workflowId:int}/cancel-workflow")]
     public async Task<ActionResult> CancelWorkflow(int workflowId)
     {
-        // TODO: add implementation
-
-        await Task.Delay(2000);
+        var cmd = new CancelWorkflowCommand((WorkflowId)workflowId);
+        await mediator.Send(cmd);
 
         return NoContent();
     }

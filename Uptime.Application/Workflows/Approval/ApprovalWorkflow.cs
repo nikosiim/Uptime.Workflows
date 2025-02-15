@@ -50,10 +50,13 @@ public class ApprovalWorkflow(
         Machine.Configure(WorkflowPhase.Approval)
             .OnEntryAsync(() => RunReplicatorAsync(Phases.ApprovalPhase, cancellationToken))
             .Permit(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Signing)
-            .Permit(WorkflowTrigger.TaskRejected, WorkflowPhase.Completed);
+            .Permit(WorkflowTrigger.TaskRejected, WorkflowPhase.Completed)
+            .Permit(WorkflowTrigger.Cancel, WorkflowPhase.Cancelled);
+
         Machine.Configure(WorkflowPhase.Signing)
             .OnEntryAsync(() => RunReplicatorAsync(Phases.SigningPhase, cancellationToken))
-            .Permit(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Completed);
+            .Permit(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Completed)
+            .Permit(WorkflowTrigger.Cancel, WorkflowPhase.Cancelled);
 
         Machine.Configure(WorkflowPhase.Completed);
         Machine.Configure(WorkflowPhase.Cancelled);
