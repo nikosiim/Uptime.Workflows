@@ -16,6 +16,7 @@ public static class WorkflowStatusMapper
     {
         return phase switch
         {
+            WorkflowPhase.InProgress => WorkflowStatus.InProgress,
             WorkflowPhase.Approval => WorkflowStatus.InProgress,
             WorkflowPhase.Signing => WorkflowStatus.InProgress,
             WorkflowPhase.Review => WorkflowStatus.InProgress,

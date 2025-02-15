@@ -45,21 +45,27 @@ public class ApprovalWorkflow(
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {
         Machine.Configure(WorkflowPhase.NotStarted)
-            .Permit(WorkflowTrigger.Start, WorkflowPhase.Approval);
-        
+            .Permit(WorkflowTrigger.Start, WorkflowPhase.InProgress);
+
+        Machine.Configure(WorkflowPhase.InProgress)
+            .InitialTransition(WorkflowPhase.Approval) 
+            .Permit(WorkflowTrigger.Cancel, WorkflowPhase.Cancelled)
+            .Permit(WorkflowTrigger.TaskRejected, WorkflowPhase.Completed);
+
         Machine.Configure(WorkflowPhase.Approval)
+            .SubstateOf(WorkflowPhase.InProgress)
             .OnEntryAsync(() => RunReplicatorAsync(Phases.ApprovalPhase, cancellationToken))
-            .Permit(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Signing)
-            .Permit(WorkflowTrigger.TaskRejected, WorkflowPhase.Completed)
-            .Permit(WorkflowTrigger.Cancel, WorkflowPhase.Cancelled);
+            .Permit(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Signing);
 
         Machine.Configure(WorkflowPhase.Signing)
+            .SubstateOf(WorkflowPhase.InProgress)
             .OnEntryAsync(() => RunReplicatorAsync(Phases.SigningPhase, cancellationToken))
-            .Permit(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Completed)
-            .Permit(WorkflowTrigger.Cancel, WorkflowPhase.Cancelled);
+            .Permit(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Completed);
 
-        Machine.Configure(WorkflowPhase.Completed);
-        Machine.Configure(WorkflowPhase.Cancelled);
+        Machine.Configure(WorkflowPhase.Completed)
+            .OnEntry(() => Console.WriteLine("Workflow completed successfully."));
+        Machine.Configure(WorkflowPhase.Cancelled)
+            .OnEntry(() => Console.WriteLine("Workflow was cancelled."));
     }
 
     protected override void OnWorkflowActivatedAsync(IWorkflowPayload payload, CancellationToken cancellationToken)

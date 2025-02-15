@@ -19,4 +19,6 @@ public interface IStateConfiguration<in TState, in TTrigger>
     IStateConfiguration<TState, TTrigger> OnEntryAsync(Func<Task> action);
     IStateConfiguration<TState, TTrigger> OnExit(Action action);
     IStateConfiguration<TState, TTrigger> OnExitAsync(Func<Task> action);
+    IStateConfiguration<TState, TTrigger> SubstateOf(TState superstate);
+    IStateConfiguration<TState, TTrigger> InitialTransition(TState initialSubstate);
 }

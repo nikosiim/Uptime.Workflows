@@ -35,4 +35,16 @@ public class StatelessStateConfigurationAdapter<TState, TTrigger>(StateMachine<T
         stateConfig.OnExitAsync(action);
         return this;
     }
+
+    public IStateConfiguration<TState, TTrigger> SubstateOf(TState superstate)
+    {
+        stateConfig.SubstateOf(superstate);
+        return this;
+    }
+
+    public IStateConfiguration<TState, TTrigger> InitialTransition(TState initialSubstate)
+    {
+        stateConfig.InitialTransition(initialSubstate);
+        return this;
+    }
 }

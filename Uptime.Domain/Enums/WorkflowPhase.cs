@@ -9,5 +9,6 @@ public enum WorkflowPhase
     Completed = 5,
     Cancelled = 6,
     Terminated = 7,
+    InProgress = 8, // TODO: reorder
     Invalid = 99
 }
