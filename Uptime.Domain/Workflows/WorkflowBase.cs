@@ -56,6 +56,25 @@ public abstract class WorkflowBase<TContext>(
         return Machine.CurrentState;
     }
 
+    public async Task CancelWorkflowAsync(CancellationToken cancellationToken)
+    {
+        if (Machine.CurrentState.IsFinal())
+            return;
+
+        await CancelAllTasksAsync(cancellationToken);
+
+        try
+        {
+            await Machine.FireAsync(WorkflowTrigger.Cancel);
+            await SaveWorkflowStateAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while cancelling the workflow.");
+            throw;
+        }
+    }
+
     public async Task<bool> RehydrateAsync(WorkflowId workflowId, CancellationToken cancellationToken)
     {
         Workflow? instance = await repository.GetWorkflowInstanceAsync(workflowId, cancellationToken);
@@ -95,7 +114,11 @@ public abstract class WorkflowBase<TContext>(
 
     protected virtual Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)
     {
-        logger.LogInformation("Workflow completed successfully");
+        return Task.CompletedTask;
+    }
+
+    protected virtual Task OnWorkflowCancelledAsync(CancellationToken cancellationToken)
+    {
         return Task.CompletedTask;
     }
     
@@ -136,6 +159,18 @@ public abstract class WorkflowBase<TContext>(
                     "SystemAccount",
                     outcome: null,
                     description: WorkflowCompletedHistoryDescription,
+                    cancellationToken
+                );
+            }
+            else if (transition.Destination == WorkflowPhase.Cancelled)
+            {
+                await OnWorkflowCancelledAsync(cancellationToken);
+                await repository.AddWorkflowHistoryAsync(
+                    WorkflowId,
+                    WorkflowHistoryEventType.WorkflowCancelled,
+                    "SystemAccount",
+                    outcome: null,
+                    description: string.Empty,
                     cancellationToken
                 );
             }

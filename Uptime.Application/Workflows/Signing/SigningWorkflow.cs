@@ -25,14 +25,9 @@ public class SigningWorkflow(
             .OnEntryAsync(() => StartSigningTask(cancellationToken))
             .OnExit(OnSigningTaskCompleted) 
             .Permit(WorkflowTrigger.TaskCompleted, WorkflowPhase.Completed)
-            .Permit(WorkflowTrigger.TaskRejected, WorkflowPhase.Rejected);
+            .Permit(WorkflowTrigger.TaskRejected, WorkflowPhase.Completed);
 
-        Machine.Configure(WorkflowPhase.Completed)
-            .OnEntry(() => Console.WriteLine("Signing workflow completed successfully."));
-
-        Machine.Configure(WorkflowPhase.Rejected)
-            .OnEntry(() => Console.WriteLine("Signing workflow was rejected."))
-            .OnExit(OnWorkflowCompletion);
+        Machine.Configure(WorkflowPhase.Completed);
     }
 
     protected override void OnWorkflowActivatedAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
@@ -69,6 +64,13 @@ public class SigningWorkflow(
         }
     }
 
+    protected override async Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)
+    {
+        await base.OnWorkflowCompletedAsync(cancellationToken);
+
+        logger.LogInformation("Signing Workflow completed with status: {status}", "Signed");
+    }
+
     private async Task StartSigningTask(CancellationToken cancellationToken)
     {
         if (WorkflowContext.SigningTask == null)
@@ -90,10 +92,5 @@ public class SigningWorkflow(
     private static void OnSigningTaskCompleted()
     {
   
-    }
-
-    private static void OnWorkflowCompletion()
-    {
-       
     }
 }

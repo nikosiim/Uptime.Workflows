@@ -19,7 +19,6 @@ public static class WorkflowStatusMapper
             WorkflowPhase.Approval => WorkflowStatus.InProgress,
             WorkflowPhase.Signing => WorkflowStatus.InProgress,
             WorkflowPhase.Review => WorkflowStatus.InProgress,
-            WorkflowPhase.Rejected => WorkflowStatus.Completed,
             WorkflowPhase.Completed => WorkflowStatus.Completed,
             WorkflowPhase.Cancelled => WorkflowStatus.Completed,
             WorkflowPhase.Terminated => WorkflowStatus.Completed,
