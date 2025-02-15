@@ -12,7 +12,7 @@ public class ApprovalWorkflow(
     IReplicatorPhaseBuilder replicatorPhaseBuilder,
     IReplicatorActivityProvider activityFactory, 
     ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
-    : ReplicatorWorkflowBase<ApprovalWorkflowContext>(stateMachineFactory, repository, activityFactory, replicatorPhaseBuilder, logger)
+    : ReplicatorActivityWorkflowBase<ApprovalWorkflowContext>(stateMachineFactory, repository, activityFactory, replicatorPhaseBuilder, logger)
 {
     public static class Phases
     {

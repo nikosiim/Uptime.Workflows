@@ -23,8 +23,6 @@ public abstract class ActivityWorkflowBase<TContext>(
         }
     }
 
-    protected abstract override void ConfigureStateMachineAsync(CancellationToken cancellationToken);
-    protected abstract override void OnWorkflowActivatedAsync(IWorkflowPayload payload, CancellationToken cancellationToken);
     protected abstract Task AlterTaskInternalAsync(WorkflowTaskContext context, CancellationToken cancellationToken);
 
     private bool CanAlterTask()

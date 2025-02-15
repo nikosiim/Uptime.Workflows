@@ -1,4 +1,5 @@
 ﻿using Stateless;
+using Uptime.Domain.Common;
 using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application.Common;
@@ -23,5 +24,32 @@ public class StatelessStateMachineAdapter<TState, TTrigger>(TState initialState)
     {
         StateMachine<TState, TTrigger>.StateConfiguration? stateConfig = _machine.Configure(state);
         return new StatelessStateConfigurationAdapter<TState, TTrigger>(stateConfig);
+    }
+
+    public void OnTransitionCompleted(Action<StateTransition<TState, TTrigger>> callback)
+    {
+        _machine.OnTransitionCompleted(transition =>
+        {
+            var domainTransition = new StateTransition<TState, TTrigger>(
+                transition.Source,
+                transition.Destination,
+                transition.Trigger
+            );
+            callback(domainTransition);
+        });
+    }
+
+    public void OnTransitionCompletedAsync(Func<StateTransition<TState, TTrigger>, Task> callback)
+    {
+        _machine.OnTransitionCompletedAsync(async statelessTransition =>
+        {
+            var domainTransition = new StateTransition<TState, TTrigger>(
+                statelessTransition.Source,
+                statelessTransition.Destination,
+                statelessTransition.Trigger
+            );
+
+            await callback(domainTransition).ConfigureAwait(false);
+        });
     }
 }

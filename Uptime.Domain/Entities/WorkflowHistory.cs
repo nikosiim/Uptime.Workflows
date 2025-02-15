@@ -1,16 +1,18 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Uptime.Domain.Enums;
 
 namespace Uptime.Domain.Entities;
 
 public class WorkflowHistory : BaseEntity
 {
-    [StringLength(64)]
-    public required string Action { get; set; }
+    public required WorkflowHistoryEventType Event { get; set; }
     [StringLength(128)]
-    public required string Actor { get; set; }
-    public DateTime CreatedDate { get; set; }
-    [StringLength(512)]
-    public string? Comments { get; set; }
+    public required string User { get; set; }
+    [StringLength(64)]
+    public string? Outcome { get; set; }
+    public DateTime Occurred { get; set; }
+    [StringLength(4096)]
+    public string? Description { get; set; }
     public int WorkflowId { get; set; }
     public virtual Workflow Workflow { get; set; } = null!;
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Threading;
 using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
 using Uptime.Domain.Enums;
@@ -26,14 +27,31 @@ public abstract class WorkflowBase<TContext>(
 
     public async Task<WorkflowPhase> StartAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
-        InitializeStateMachineAsync(WorkflowPhase.NotStarted, cancellationToken);
+        InitializeStateMachine(WorkflowPhase.NotStarted, cancellationToken);
 
         WorkflowId = await repository.CreateWorkflowInstanceAsync(payload, cancellationToken);
 
-        OnWorkflowActivatedAsync(payload, cancellationToken);
+        try
+        {
+            OnWorkflowActivatedAsync(payload, cancellationToken);
 
-        await Machine.FireAsync(WorkflowTrigger.Start);
-        await SaveWorkflowStateAsync(cancellationToken);
+            await repository.AddWorkflowHistoryAsync(
+                WorkflowId,
+                WorkflowHistoryEventType.WorkflowStarted,
+                payload.Originator,
+                outcome: null,
+                description: WorkflowStartedHistoryDescription,
+                cancellationToken
+            );
+
+            await Machine.FireAsync(WorkflowTrigger.Start);
+            await OnWorkflowStartedAsync(payload, cancellationToken);
+            await SaveWorkflowStateAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            await HandleWorkflowExceptionAsync(ex, WorkflowId, cancellationToken);
+        }
 
         return Machine.CurrentState;
     }
@@ -47,7 +65,7 @@ public abstract class WorkflowBase<TContext>(
         WorkflowContext = WorkflowContextHelper.Deserialize<TContext>(instance.StorageJson);
         WorkflowId = workflowId;
 
-        InitializeStateMachineAsync(instance.Phase, cancellationToken);
+        InitializeStateMachine(instance.Phase, cancellationToken);
 
         return true;
     }
@@ -66,10 +84,29 @@ public abstract class WorkflowBase<TContext>(
     #endregion
 
     #region Protected Methods
+
+    protected virtual string? WorkflowStartedHistoryDescription { get; set; }
+    protected virtual string? WorkflowCompletedHistoryDescription { get; set; }
+
+    protected virtual Task OnWorkflowStartedAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
+
+    protected virtual Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)
+    {
+        logger.LogInformation("Workflow completed successfully");
+        return Task.CompletedTask;
+    }
     
     protected virtual async Task SaveWorkflowStateAsync(CancellationToken cancellationToken)
     {
         await repository.SaveWorkflowStateAsync(WorkflowId, Machine.CurrentState, WorkflowContext, cancellationToken);
+    }
+
+    protected virtual async Task CancelAllTasksAsync(CancellationToken cancellationToken)
+    {
+        await repository.CancelAllActiveTasksAsync(WorkflowId, cancellationToken);
     }
 
     #endregion
@@ -83,10 +120,41 @@ public abstract class WorkflowBase<TContext>(
 
     #region Private Methods
 
-    private void InitializeStateMachineAsync(WorkflowPhase initialPhase, CancellationToken cancellationToken)
+    private void InitializeStateMachine(WorkflowPhase initialPhase, CancellationToken cancellationToken)
     {
         Machine = stateMachineFactory.Create(initialPhase);
         ConfigureStateMachineAsync(cancellationToken);
+
+        Machine.OnTransitionCompletedAsync(async transition =>
+        {
+            if (transition.Destination == WorkflowPhase.Completed)
+            {
+                await OnWorkflowCompletedAsync(cancellationToken);
+                await repository.AddWorkflowHistoryAsync(
+                    WorkflowId,
+                    WorkflowHistoryEventType.WorkflowCompleted,
+                    "SystemAccount",
+                    outcome: null,
+                    description: WorkflowCompletedHistoryDescription,
+                    cancellationToken
+                );
+            }
+        });
+    }
+
+    private async Task HandleWorkflowExceptionAsync(Exception ex, WorkflowId workflowId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            logger.LogError(ex, "An error occurred while starting the workflow.");
+
+            await repository.MarkWorkflowAsInvalidAsync(WorkflowId, cancellationToken);
+            await repository.CancelAllActiveTasksAsync(workflowId, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "An error occurred while processing workflow exception.");
+        }
     }
 
     #endregion

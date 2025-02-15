@@ -5,7 +5,7 @@ using Uptime.Domain.Interfaces;
 
 namespace Uptime.Domain.Workflows;
 
-public abstract class ReplicatorWorkflowBase<TContext>(
+public abstract class ReplicatorActivityWorkflowBase<TContext>(
     IStateMachineFactory<WorkflowPhase, WorkflowTrigger> stateMachineFactory,
     IWorkflowRepository repository, 
     IReplicatorActivityProvider activityFactory,

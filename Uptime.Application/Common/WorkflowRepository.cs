@@ -11,7 +11,7 @@ namespace Uptime.Application.Common;
 
 public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowRepository
 {
-    #region Workflows table
+    #region Workflows
 
     public async Task<WorkflowId> CreateWorkflowInstanceAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
@@ -31,6 +31,20 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
         return (WorkflowId)instance.Id;
     }
 
+    public async Task MarkWorkflowAsInvalidAsync(WorkflowId workflowId, CancellationToken cancellationToken)
+    {
+        Workflow? instance = await GetWorkflowInstanceAsync(workflowId, cancellationToken);
+        if (instance == null)
+        {
+            throw new InvalidOperationException($"Workflow with ID {workflowId} not found.");
+        }
+
+        instance.Phase = WorkflowPhase.Invalid;
+        instance.EndDate = DateTime.UtcNow;
+        
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<Workflow?> GetWorkflowInstanceAsync(WorkflowId workflowId, CancellationToken cancellationToken)
     {
         return await dbContext.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId.Value, cancellationToken);
@@ -39,7 +53,7 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
     public async Task SaveWorkflowStateAsync<TContext>(WorkflowId workflowId, WorkflowPhase phase, TContext context, CancellationToken cancellationToken)
         where TContext : IWorkflowContext, new()
     {
-        Workflow? instance = await dbContext.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId.Value, cancellationToken);
+        Workflow? instance = await GetWorkflowInstanceAsync(workflowId, cancellationToken);
         if (instance == null)
         {
             throw new InvalidOperationException($"Workflow with ID {workflowId} not found.");
@@ -64,7 +78,7 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
 
     #endregion
 
-    #region WorkflowTasks table
+    #region WorkflowTasks
 
     public async Task<TaskId> CreateWorkflowTaskAsync(IWorkflowTask request, CancellationToken cancellationToken)
     {
@@ -91,6 +105,21 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
 
         return (TaskId)task.Id;
     }
+
+    public async Task CancelAllActiveTasksAsync(WorkflowId workflowId, CancellationToken cancellationToken)
+    {
+        List<WorkflowTask> tasks = await dbContext.WorkflowTasks
+            .Where(t => t.WorkflowId == workflowId.Value && t.Status != WorkflowTaskStatus.Completed && t.Status != WorkflowTaskStatus.Cancelled)
+            .ToListAsync(cancellationToken);
+
+        foreach (WorkflowTask task in tasks)
+        {
+            task.Status = WorkflowTaskStatus.Cancelled;
+            task.EndDate = DateTime.UtcNow;
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
     
     public async Task SaveWorkflowTaskAsync(IWorkflowTask request, CancellationToken cancellationToken)
     {
@@ -109,6 +138,32 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
         task.Status = request.TaskStatus;
         task.StorageJson = JsonSerializer.Serialize(request.Storage);
 
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    #endregion
+
+    #region WorkflowHistory
+
+    public async Task AddWorkflowHistoryAsync(
+        WorkflowId workflowId,
+        WorkflowHistoryEventType eventType,
+        string? user,
+        string? outcome,
+        string? description,
+        CancellationToken cancellationToken)
+    {
+        var historyEntry = new WorkflowHistory
+        {
+            Event = eventType,
+            User = user,
+            Outcome = outcome,
+            Occurred = DateTime.UtcNow,
+            Description = description,
+            WorkflowId = workflowId.Value
+        };
+
+        dbContext.WorkflowHistories.Add(historyEntry);
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 

@@ -112,10 +112,11 @@ namespace Uptime.Persistence.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Action = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
-                    Actor = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Comments = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: true),
+                    Event = table.Column<int>(type: "int", nullable: false),
+                    User = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    Outcome = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
+                    Occurred = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: true),
                     WorkflowId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>

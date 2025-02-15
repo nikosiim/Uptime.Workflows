@@ -1,4 +1,5 @@
-﻿using Uptime.Domain.Interfaces;
+﻿using Uptime.Domain.Enums;
+using Uptime.Domain.Interfaces;
 
 namespace Uptime.Domain.Common;
 
@@ -9,6 +10,8 @@ public abstract class UserTaskActivity(IWorkflowRepository repository, WorkflowT
     public bool IsCompleted { get; set; }
 
     public IUserTaskActivityData? TaskData { get; set; }
+
+    protected virtual string? TaskCreatedHistoryDescription { get; set; }
     
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
@@ -16,6 +19,15 @@ public abstract class UserTaskActivity(IWorkflowRepository repository, WorkflowT
 
         InitializeContext();
         ExecuteTaskLogic();
+
+        await repository.AddWorkflowHistoryAsync(
+            context.WorkflowId,
+            WorkflowHistoryEventType.TaskCreated,
+            TaskData?.AssignedBy,
+            outcome: null,
+            description: TaskCreatedHistoryDescription,
+            cancellationToken
+        );
 
         Context.TaskId = await repository.CreateWorkflowTaskAsync(Context, cancellationToken);
     }

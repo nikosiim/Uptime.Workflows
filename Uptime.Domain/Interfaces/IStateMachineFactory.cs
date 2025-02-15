@@ -1,6 +1,6 @@
 ﻿namespace Uptime.Domain.Interfaces;
 
-public interface IStateMachineFactory<TState, in TTrigger>
+public interface IStateMachineFactory<TState, TTrigger>
 {
     IStateMachine<TState, TTrigger> Create(TState initialState);
 }
