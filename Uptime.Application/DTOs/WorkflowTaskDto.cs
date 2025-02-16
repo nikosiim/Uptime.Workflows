@@ -1,4 +1,4 @@
-﻿using Uptime.Shared.Enums;
+﻿using Uptime.Domain.Enums;
 
 namespace Uptime.Application.DTOs;
 

@@ -8,6 +8,7 @@ using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
 using Uptime.Shared.Enums;
 using Uptime.Shared.Models.Workflows;
+using WorkflowTaskStatus = Uptime.Shared.Enums.WorkflowTaskStatus;
 
 namespace Uptime.WorkflowAPI.Controllers;
 
@@ -32,10 +33,10 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     [HttpGet("{workflowId:int}/workflow-tasks")]
     public async Task<ActionResult<List<WorkflowTasksResponse>>> GetWorkflowTasks(int workflowId, [FromQuery] WorkflowTaskStatus? status = null)
     {
-        var query = new GetWorkflowTasksQuery((WorkflowId)workflowId, status);
+        var query = new GetWorkflowTasksQuery((WorkflowId)workflowId, status.ToDomain());
 
         List<WorkflowTaskDto> tasks = await mediator.Send(query);
-        if (!tasks.Any())
+        if (tasks.Count == 0)
         {
             return NotFound($"No tasks found for workflow ID {workflowId}.");
         }
@@ -59,16 +60,6 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     {
         var cmd = new CancelWorkflowCommand((WorkflowId)workflowId);
         await mediator.Send(cmd);
-
-        return NoContent();
-    }
-    
-    [HttpPost("{workflowId:int}/terminate-workflow")]
-    public async Task<ActionResult> TerminateWorkflow(int workflowId)
-    {
-        // TODO: add implementation
-
-        await Task.Delay(2000);
 
         return NoContent();
     }

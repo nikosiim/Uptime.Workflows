@@ -32,12 +32,13 @@ public class StartWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflow
 
         var payload = new StartWorkflowPayload
         {
+            WorkflowBaseId = workflowBaseId,
             Originator = request.Originator,
             DocumentId = request.DocumentId,
             WorkflowTemplateId = request.WorkflowTemplateId,
             Storage = request.Storage
         };
 
-        return await workflowFactory.StartWorkflowAsync(workflowBaseId, payload, cancellationToken);
+        return await workflowFactory.StartWorkflowAsync(payload, cancellationToken);
     }
 }

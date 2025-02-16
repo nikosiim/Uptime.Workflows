@@ -1,5 +1,5 @@
 ﻿using Uptime.Domain.Common;
-using Uptime.Shared.Enums;
+using Uptime.Domain.Enums;
 
 namespace Uptime.Domain.Interfaces;
 

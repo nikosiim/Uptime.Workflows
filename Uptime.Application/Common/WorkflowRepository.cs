@@ -5,7 +5,6 @@ using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
 using Uptime.Domain.Enums;
 using Uptime.Domain.Interfaces;
-using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Common;
 

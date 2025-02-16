@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Uptime.Shared.Enums;
+using Uptime.Domain.Enums;
 
 namespace Uptime.Domain.Entities;
 

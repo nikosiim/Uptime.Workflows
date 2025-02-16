@@ -1,6 +1,6 @@
 ﻿using Uptime.Domain.Common;
+using Uptime.Domain.Enums;
 using Uptime.Domain.Interfaces;
-using Uptime.Shared.Enums;
 using Uptime.Shared.Extensions;
 using static Uptime.Shared.GlobalConstants;
 

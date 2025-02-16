@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Uptime.Application.DTOs;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
-using Uptime.Shared.Enums;
+using Uptime.Domain.Enums;
 
 namespace Uptime.Application.Queries;
 

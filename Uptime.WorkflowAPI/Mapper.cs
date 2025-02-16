@@ -12,6 +12,20 @@ namespace Uptime.WorkflowAPI;
 
 public static class Mapper
 {
+    #region Enums
+
+    public static Shared.Enums.WorkflowTaskStatus ToShared(this Domain.Enums.WorkflowTaskStatus status)
+    {
+        return (Shared.Enums.WorkflowTaskStatus)status;
+    }
+
+    public static Domain.Enums.WorkflowTaskStatus? ToDomain(this Shared.Enums.WorkflowTaskStatus? status)
+    {
+        return status != null ? (Domain.Enums.WorkflowTaskStatus)status : null;
+    }
+
+    #endregion
+
     #region Documents
 
     public static List<DocumentWorkflowsResponse> MapToDocumentWorkflowsResponse(List<DocumentWorkflowDto> source)
@@ -34,7 +48,7 @@ public static class Mapper
             TaskId = dto.TaskId,
             WorkflowId = dto.WorkflowId,
             AssignedTo = dto.AssignedTo,
-            Status = dto.Status,
+            Status = dto.Status.ToShared(),
             TaskDescription = dto.TaskDescription,
             DueDate = dto.DueDate,
             EndDate = dto.EndDate
@@ -92,7 +106,7 @@ public static class Mapper
             Id = dto.Id,
             AssignedTo = dto.AssignedTo,
             AssignedBy = dto.AssignedBy,
-            Status = dto.Status,
+            Status = dto.Status.ToShared(),
             Description = dto.Description,
             DueDate = dto.DueDate ?? DateTime.UtcNow, // Default to current UTC time if null
             EndDate = dto.EndDate,
@@ -122,7 +136,7 @@ public static class Mapper
             Id = source.Id,
             AssignedTo = source.AssignedTo,
             AssignedBy = source.AssignedBy,
-            Status = source.Status,
+            Status = source.Status.ToShared(),
             Description = source.Description,
             DueDate = source.DueDate ?? DateTime.UtcNow, // Default to current UTC time if null
             EndDate = source.EndDate,
