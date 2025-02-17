@@ -161,7 +161,7 @@ public abstract class WorkflowBase<TContext>(
                 await repository.AddWorkflowHistoryAsync(
                     WorkflowId,
                     WorkflowHistoryEventType.WorkflowCompleted,
-                    "SystemAccount",
+                    "System",
                     outcome: null,
                     description: WorkflowCompletedHistoryDescription,
                     cancellationToken
@@ -173,7 +173,7 @@ public abstract class WorkflowBase<TContext>(
                 await repository.AddWorkflowHistoryAsync(
                     WorkflowId,
                     WorkflowHistoryEventType.WorkflowCancelled,
-                    "SystemAccount",
+                    "System",
                     outcome: null,
                     description: string.Empty,
                     cancellationToken

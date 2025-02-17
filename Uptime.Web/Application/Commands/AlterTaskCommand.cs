@@ -22,11 +22,6 @@ public class AlterTaskCommandHandler(IHttpClientFactory httpClientFactory) : IRe
             payload, 
             cancellationToken);
 
-        if (response.IsSuccessStatusCode)
-        {
-            return await response.Content.ReadFromJsonAsync<bool>(cancellationToken: cancellationToken);
-        }
-
-        return false;
+        return response.IsSuccessStatusCode;
     }
 }
