@@ -1,6 +1,4 @@
-﻿using Uptime.Shared.Enums;
-
-namespace Uptime.Web.Application.DTOs;
+﻿namespace Uptime.Web.Application.DTOs;
 
 public record DocumentWorkflowDto
 {
@@ -9,5 +7,6 @@ public record DocumentWorkflowDto
     public string? WorkflowTemplateName { get; init; }
     public DateTime StartDate { get; init; }
     public DateTime? EndDate { get; init; }
-    public WorkflowStatus Status { get; init; }
+    public string? Outcome { get; init; }
+    public bool IsActive { get; init; }
 }

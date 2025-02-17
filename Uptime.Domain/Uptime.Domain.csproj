@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <Compile Remove="Common\StorageExtensions.cs" />
+    <Compile Remove="Enums\TaskOutcome.cs" />
+    <Compile Remove="Enums\WorkflowPhase.cs" />
     <Compile Remove="Interfaces\IWorkflowStateRepository.cs" />
     <Compile Remove="Interfaces\IWorkflowTaskRepository.cs" />
   </ItemGroup>

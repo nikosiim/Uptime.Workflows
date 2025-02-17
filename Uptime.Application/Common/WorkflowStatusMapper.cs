@@ -1,4 +1,6 @@
-﻿using Uptime.Domain.Enums;
+﻿using Uptime.Application.Workflows.Approval;
+using Uptime.Domain.Common;
+using Uptime.Domain.Enums;
 using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Common;
@@ -17,12 +19,10 @@ public static class WorkflowStatusMapper
         return phase switch
         {
             WorkflowPhase.InProgress => WorkflowStatus.InProgress,
-            WorkflowPhase.Approval => WorkflowStatus.InProgress,
-            WorkflowPhase.Signing => WorkflowStatus.InProgress,
-            WorkflowPhase.Review => WorkflowStatus.InProgress,
+            ApprovalPhase.Approval => WorkflowStatus.InProgress,
+            ApprovalPhase.Signing => WorkflowStatus.InProgress,
             WorkflowPhase.Completed => WorkflowStatus.Completed,
             WorkflowPhase.Cancelled => WorkflowStatus.Completed,
-            WorkflowPhase.Terminated => WorkflowStatus.Completed,
             _ => WorkflowStatus.Invalid
         };
     }

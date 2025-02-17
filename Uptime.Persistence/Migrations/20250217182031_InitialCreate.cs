@@ -81,7 +81,9 @@ namespace Uptime.Persistence.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Phase = table.Column<int>(type: "int", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    Outcome = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
+                    Phase = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
                     Originator = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -140,7 +142,8 @@ namespace Uptime.Persistence.Migrations
                     AssignedTo = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     AssignedBy = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: true),
-                    Status = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    InternalStatus = table.Column<int>(type: "int", nullable: false),
                     DueDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     StorageJson = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: true),

@@ -1,6 +1,8 @@
 ﻿using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Uptime.Application.Extensions;
 using Uptime.Application.Interfaces;
+using Uptime.Application.Resources;
 using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
 using Uptime.Domain.Enums;
@@ -16,7 +18,8 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
     {
         var instance = new Workflow
         {
-            Phase = WorkflowPhase.NotStarted,
+            IsActive = true,
+            Phase = WorkflowPhase.NotStarted.Value,
             StorageJson = null,
             Originator = payload.Originator,
             StartDate = DateTime.UtcNow,
@@ -38,7 +41,9 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
             throw new InvalidOperationException($"Workflow with ID {workflowId} not found.");
         }
 
-        instance.Phase = WorkflowPhase.Invalid;
+        instance.IsActive = false;
+        instance.Outcome = WorkflowOutcomeResource.Invalid;
+        instance.Phase = WorkflowPhase.Invalid.Value;
         instance.EndDate = DateTime.UtcNow;
         
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -61,15 +66,14 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
         var existingContext = WorkflowContextHelper.Deserialize<TContext>(instance.StorageJson);
         WorkflowContextHelper.MergeContext(existingContext, context);
 
-        instance.Phase = phase;
+        instance.Phase = phase.Value;
         instance.StorageJson = WorkflowContextHelper.Serialize(context);
+        instance.Outcome = context.Outcome.GetTranslation();
 
-        // Set the end date if the workflow is in a final state.
-        if (phase == WorkflowPhase.Completed ||
-            phase == WorkflowPhase.Cancelled ||
-            phase == WorkflowPhase.Terminated)
+        if (phase.IsFinal())
         {
             instance.EndDate = DateTime.UtcNow;
+            instance.IsActive = false;
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -87,6 +91,8 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
             throw new InvalidOperationException($"Workflow with ID {request.WorkflowId} does not exist.");
         }
 
+        const WorkflowTaskStatus status = WorkflowTaskStatus.NotStarted;
+        
         var task = new WorkflowTask
         {
             WorkflowId = request.WorkflowId.Value,
@@ -95,7 +101,8 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
             AssignedBy = request.AssignedBy,
             Description = request.TaskDescription,
             DueDate = request.DueDate,
-            Status = WorkflowTaskStatus.NotStarted,
+            Status = status.GetTranslation(),
+            InternalStatus = status,
             StorageJson = JsonSerializer.Serialize(request.Storage)
         };
 
@@ -108,12 +115,15 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
     public async Task CancelAllActiveTasksAsync(WorkflowId workflowId, CancellationToken cancellationToken)
     {
         List<WorkflowTask> tasks = await dbContext.WorkflowTasks
-            .Where(t => t.WorkflowId == workflowId.Value && t.Status != WorkflowTaskStatus.Completed && t.Status != WorkflowTaskStatus.Cancelled)
+            .Where(t => t.WorkflowId == workflowId.Value && t.InternalStatus != WorkflowTaskStatus.Completed && t.InternalStatus != WorkflowTaskStatus.Cancelled)
             .ToListAsync(cancellationToken);
+
+        const WorkflowTaskStatus status = WorkflowTaskStatus.Cancelled;
 
         foreach (WorkflowTask task in tasks)
         {
-            task.Status = WorkflowTaskStatus.Cancelled;
+            task.Status = status.GetTranslation();
+            task.InternalStatus = status;
             task.EndDate = DateTime.UtcNow;
         }
 
@@ -129,12 +139,15 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
             throw new KeyNotFoundException($"Task with ID {request.TaskId} not found.");
         }
 
+        WorkflowTaskStatus status = request.TaskStatus;
+        
         task.TaskGuid = request.TaskGuid;
         task.AssignedTo = request.AssignedTo;
         task.AssignedBy = request.AssignedBy;
         task.Description = request.TaskDescription;
         task.DueDate = request.DueDate;
-        task.Status = request.TaskStatus;
+        task.Status = status.GetTranslation();
+        task.InternalStatus = status;
         task.StorageJson = JsonSerializer.Serialize(request.Storage);
 
         await dbContext.SaveChangesAsync(cancellationToken);

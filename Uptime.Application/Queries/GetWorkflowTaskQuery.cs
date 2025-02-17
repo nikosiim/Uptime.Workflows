@@ -21,6 +21,7 @@ public class GetWorkflowTaskQueryHandler(IWorkflowDbContext dbContext) : IReques
                 AssignedTo = task.AssignedTo,
                 AssignedBy = task.AssignedBy,
                 Status = task.Status,
+                InternalStatus = task.InternalStatus,
                 Description = task.Description,
                 DueDate = task.DueDate,
                 EndDate = task.EndDate,

@@ -13,7 +13,8 @@ public class WorkflowTask : BaseEntity
     public string AssignedBy { get; set; } = null!;
     [StringLength(2048)]
     public string? Description { get; set; }
-    public WorkflowTaskStatus Status { get; set; }
+    public string Status { get; set; } = null!;
+    public WorkflowTaskStatus InternalStatus { get; set; }
     public DateTime? DueDate { get; set; }
     public DateTime? EndDate { get; set; }
     [StringLength(4096)]

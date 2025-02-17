@@ -6,6 +6,5 @@ public enum WorkflowTrigger
     TaskRejected = 2,
     TaskCompleted = 3,
     AllTasksCompleted = 4,
-    Cancel = 5,
-    Terminate = 6
+    Cancel = 5
 }

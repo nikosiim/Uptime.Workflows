@@ -19,9 +19,9 @@ public class SigningWorkflow(
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {
         Machine.Configure(WorkflowPhase.NotStarted)
-            .Permit(WorkflowTrigger.Start, WorkflowPhase.Signing);
+            .Permit(WorkflowTrigger.Start, SigningPhase.Signing);
 
-        Machine.Configure(WorkflowPhase.Signing)
+        Machine.Configure(SigningPhase.Signing)
             .OnEntryAsync(() => StartSigningTask(cancellationToken))
             .OnExit(OnSigningTaskCompleted) 
             .Permit(WorkflowTrigger.TaskCompleted, WorkflowPhase.Completed)
@@ -34,8 +34,8 @@ public class SigningWorkflow(
     {
         if (payload.Storage.TryGetValue(GlobalConstants.TaskStorageKeys.TaskSigners, out string? signer) && !string.IsNullOrWhiteSpace(signer))
         {
-            string? taskDescription = payload.Storage.GetValueAsString(GlobalConstants.TaskStorageKeys.TaskDescription);
-            string? dueDays = payload.Storage.GetValueAsString(GlobalConstants.TaskStorageKeys.TaskDueDays);
+            string? taskDescription = payload.Storage.GetValue(GlobalConstants.TaskStorageKeys.TaskDescription);
+            string? dueDays = payload.Storage.GetValue(GlobalConstants.TaskStorageKeys.TaskDueDays);
 
             int.TryParse(dueDays, out int days);
 

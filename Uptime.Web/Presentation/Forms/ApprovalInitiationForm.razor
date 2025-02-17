@@ -30,7 +30,7 @@
 
         var storage = new Dictionary<string, string?>();
 
-        storage.SetValueAsString(GlobalConstants.TaskStorageKeys.TaskDescription, FormModel.TaskDescription);
+        storage.SetValue(GlobalConstants.TaskStorageKeys.TaskDescription, FormModel.TaskDescription);
         storage.SetValueAsDateTime(GlobalConstants.TaskStorageKeys.TaskDueDate, FormModel.DueDate);
         storage.SetValueAsList(GlobalConstants.TaskStorageKeys.TaskExecutors, [FormModel.AssignedTo!]);
 

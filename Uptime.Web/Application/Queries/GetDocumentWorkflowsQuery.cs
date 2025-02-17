@@ -32,7 +32,7 @@ public class GetDocumentWorkflowsQueryHandler(IHttpClientFactory httpClientFacto
                     WorkflowTemplateName = workflow.WorkflowTemplateName,
                     StartDate = workflow.StartDate,
                     EndDate = workflow.EndDate,
-                    Status = workflow.Status
+                    IsActive = workflow.IsActive
                 });
             }
         }

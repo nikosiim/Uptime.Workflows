@@ -15,13 +15,14 @@ public class GetWorkflowTasksQueryHandler(IWorkflowDbContext dbContext)
     public async Task<List<WorkflowTaskDto>> Handle(GetWorkflowTasksQuery request, CancellationToken cancellationToken)
     {
         return await dbContext.WorkflowTasks
-            .Where(task => task.WorkflowId == request.WorkflowId.Value && (request.Status == null || task.Status == request.Status))
+            .Where(task => task.WorkflowId == request.WorkflowId.Value && (request.Status == null || task.InternalStatus == request.Status))
             .Select(task => new WorkflowTaskDto
             {
                 Id = task.Id,
                 AssignedTo = task.AssignedTo,
                 AssignedBy = task.AssignedBy,
                 Status = task.Status,
+                InternalStatus = task.InternalStatus,
                 Description = task.Description,
                 DueDate = task.DueDate,
                 EndDate = task.EndDate,

@@ -10,7 +10,7 @@ public static class DictionaryExtensions
     /// <summary>
     /// Retrieves a string value from a dictionary, if the key exists.
     /// </summary>
-    public static string? GetValueAsString(this Dictionary<string, string?> data, string key)
+    public static string? GetValue(this Dictionary<string, string?> data, string key)
     {
         return data.GetValueOrDefault(key);
     }
@@ -123,7 +123,7 @@ public static class DictionaryExtensions
     /// <summary>
     /// Extracts a string value from a JSON string that represents a dictionary.
     /// </summary>
-    public static string? GetValueAsString(this string? json, string key)
+    public static string? GetValue(this string? json, string key)
     {
         if (string.IsNullOrWhiteSpace(json))
             return null;
@@ -131,7 +131,7 @@ public static class DictionaryExtensions
         try
         {
             var storage = JsonSerializer.Deserialize<Dictionary<string, string?>>(json);
-            return storage?.GetValueAsString(key);
+            return storage?.GetValue(key);
         }
         catch (JsonException)
         {
@@ -243,7 +243,7 @@ public static class DictionaryExtensions
     /// <summary>
     /// Stores a string value in the dictionary or sets the key to null if the value is null.
     /// </summary>
-    public static void SetValueAsString(this Dictionary<string, string?> data, string key, string? value)
+    public static void SetValue(this Dictionary<string, string?> data, string key, string? value)
     {
         data[key] = value;
     }

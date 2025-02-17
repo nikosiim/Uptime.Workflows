@@ -61,33 +61,34 @@
                 <MudButton Size="Size.Medium" Variant="Variant.Filled">Loobu</MudButton>
             </MudStack>
         </MudPaper>
+
+
+        <MudPaper Elevation="0" Outlined="true" Class="mb-4">
+            <MudExpansionPanels Outlined="true" Elevation="0">
+                <MudExpansionPanel HideIcon="true">
+                    <TitleContent>
+                        <div class="d-flex">
+                            <MudText Class="mt-1">Töövoo ajalugu</MudText>
+                            <MudBadge Content="3" Color="Color.Primary" Overlap="true" Class="d-flex ml-auto">
+                                <MudIcon Icon="@Icons.Material.Filled.History" Color="Color.Default" />
+                            </MudBadge>
+                        </div>
+                    </TitleContent>
+                    <ChildContent>
+                        <WorkflowPageHistory ShowTitle="false" WorkflowId="_task.WorkflowId" />
+                    </ChildContent>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+        </MudPaper>
+
+        <MudPaper Elevation="0" Outlined="true">
+            <MudExpansionPanels Outlined="true" Elevation="0">
+                <MudExpansionPanel Text="Seotud töövood" MaxHeight="1000">
+
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+        </MudPaper>
     }
-
-    <MudPaper Elevation="0" Outlined="true" Class="mb-4">
-        <MudExpansionPanels Outlined="true" Elevation="0">
-            <MudExpansionPanel Text="Töövoo ajalugu" HideIcon="true">
-                <TitleContent>
-                    <div class="d-flex">
-                        <MudText Class="mt-1">Inbox</MudText>
-                        <MudBadge Content="3" Color="Color.Primary" Overlap="true" Class="d-flex ml-auto">
-                            <MudIcon Icon="@Icons.Material.Filled.History" Color="Color.Default" />
-                        </MudBadge>
-                    </div>
-                </TitleContent>
-                <ChildContent>
-                    <WorkflowPageHistory ShowTitle="false" />
-                </ChildContent>
-            </MudExpansionPanel>
-        </MudExpansionPanels>
-    </MudPaper>
-
-    <MudPaper Elevation="0" Outlined="true">
-        <MudExpansionPanels Outlined="true" Elevation="0">
-            <MudExpansionPanel Text="Seotud töövood" MaxHeight="1000">
-
-            </MudExpansionPanel>
-        </MudExpansionPanels>
-    </MudPaper>
 </MudContainer>
 
 @code {

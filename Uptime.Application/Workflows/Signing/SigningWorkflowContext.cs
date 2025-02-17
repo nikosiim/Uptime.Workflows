@@ -1,16 +1,13 @@
 ﻿using System.Text.Json;
-using Uptime.Domain.Interfaces;
+using Uptime.Application.Common;
 
 namespace Uptime.Application.Workflows.Signing;
 
-public class SigningWorkflowContext : IWorkflowContext
+public class SigningWorkflowContext : WorkflowContext
 {
     public SigningTaskData? SigningTask { get; set; }
-    public Dictionary<string, string?> Storage { get; set; } = new();
-
-    public string Serialize() => JsonSerializer.Serialize(this);
-
-    public void Deserialize(string json)
+    
+    public override void Deserialize(string json)
     {
         var obj = JsonSerializer.Deserialize<SigningWorkflowContext>(json);
         if (obj != null)

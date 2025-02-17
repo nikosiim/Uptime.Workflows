@@ -53,8 +53,8 @@ else
     {
         _workflowsViewModel = new WorkflowsViewModel
         {
-            ActiveInstances = workflows.Where(w => w.Status is WorkflowStatus.InProgress).ToList(),
-            CompletedInstances = workflows.Where(w => w.Status is WorkflowStatus.Completed).ToList()
+            ActiveInstances = workflows.Where(w => w.IsActive).ToList(),
+            CompletedInstances = workflows.Where(w => !w.IsActive).ToList()
         };
 
         _templatesViewModel = new TemplatesViewModel

@@ -22,7 +22,8 @@ public class GetDocumentWorkflowsQueryHandler(IWorkflowDbContext dbContext)
                 WorkflowTemplateName = w.WorkflowTemplate.TemplateName,
                 StartDate = w.StartDate,
                 EndDate = w.EndDate,
-                Phase = w.Phase
+                Outcome = w.Outcome,
+                IsActive = w.IsActive
             })
             .ToListAsync(cancellationToken);
     }

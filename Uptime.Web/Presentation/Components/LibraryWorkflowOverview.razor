@@ -14,7 +14,7 @@
             <RowTemplate>
                 <MudTd><MudLink Href="@($"/workflow/{context.Id}")">@context.WorkflowTemplateName</MudLink></MudTd>
                 <MudTd>@context.StartDate.ToLocalTime()</MudTd>
-                <MudTd>@context.Status</MudTd>
+                <MudTd>@context.Outcome</MudTd>
             </RowTemplate>
         </MudTable>
     }
@@ -40,7 +40,7 @@
                 <MudTd><MudLink Href="@($"/workflow/{context.Id}")">@context.WorkflowTemplateName</MudLink></MudTd>
                 <MudTd>@context.StartDate.ToLocalTime()</MudTd>
                 <MudTd>@context.EndDate?.ToLocalTime()</MudTd>
-                <MudTd>@context.Status</MudTd>
+                <MudTd>@context.Outcome</MudTd>
             </RowTemplate>
         </MudTable>
     }

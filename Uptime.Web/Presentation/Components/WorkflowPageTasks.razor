@@ -24,7 +24,7 @@
             <MudTd>@task.AssignedTo</MudTd>
             <MudTd><MudLink Href="@($"/workflow-task/{task.Id}")">@task.Title</MudLink></MudTd>
             <MudTd>@task.DueDate?.ToLocalTime().ToString("d")</MudTd>
-            <MudTd>@task.Status.ToString()</MudTd>
+            <MudTd>@task.Status</MudTd>
         </RowTemplate>
     </MudTable>
 }

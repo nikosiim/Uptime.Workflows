@@ -86,8 +86,8 @@ public abstract class WorkflowBase<TContext>(
 
         WorkflowContext = WorkflowContextHelper.Deserialize<TContext>(instance.StorageJson);
         WorkflowId = workflowId;
-
-        InitializeStateMachine(instance.Phase, cancellationToken);
+        
+        InitializeStateMachine(WorkflowPhase.FromString(instance.Phase), cancellationToken);
 
         return true;
     }
@@ -117,11 +117,13 @@ public abstract class WorkflowBase<TContext>(
 
     protected virtual Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)
     {
+        WorkflowContext.Outcome = WorkflowOutcome.Completed;
         return Task.CompletedTask;
     }
 
     protected virtual Task OnWorkflowCancelledAsync(CancellationToken cancellationToken)
     {
+        WorkflowContext.Outcome = WorkflowOutcome.Cancelled;
         return Task.CompletedTask;
     }
     
@@ -185,7 +187,7 @@ public abstract class WorkflowBase<TContext>(
         try
         {
             logger.LogError(ex, "An error occurred while starting the workflow.");
-
+            
             await repository.MarkWorkflowAsInvalidAsync(WorkflowId, cancellationToken);
             await repository.CancelAllActiveTasksAsync(workflowId, cancellationToken);
         }

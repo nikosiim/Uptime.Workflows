@@ -13,9 +13,8 @@ public static class ApplicationServiceRegistration
 {
     public static void AddApplicationServices(this IServiceCollection services)
     {
-        services.AddMediatR(config =>
-            config.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly()));
-        
+        services.AddMediatR(config => config.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly()));
+
         services.AddScoped<ApprovalWorkflow>();
         services.AddScoped<SigningWorkflow>();
 

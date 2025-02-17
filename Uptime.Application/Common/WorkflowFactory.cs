@@ -2,7 +2,7 @@
 using Uptime.Application.Interfaces;
 using Uptime.Application.Workflows.Approval;
 using Uptime.Application.Workflows.Signing;
-using Uptime.Domain.Enums;
+using Uptime.Domain.Common;
 using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application.Common;
@@ -20,16 +20,19 @@ public class WorkflowFactory : IWorkflowFactory
         _workflowMap = workflows.ToDictionary(GetWorkflowBaseId, workflow => workflow);
     }
 
-    public async Task<WorkflowPhase> StartWorkflowAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
+    public async Task<string> StartWorkflowAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
+        WorkflowPhase phase = WorkflowPhase.Invalid;
         if (_workflowMap.TryGetValue(payload.WorkflowBaseId, out IWorkflowMachine? workflow))
         {
-            return await workflow.StartAsync(payload, cancellationToken);
+            phase = await workflow.StartAsync(payload, cancellationToken);
+
+            return phase.Value;
         }
 
         _logger.LogWarning("No workflow found for WorkflowBaseId: {WorkflowBaseId}", payload.WorkflowBaseId);
 
-        return WorkflowPhase.Invalid;
+        return phase.Value;
     }
 
     public IWorkflowMachine? GetWorkflow(Guid workflowBaseId)

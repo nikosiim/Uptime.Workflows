@@ -1,18 +1,17 @@
 ﻿using MediatR;
-using Uptime.Shared.Enums;
 
 namespace Uptime.Web.Application.Commands;
 
-public record AlterTaskCommand : IRequest<WorkflowStatus>
+public record AlterTaskCommand : IRequest<bool>
 {
     public int TaskId { get; init; }
     public int WorkflowId { get; init; }
     public Dictionary<string, string?> Storage { get; init; } = new();
 }
 
-public class AlterTaskCommandHandler(IHttpClientFactory httpClientFactory) : IRequestHandler<AlterTaskCommand, WorkflowStatus>
+public class AlterTaskCommandHandler(IHttpClientFactory httpClientFactory) : IRequestHandler<AlterTaskCommand, bool>
 {
-    public async Task<WorkflowStatus> Handle(AlterTaskCommand request, CancellationToken cancellationToken)
+    public async Task<bool> Handle(AlterTaskCommand request, CancellationToken cancellationToken)
     {
         var payload = new { request.WorkflowId, request.Storage };
 
@@ -25,9 +24,9 @@ public class AlterTaskCommandHandler(IHttpClientFactory httpClientFactory) : IRe
 
         if (response.IsSuccessStatusCode)
         {
-            return await response.Content.ReadFromJsonAsync<WorkflowStatus>(cancellationToken: cancellationToken);
+            return await response.Content.ReadFromJsonAsync<bool>(cancellationToken: cancellationToken);
         }
 
-        return WorkflowStatus.Invalid;
+        return false;
     }
 }

@@ -1,10 +1,10 @@
-﻿using Uptime.Domain.Enums;
-
-namespace Uptime.Application.DTOs;
+﻿namespace Uptime.Application.DTOs;
 
 public record WorkflowDto
 {
-    public WorkflowPhase Phase { get; init; }
+    public bool IsActive { get; init; }
+    public string? Outcome { get; init; }
+    public string Phase { get; init; } = null!;
     public string? Originator { get; init; }
     public DateTime StartDate { get; init; }
     public DateTime? EndDate { get; init; }

@@ -32,8 +32,8 @@
 
         var storage = new Dictionary<string, string?>();
 
-        storage.SetValueAsString(GlobalConstants.TaskStorageKeys.TaskDescription, FormModel.TaskDescription);
-        storage.SetValueAsString(GlobalConstants.TaskStorageKeys.TaskDueDays, FormModel.DueDays.ToString());
+        storage.SetValue(GlobalConstants.TaskStorageKeys.TaskDescription, FormModel.TaskDescription);
+        storage.SetValue(GlobalConstants.TaskStorageKeys.TaskDueDays, FormModel.DueDays.ToString());
         storage.SetValueAsList(GlobalConstants.TaskStorageKeys.TaskSigners, [FormModel.Signer!]);
 
         var command = new StartWorkflowCommand

@@ -23,6 +23,7 @@ public class GetDocumentWorkflowTasksQueryHandler(IWorkflowDbContext dbContext)
                 WorkflowId = task.WorkflowId,
                 AssignedTo = task.AssignedTo,
                 Status = task.Status,
+                InternalStatus = task.InternalStatus,
                 TaskDescription = task.Description,
                 DueDate = task.DueDate,
                 EndDate = task.EndDate

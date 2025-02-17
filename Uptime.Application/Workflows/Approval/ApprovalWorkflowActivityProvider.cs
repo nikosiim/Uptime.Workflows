@@ -11,7 +11,7 @@ public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository)
 {
     public override IWorkflowActivity CreateActivity(string phaseName, object data, WorkflowTaskContext context)
     {
-        if (phaseName == Phases.SigningPhase)
+        if (phaseName == ReplicatorPhases.SigningPhase)
         {
             return new SigningTaskActivity(Repository, context)
             {
@@ -27,12 +27,12 @@ public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository)
 
     public override void OnChildInitialized(string phaseName, object data, IWorkflowActivity activity)
     {
-        if (phaseName == Phases.ApprovalPhase)
+        if (phaseName == ReplicatorPhases.ApprovalPhase)
         {
             var taskData = data.DeserializeTaskData<ApprovalTaskData>();
             Console.WriteLine($"Approval task initialized for {taskData.AssignedTo}");
         }
-        else if (phaseName == Phases.SigningPhase)
+        else if (phaseName == ReplicatorPhases.SigningPhase)
         {
             var taskData = data.DeserializeTaskData<SigningTaskData>();
             Console.WriteLine($"Signing task initialized for {taskData.AssignedTo}");
@@ -41,12 +41,12 @@ public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository)
 
     public override void OnChildCompleted(string phaseName, object data, IWorkflowActivity activity)
     {
-        if (phaseName == Phases.ApprovalPhase)
+        if (phaseName == ReplicatorPhases.ApprovalPhase)
         {
             var taskData = data.DeserializeTaskData<ApprovalTaskData>();
             Console.WriteLine($"Approval task completed for {taskData.AssignedTo}");
         }
-        else if (phaseName == Phases.SigningPhase)
+        else if (phaseName == ReplicatorPhases.SigningPhase)
         {
             var taskData = data.DeserializeTaskData<SigningTaskData>();
             Console.WriteLine($"Signing task completed for {taskData.AssignedTo}");

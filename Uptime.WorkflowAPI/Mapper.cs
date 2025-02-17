@@ -1,5 +1,4 @@
 ﻿using Uptime.Application.Commands;
-using Uptime.Application.Common;
 using Uptime.Application.DTOs;
 using Uptime.Domain.Common;
 using Uptime.Shared.Models.Documents;
@@ -24,6 +23,11 @@ public static class Mapper
         return status != null ? (Domain.Enums.WorkflowTaskStatus)status : null;
     }
 
+    public static Shared.Enums.WorkflowHistoryEventType ToShared(this Domain.Enums.WorkflowHistoryEventType eventType)
+    {
+        return (Shared.Enums.WorkflowHistoryEventType)eventType;
+    }
+
     #endregion
 
     #region Documents
@@ -37,7 +41,8 @@ public static class Mapper
             WorkflowTemplateName = dto.WorkflowTemplateName,
             StartDate = dto.StartDate,
             EndDate = dto.EndDate,
-            Status = dto.Phase.MapToWorkflowStatus()
+            Outcome = dto.Outcome,
+            IsActive = dto.IsActive
         }).ToList();
     }
 
@@ -48,7 +53,7 @@ public static class Mapper
             TaskId = dto.TaskId,
             WorkflowId = dto.WorkflowId,
             AssignedTo = dto.AssignedTo,
-            Status = dto.Status.ToShared(),
+            Status = dto.InternalStatus.ToShared(),
             TaskDescription = dto.TaskDescription,
             DueDate = dto.DueDate,
             EndDate = dto.EndDate
@@ -90,7 +95,8 @@ public static class Mapper
     {
         return new WorkflowResponse
         {
-            Status = source.Phase.MapToWorkflowStatus(),
+            IsActive = source.IsActive,
+            Outcome = source.Outcome,
             Originator = source.Originator,
             StartDate = source.StartDate,
             EndDate = source.EndDate,
@@ -106,7 +112,8 @@ public static class Mapper
             Id = dto.Id,
             AssignedTo = dto.AssignedTo,
             AssignedBy = dto.AssignedBy,
-            Status = dto.Status.ToShared(),
+            Status = dto.Status,
+            InternalStatus = dto.InternalStatus.ToShared(),
             Description = dto.Description,
             DueDate = dto.DueDate ?? DateTime.UtcNow, // Default to current UTC time if null
             EndDate = dto.EndDate,
@@ -136,7 +143,7 @@ public static class Mapper
             Id = source.Id,
             AssignedTo = source.AssignedTo,
             AssignedBy = source.AssignedBy,
-            Status = source.Status.ToShared(),
+            InternalStatus = source.InternalStatus.ToShared(),
             Description = source.Description,
             DueDate = source.DueDate ?? DateTime.UtcNow, // Default to current UTC time if null
             EndDate = source.EndDate,
@@ -197,4 +204,18 @@ public static class Mapper
     }
 
     #endregion
+
+    public static List<WorkflowHistoryResponse> MapToWorkflowHistoryResponse(List<WorkflowHistoryDto> source)
+    {
+        return source.Select(dto => new WorkflowHistoryResponse
+        {
+            Id = dto.Id,
+            WorkflowId = dto.WorkflowId,
+            Occurred = dto.Occurred,
+            Description = dto.Description,
+            User = dto.User,
+            Outcome = dto.Outcome,
+            Event = dto.Event.ToShared()
+        }).ToList();
+    }
 }

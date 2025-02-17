@@ -3,11 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Uptime.Application.Common;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
-using Uptime.Domain.Enums;
 
 namespace Uptime.Application.Commands;
 
-public record StartWorkflowCommand : IRequest<WorkflowPhase>
+public record StartWorkflowCommand : IRequest<string>
 {
     public required string Originator { get; init; }
     public required DocumentId DocumentId { get; init; }
@@ -16,9 +15,9 @@ public record StartWorkflowCommand : IRequest<WorkflowPhase>
 }
 
 public class StartWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory)
-    : IRequestHandler<StartWorkflowCommand, WorkflowPhase>
+    : IRequestHandler<StartWorkflowCommand, string>
 {
-    public async Task<WorkflowPhase> Handle(StartWorkflowCommand request, CancellationToken cancellationToken)
+    public async Task<string> Handle(StartWorkflowCommand request, CancellationToken cancellationToken)
     {
         string workflowBaseIdString = await dbContext.WorkflowTemplates
             .Where(wt => wt.Id == request.WorkflowTemplateId.Value)
@@ -27,7 +26,7 @@ public class StartWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflow
 
         if (!Guid.TryParse(workflowBaseIdString, out Guid workflowBaseId))
         {
-            return WorkflowPhase.Invalid;
+            return WorkflowPhase.Invalid.Value;
         }
 
         var payload = new StartWorkflowPayload

@@ -15,8 +15,8 @@ internal static class ApprovalWorkflowDataExtractor
 
         return phaseName switch
         {
-            ApprovalWorkflow.Phases.ApprovalPhase => replicatorType,
-            ApprovalWorkflow.Phases.SigningPhase => replicatorType,
+            ApprovalWorkflow.ReplicatorPhases.ApprovalPhase => replicatorType,
+            ApprovalWorkflow.ReplicatorPhases.SigningPhase => replicatorType,
             _ => throw new InvalidOperationException($"Unknown phase: {phaseName}")
         };
     }
@@ -26,7 +26,7 @@ internal static class ApprovalWorkflowDataExtractor
         if (!payload.Storage.TryGetValueAsList(TaskStorageKeys.TaskExecutors, out List<string> executors))
             return [];
 
-        string? taskDescription = payload.Storage.GetValueAsString(TaskStorageKeys.TaskDescription);
+        string? taskDescription = payload.Storage.GetValue(TaskStorageKeys.TaskDescription);
         DateTime dueDate = payload.Storage.GetValueAsDateTime(TaskStorageKeys.TaskDueDate);
 
         return executors.Select(executor => new ApprovalTaskData
@@ -45,7 +45,7 @@ internal static class ApprovalWorkflowDataExtractor
 
         List<string> signers = ["Klient Neli"];
 
-        string? taskDescription = payload.Storage.GetValueAsString(TaskStorageKeys.SignerTask);
+        string? taskDescription = payload.Storage.GetValue(TaskStorageKeys.SignerTask);
         DateTime dueDate = payload.Storage.GetValueAsDateTime(TaskStorageKeys.TaskDueDate);
 
         return signers.Select(executor => new SigningTaskData

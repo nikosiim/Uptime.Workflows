@@ -1,4 +1,5 @@
-﻿<MudDialog>
+﻿@using Uptime.Shared.Choices
+<MudDialog>
     <TitleContent>@MudDialog.Title</TitleContent>
     <DialogContent>
         <MudText Typo="Typo.subtitle1">@Document kinnitamine</MudText>
@@ -27,9 +28,9 @@
     {
         var storage = new Dictionary<string, string?>();
 
-        storage.SetValueAsString(GlobalConstants.TaskStorageKeys.TaskComment, _comment);
-        storage.SetValueAsString(GlobalConstants.TaskStorageKeys.TaskEditor, "Klient Neli");
-        storage.SetValueAsEnum<TaskOutcome>(GlobalConstants.TaskStorageKeys.TaskOutcome, TaskOutcome.Approved);
+        storage.SetValue(GlobalConstants.TaskStorageKeys.TaskComment, _comment);
+        storage.SetValue(GlobalConstants.TaskStorageKeys.TaskEditor, "Klient Neli");
+        storage.SetValue(GlobalConstants.TaskStorageKeys.TaskOutcome, TaskOutcome.Approved);
 
         var command = new AlterTaskCommand
         {
@@ -38,9 +39,9 @@
             Storage = storage
         };
 
-        await Mediator.Send(command);
+        bool isSuccess = await Mediator.Send(command);
 
-        MudDialog.Close(DialogResult.Ok(true));
+        MudDialog.Close(DialogResult.Ok(isSuccess));
     }
 
     protected virtual void Cancel()

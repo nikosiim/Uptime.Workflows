@@ -21,7 +21,7 @@ public class CreateWorkflowInstanceCommandHandler(IWorkflowDbContext dbContext)
     {
         var instance = new Workflow
         {
-            Phase = WorkflowPhase.NotStarted,
+            Phase = WorkflowPhase.NotStarted.Value,
             StorageJson = null,
             Originator = request.Originator,
             StartDate = DateTime.UtcNow,

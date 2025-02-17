@@ -28,7 +28,8 @@ public class GetWorkflowDetailsQueryHandler(IHttpClientFactory httpClientFactory
             Originator = details.Originator,
             StartDate = details.StartDate,
             EndDate = details.EndDate,
-            Status = details.Status
+            Outcome = details.Outcome,
+            IsActive = details.IsActive
         };
     }
 }

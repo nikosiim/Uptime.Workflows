@@ -1,6 +1,7 @@
 ﻿using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
 using Uptime.Domain.Interfaces;
+using Uptime.Shared.Choices;
 using Uptime.Shared.Extensions;
 using static Uptime.Shared.GlobalConstants;
 
@@ -13,32 +14,32 @@ public class SigningTaskActivity(IWorkflowRepository repository, WorkflowTaskCon
     {
         if (TaskData is null) return;
 
-        Context.Storage.SetValueAsString(TaskStorageKeys.TaskTitle, "Allkirjastamine");
-        Context.Storage.SetValueAsEnum<TaskOutcome>(TaskStorageKeys.TaskOutcome, TaskOutcome.Pending);
+        Context.Storage.SetValue(TaskStorageKeys.TaskTitle, "Allkirjastamine");
+        Context.Storage.SetValue(TaskStorageKeys.TaskOutcome, TaskOutcome.Pending);
     }
 
     protected override void OnTaskChanged(Dictionary<string, string?> storage)
     {
-        string? editor = storage.GetValueAsString(TaskStorageKeys.TaskEditor);
-        string? comment = storage.GetValueAsString(TaskStorageKeys.TaskComment);
-        string? delegatedTo = storage.GetValueAsString(TaskStorageKeys.TaskDelegatedTo);
+        string? editor = storage.GetValue(TaskStorageKeys.TaskEditor);
+        string? comment = storage.GetValue(TaskStorageKeys.TaskComment);
+        string? delegatedTo = storage.GetValue(TaskStorageKeys.TaskDelegatedTo);
         
-        if (storage.TryGetValueAsEnum(TaskStorageKeys.TaskOutcome, out TaskOutcome? taskOutcome))
+        if (storage.TryGetValue(TaskStorageKeys.TaskOutcome, out string? taskOutcome))
         {
-            SetTaskOutcome(taskOutcome!.Value, editor, comment, delegatedTo);
+            SetTaskOutcome(taskOutcome!, editor, comment, delegatedTo);
         }
     }
     
-    private void SetTaskOutcome(TaskOutcome outcome, string? editor, string? comment, string? delegatedTo = null)
+    private void SetTaskOutcome(string outcome, string? editor, string? comment, string? delegatedTo = null)
     {
         IsCompleted = true;
-        Context.Storage.SetValueAsString(TaskStorageKeys.TaskEditor, editor);
-        Context.Storage.SetValueAsString(TaskStorageKeys.TaskComment, comment);
-        Context.Storage.SetValueAsEnum<TaskOutcome>(TaskStorageKeys.TaskOutcome, outcome);
+        Context.Storage.SetValue(TaskStorageKeys.TaskEditor, editor);
+        Context.Storage.SetValue(TaskStorageKeys.TaskComment, comment);
+        Context.Storage.SetValue(TaskStorageKeys.TaskOutcome, outcome);
 
         if (outcome == TaskOutcome.Delegated)
         {
-            Context.Storage.SetValueAsString(TaskStorageKeys.TaskDelegatedTo, delegatedTo);
+            Context.Storage.SetValue(TaskStorageKeys.TaskDelegatedTo, delegatedTo);
         }
 
         Context.TaskStatus = WorkflowTaskStatus.Completed;

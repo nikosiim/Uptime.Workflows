@@ -1,9 +1,9 @@
-﻿using Uptime.Shared.Enums;
+﻿namespace Uptime.Shared.Models.Workflows;
 
-namespace Uptime.Shared.Models.Workflows;
 public record WorkflowResponse
 {
-    public WorkflowStatus Status { get; init; }
+    public bool IsActive { get; init; }
+    public string? Outcome { get; init; }
     public string? Originator { get; init; }
     public DateTime StartDate { get; init; }
     public DateTime? EndDate { get; init; }

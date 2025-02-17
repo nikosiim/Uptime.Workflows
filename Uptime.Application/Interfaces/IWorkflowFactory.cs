@@ -1,10 +1,9 @@
-﻿using Uptime.Domain.Enums;
-using Uptime.Domain.Interfaces;
+﻿using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application.Interfaces;
 
 public interface IWorkflowFactory
 {
-    Task<WorkflowPhase> StartWorkflowAsync(IWorkflowPayload payload, CancellationToken cancellationToken);
+    Task<string> StartWorkflowAsync(IWorkflowPayload payload, CancellationToken cancellationToken);
     IWorkflowMachine? GetWorkflow(Guid workflowBaseId);
 }

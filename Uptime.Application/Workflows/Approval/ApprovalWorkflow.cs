@@ -16,7 +16,7 @@ public class ApprovalWorkflow(
 {
     private readonly ILogger<WorkflowBase<ApprovalWorkflowContext>> _logger1 = logger;
 
-    public static class Phases
+    public static class ReplicatorPhases
     {
         public const string ApprovalPhase = "ApprovalPhase";
         public const string SigningPhase = "SigningPhase";
@@ -25,19 +25,19 @@ public class ApprovalWorkflow(
     public static Dictionary<string, ReplicatorPhaseConfiguration> PhaseConfiguration => new()
     {
         {
-            Phases.ApprovalPhase,
+            ReplicatorPhases.ApprovalPhase,
             new ReplicatorPhaseConfiguration
             {
                 ActivityData = (payload, workflowId) => payload.GetApprovalTasks(workflowId),
-                ReplicatorType = payload => payload.GetReplicatorType(Phases.ApprovalPhase)
+                ReplicatorType = payload => payload.GetReplicatorType(ReplicatorPhases.ApprovalPhase)
             }
         },
         {
-            Phases.SigningPhase,
+            ReplicatorPhases.SigningPhase,
             new ReplicatorPhaseConfiguration
             {
                 ActivityData = (payload, workflowId) => payload.GetSigningTasks(workflowId),
-                ReplicatorType = payload => payload.GetReplicatorType(Phases.ApprovalPhase)
+                ReplicatorType = payload => payload.GetReplicatorType(ReplicatorPhases.ApprovalPhase)
             }
         }
     };
@@ -48,18 +48,18 @@ public class ApprovalWorkflow(
             .Permit(WorkflowTrigger.Start, WorkflowPhase.InProgress);
 
         Machine.Configure(WorkflowPhase.InProgress)
-            .InitialTransition(WorkflowPhase.Approval) 
+            .InitialTransition(ApprovalPhase.Approval) 
             .Permit(WorkflowTrigger.Cancel, WorkflowPhase.Cancelled)
             .Permit(WorkflowTrigger.TaskRejected, WorkflowPhase.Completed);
 
-        Machine.Configure(WorkflowPhase.Approval)
+        Machine.Configure(ApprovalPhase.Approval)
             .SubstateOf(WorkflowPhase.InProgress)
-            .OnEntryAsync(() => RunReplicatorAsync(Phases.ApprovalPhase, cancellationToken))
-            .Permit(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Signing);
+            .OnEntryAsync(() => RunReplicatorAsync(ReplicatorPhases.ApprovalPhase, cancellationToken))
+            .Permit(WorkflowTrigger.AllTasksCompleted, ApprovalPhase.Signing);
 
-        Machine.Configure(WorkflowPhase.Signing)
+        Machine.Configure(ApprovalPhase.Signing)
             .SubstateOf(WorkflowPhase.InProgress)
-            .OnEntryAsync(() => RunReplicatorAsync(Phases.SigningPhase, cancellationToken))
+            .OnEntryAsync(() => RunReplicatorAsync(ReplicatorPhases.SigningPhase, cancellationToken))
             .Permit(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Completed);
 
         Machine.Configure(WorkflowPhase.Completed)
@@ -73,12 +73,13 @@ public class ApprovalWorkflow(
         base.OnWorkflowActivatedAsync(payload, cancellationToken);
     }
 
-    protected override async Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)
+    protected override Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)
     {
-        await base.OnWorkflowCompletedAsync(cancellationToken);
+        WorkflowContext.Outcome = ApprovalOutcome.Approved;
 
         string status = WorkflowContext.AnyTaskRejected ? "Rejected" : "Approved";
-
         _logger1.LogInformation("Approval Workflow completed with status: {status}", status);
+
+        return Task.CompletedTask;
     }
 }

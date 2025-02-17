@@ -1,12 +1,9 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Application.Commands;
-using Uptime.Application.Common;
 using Uptime.Application.DTOs;
 using Uptime.Application.Queries;
 using Uptime.Domain.Common;
-using Uptime.Domain.Enums;
-using Uptime.Shared.Enums;
 using Uptime.Shared.Models.Tasks;
 
 namespace Uptime.WorkflowAPI.Controllers;
@@ -28,11 +25,16 @@ public class WorkflowTasksController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("update")]
-    public async Task<ActionResult<WorkflowStatus>> AlterTask(int taskId, [FromBody] AlterTaskRequest request)
+    public async Task<ActionResult> AlterTask(int taskId, [FromBody] AlterTaskRequest request)
     {
         AlterTaskCommand command = Mapper.MapToAlterTaskCommand(request, taskId);
-        WorkflowPhase result = await mediator.Send(command);
+        string phase = await mediator.Send(command);
 
-        return Ok(result.MapToWorkflowStatus());
+        if (phase == WorkflowPhase.Invalid.Value)
+        {
+            return BadRequest("An unexpected error occurred in the workflow process.");
+        }
+
+        return Ok();
     }
 }

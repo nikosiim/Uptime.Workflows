@@ -12,4 +12,9 @@
     <None Remove="Dto\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Enums\TaskOutcome.cs" />
+    <Compile Remove="Enums\WorkflowStatus.cs" />
+  </ItemGroup>
+
 </Project>

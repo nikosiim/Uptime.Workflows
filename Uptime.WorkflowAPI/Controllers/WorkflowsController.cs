@@ -1,12 +1,9 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Application.Commands;
-using Uptime.Application.Common;
 using Uptime.Application.DTOs;
 using Uptime.Application.Queries;
 using Uptime.Domain.Common;
-using Uptime.Domain.Enums;
-using Uptime.Shared.Enums;
 using Uptime.Shared.Models.Workflows;
 using WorkflowTaskStatus = Uptime.Shared.Enums.WorkflowTaskStatus;
 
@@ -42,17 +39,26 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
         }
         return Ok(Mapper.MapToWorkflowTasksResponse(tasks));
     }
+
+    [HttpGet("{workflowId:int}/workflow-histories")]
+    public async Task<ActionResult<List<WorkflowHistoryResponse>>> GetWorkflowHistory(int workflowId)
+    {
+        var query = new GetWorkflowHistoryQuery((WorkflowId)workflowId);
+        List<WorkflowHistoryDto> items = await mediator.Send(query);
+      
+        return Ok(Mapper.MapToWorkflowHistoryResponse(items));
+    }
     
     [HttpPost("start-workflow")]
-    public async Task<ActionResult<Task<WorkflowStatus>>> StartWorkflow([FromBody] StartWorkflowRequest request)
+    public async Task<ActionResult<Task>> StartWorkflow([FromBody] StartWorkflowRequest request)
     {
         StartWorkflowCommand cmd = Mapper.MapToStartWorkflowCommand(request);
-        WorkflowPhase phase = await mediator.Send(cmd);
+        string phase = await mediator.Send(cmd);
 
-        if (phase == WorkflowPhase.Invalid)
-            return BadRequest("Invalid workflow type.");
+        if (phase == WorkflowPhase.Invalid.Value)
+            return BadRequest("Failed to start workflow.");
 
-        return Ok(phase.MapToWorkflowStatus());
+        return Ok();
     }
 
     [HttpPost("{workflowId:int}/cancel-workflow")]
