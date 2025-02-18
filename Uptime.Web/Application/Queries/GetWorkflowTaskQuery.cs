@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Uptime.Shared.Extensions;
 using Uptime.Shared.Models.Tasks;
 using Uptime.Web.Application.DTOs;
 
@@ -29,7 +30,7 @@ public class GetWorkflowTaskQueryHandler(IHttpClientFactory httpClientFactory)
             Description = task.Description,
             DueDate = task.DueDate,
             EndDate = task.EndDate,
-            Status = task.Status,
+            Status = WorkflowTaskResources.Get(task.Status),
             InternalStatus = task.InternalStatus,
             StorageJson = task.StorageJson,
             Document = task.Document,

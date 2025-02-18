@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Uptime.Application.Resources {
+namespace Uptime.Shared.Resources {
     using System;
     
     
@@ -22,14 +22,14 @@ namespace Uptime.Application.Resources {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class WorkflowOutcomeResource {
+    internal class WorkflowTaskResource {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal WorkflowOutcomeResource() {
+        internal WorkflowTaskResource() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace Uptime.Application.Resources {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Uptime.Application.Resources.WorkflowOutcomeResource", typeof(WorkflowOutcomeResource).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Uptime.Shared.Resources.WorkflowTaskResource", typeof(WorkflowTaskResource).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,16 +61,7 @@ namespace Uptime.Application.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Kinnitatud.
-        /// </summary>
-        internal static string Approved {
-            get {
-                return ResourceManager.GetString("Approved", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Tühistatud.
+        ///   Looks up a localized string similar to Katkestatud.
         /// </summary>
         internal static string Cancelled {
             get {
@@ -88,20 +79,11 @@ namespace Uptime.Application.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ilmnes tõrge.
+        ///   Looks up a localized string similar to Pole alustatud.
         /// </summary>
-        internal static string Invalid {
+        internal static string NotStarted {
             get {
-                return ResourceManager.GetString("Invalid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Tagasi lükatud.
-        /// </summary>
-        internal static string Rejected {
-            get {
-                return ResourceManager.GetString("Rejected", resourceCulture);
+                return ResourceManager.GetString("NotStarted", resourceCulture);
             }
         }
     }

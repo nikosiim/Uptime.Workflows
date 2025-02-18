@@ -117,19 +117,37 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Approved" xml:space="preserve">
-    <value>Kinnitatud</value>
+  <data name="TaskCompleted" xml:space="preserve">
+    <value>Tööülesanne on lõpule viidud</value>
   </data>
-  <data name="Cancelled" xml:space="preserve">
-    <value>Tühistatud</value>
+  <data name="TaskCreated" xml:space="preserve">
+    <value>Tööülesanne on loodud</value>
   </data>
-  <data name="Completed" xml:space="preserve">
-    <value>Lõpetatud</value>
+  <data name="TaskDeleted" xml:space="preserve">
+    <value>Tööülesanne on kustutatud</value>
   </data>
-  <data name="Invalid" xml:space="preserve">
-    <value>Ilmnes tõrge</value>
+  <data name="TaskModified" xml:space="preserve">
+    <value>Tööülesanne on muudetud</value>
   </data>
-  <data name="Rejected" xml:space="preserve">
-    <value>Tagasi lükatud</value>
+  <data name="TaskRolledBack" xml:space="preserve">
+    <value>Tööülesanne on tagasivõetud</value>
+  </data>
+  <data name="WorkflowCancelled" xml:space="preserve">
+    <value>Töövoog on tühistatud</value>
+  </data>
+  <data name="WorkflowComment" xml:space="preserve">
+    <value>Töövoo kommentaar</value>
+  </data>
+  <data name="WorkflowCompleted" xml:space="preserve">
+    <value>Töövoog on lõpetatud</value>
+  </data>
+  <data name="WorkflowDeleted" xml:space="preserve">
+    <value>Töövoog on kustutatud</value>
+  </data>
+  <data name="WorkflowError" xml:space="preserve">
+    <value>Töövoo tõrge</value>
+  </data>
+  <data name="WorkflowStarted" xml:space="preserve">
+    <value>Töövoog on algatatud</value>
   </data>
 </root>

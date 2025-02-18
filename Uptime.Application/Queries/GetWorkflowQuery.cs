@@ -17,7 +17,7 @@ public class GetWorkflowQueryHandler(IWorkflowDbContext dbContext) : IRequestHan
             .Select(w => new WorkflowDto
             {
                 IsActive = w.IsActive,
-                Outcome = w.Outcome,
+                Outcome =  w.Outcome,
                 Phase = w.Phase,
                 StartDate = w.StartDate,
                 EndDate = w.EndDate,

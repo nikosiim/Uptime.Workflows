@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Uptime.Application.Resources {
+namespace Uptime.Shared.Resources {
     using System;
     
     
@@ -22,14 +22,14 @@ namespace Uptime.Application.Resources {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class WorkflowOutcomeResource {
+    internal class WorkflowResource {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal WorkflowOutcomeResource() {
+        internal WorkflowResource() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace Uptime.Application.Resources {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Uptime.Application.Resources.WorkflowOutcomeResource", typeof(WorkflowOutcomeResource).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Uptime.Shared.Resources.WorkflowResource", typeof(WorkflowResource).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

@@ -117,19 +117,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Approved" xml:space="preserve">
-    <value>Kinnitatud</value>
-  </data>
   <data name="Cancelled" xml:space="preserve">
-    <value>Tühistatud</value>
+    <value>Katkestatud</value>
   </data>
   <data name="Completed" xml:space="preserve">
     <value>Lõpetatud</value>
   </data>
-  <data name="Invalid" xml:space="preserve">
-    <value>Ilmnes tõrge</value>
-  </data>
-  <data name="Rejected" xml:space="preserve">
-    <value>Tagasi lükatud</value>
+  <data name="NotStarted" xml:space="preserve">
+    <value>Pole alustatud</value>
   </data>
 </root>

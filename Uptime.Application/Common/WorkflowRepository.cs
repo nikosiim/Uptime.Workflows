@@ -1,8 +1,6 @@
-﻿using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
-using Uptime.Application.Extensions;
+﻿using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using Uptime.Application.Interfaces;
-using Uptime.Application.Resources;
 using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
 using Uptime.Domain.Enums;
@@ -42,7 +40,7 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
         }
 
         instance.IsActive = false;
-        instance.Outcome = WorkflowOutcomeResource.Invalid;
+        instance.Outcome = WorkflowOutcome.Invalid.Value;
         instance.Phase = WorkflowPhase.Invalid.Value;
         instance.EndDate = DateTime.UtcNow;
         
@@ -68,7 +66,7 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
 
         instance.Phase = phase.Value;
         instance.StorageJson = WorkflowContextHelper.Serialize(context);
-        instance.Outcome = context.Outcome.GetTranslation();
+        instance.Outcome = context.Outcome.Value;
 
         if (phase.IsFinal())
         {
@@ -101,7 +99,7 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
             AssignedBy = request.AssignedBy,
             Description = request.TaskDescription,
             DueDate = request.DueDate,
-            Status = status.GetTranslation(),
+            Status = status.ToString(),
             InternalStatus = status,
             StorageJson = JsonSerializer.Serialize(request.Storage)
         };
@@ -122,7 +120,7 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
 
         foreach (WorkflowTask task in tasks)
         {
-            task.Status = status.GetTranslation();
+            task.Status = status.ToString();
             task.InternalStatus = status;
             task.EndDate = DateTime.UtcNow;
         }
@@ -146,7 +144,7 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
         task.AssignedBy = request.AssignedBy;
         task.Description = request.TaskDescription;
         task.DueDate = request.DueDate;
-        task.Status = status.GetTranslation();
+        task.Status = status.ToString();
         task.InternalStatus = status;
         task.StorageJson = JsonSerializer.Serialize(request.Storage);
 

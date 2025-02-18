@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Uptime.Shared.Extensions;
 using Uptime.Shared.Models.Documents;
 using Uptime.Web.Application.DTOs;
 
@@ -32,6 +33,7 @@ public class GetDocumentWorkflowsQueryHandler(IHttpClientFactory httpClientFacto
                     WorkflowTemplateName = workflow.WorkflowTemplateName,
                     StartDate = workflow.StartDate,
                     EndDate = workflow.EndDate,
+                    Outcome = WorkflowResources.Get(workflow.Outcome),
                     IsActive = workflow.IsActive
                 });
             }
