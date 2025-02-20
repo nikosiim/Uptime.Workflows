@@ -13,7 +13,7 @@ public record AlterTaskCommand : IRequest<string>
 {
     public TaskId TaskId { get; init; }
     public WorkflowId WorkflowId { get; init; }
-    public Dictionary<string, string?> Storage { get; init; } = new();
+    public Dictionary<string, string?> Payload { get; init; } = new();
 }
 
 public class AlterTaskCommandHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory, ILogger<AlterTaskCommand> logger) 
@@ -58,7 +58,7 @@ public class AlterTaskCommandHandler(IWorkflowDbContext dbContext, IWorkflowFact
             Storage = workflowTask.StorageJson.DeserializeStorage()
         };
 
-        await machine.AlterTaskCoreAsync(taskContext, cancellationToken);
+        await machine.AlterTaskCoreAsync(taskContext, request.Payload, cancellationToken);
 
         return machine.CurrentState.Value;
     }

@@ -33,14 +33,14 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
         InitializeReplicatorManagerAsync(cancellationToken);
     }
     
-    protected override async Task AlterTaskInternalAsync(WorkflowTaskContext context, CancellationToken cancellationToken)
+    protected override async Task AlterTaskInternalAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
     {
         if (CreateChildActivity(context) is not { } taskActivity)
         {
             throw new InvalidOperationException($"Task {context.TaskId} is not a user-interrupting activity.");
         }
 
-        await taskActivity.OnTaskChangedAsync(context.Storage, cancellationToken);
+        await taskActivity.ChangedTaskAsync(payload, cancellationToken);
 
         UpdateWorkflowContextReplicatorState(context.TaskGuid, taskActivity.IsCompleted);
 

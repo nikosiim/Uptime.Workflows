@@ -4,5 +4,5 @@ namespace Uptime.Domain.Interfaces;
 
 public interface IActivityWorkflowMachine : IWorkflowMachine
 {
-    Task AlterTaskCoreAsync(WorkflowTaskContext context, CancellationToken cancellationToken);
+    Task AlterTaskCoreAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken);
 }

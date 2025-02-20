@@ -163,7 +163,7 @@ public static class DictionaryExtensions
     /// <summary>
     /// Tries to get a value as an Enum.
     /// </summary>
-    public static bool TryGetValueAsEnum<TEnum>(this Dictionary<string, string?> data, string key, out TEnum? result) where TEnum : struct
+    public static bool TryGetValueAsEnum<TEnum>(this Dictionary<string, string?> data, string key, out TEnum result) where TEnum : struct
     {
         if (data.TryGetValue(key, out string? value) && Enum.TryParse(value, out TEnum parsedEnum))
         {
@@ -171,7 +171,7 @@ public static class DictionaryExtensions
             return true;
         }
 
-        result = null;
+        result = default;
         return false;
     }
 

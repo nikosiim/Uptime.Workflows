@@ -157,19 +157,19 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
 
     public async Task AddWorkflowHistoryAsync(
         WorkflowId workflowId,
-        WorkflowHistoryEventType eventType,
+        WorkflowEventType eventType,
         string? user,
-        string? outcome,
         string? description,
-        CancellationToken cancellationToken)
+        string? comment = null,
+        CancellationToken cancellationToken = default)
     {
         var historyEntry = new WorkflowHistory
         {
             Event = eventType,
             User = user,
-            Outcome = outcome,
             Occurred = DateTime.UtcNow,
             Description = description,
+            Comment = comment,
             WorkflowId = workflowId.Value
         };
 

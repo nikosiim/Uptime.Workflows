@@ -1,7 +1,6 @@
 ﻿using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
 using Uptime.Domain.Interfaces;
-using Uptime.Shared.Choices;
 using Uptime.Shared.Extensions;
 using static Uptime.Shared.GlobalConstants;
 
@@ -10,38 +9,51 @@ namespace Uptime.Application.Workflows.Signing;
 public class SigningTaskActivity(IWorkflowRepository repository, WorkflowTaskContext context)
     : UserTaskActivity(repository, context)
 {
-    protected override void ExecuteTaskLogic()
+    private readonly IWorkflowRepository _repository = repository;
+    private string? AssociationName => Context.Storage.GetValueOrDefault(WorkflowStorageKeys.AssociationName);
+
+    protected override void OnExecuteTask()
     {
         if (TaskData is null) return;
 
         Context.Storage.SetValue(TaskStorageKeys.TaskTitle, "Allkirjastamine");
-        Context.Storage.SetValue(TaskStorageKeys.TaskOutcome, TaskOutcome.Pending);
-    }
+        Context.Storage.SetValue(TaskStorageKeys.TaskOutcome, "Ootel");
 
-    protected override void OnTaskChanged(Dictionary<string, string?> storage)
-    {
-        string? editor = storage.GetValue(TaskStorageKeys.TaskEditor);
-        string? comment = storage.GetValue(TaskStorageKeys.TaskComment);
-        string? delegatedTo = storage.GetValue(TaskStorageKeys.TaskDelegatedTo);
-        
-        if (storage.TryGetValue(TaskStorageKeys.TaskOutcome, out string? taskOutcome))
-        {
-            SetTaskOutcome(taskOutcome!, editor, comment, delegatedTo);
-        }
+        TaskCreatedHistoryDescription = $"Tööülesanne {AssociationName} on loodud kasutajale {TaskData.AssignedTo}";
     }
     
-    private void SetTaskOutcome(string outcome, string? editor, string? comment, string? delegatedTo = null)
+    protected override async Task OnTaskChangedAsync(Dictionary<string, string?> input, CancellationToken cancellationToken)
     {
-        IsCompleted = true;
-        Context.Storage.SetValue(TaskStorageKeys.TaskEditor, editor);
-        Context.Storage.SetValue(TaskStorageKeys.TaskComment, comment);
-        Context.Storage.SetValue(TaskStorageKeys.TaskOutcome, outcome);
-
-        if (outcome == TaskOutcome.Delegated)
+        string? author = input.GetValue(TaskStorageKeys.TaskEditor);
+        string? comment = input.GetValue(TaskStorageKeys.TaskComment);
+        
+        if (input.TryGetValueAsEnum(TaskStorageKeys.TaskResult, out WorkflowEventType workflowEvent))
         {
-            Context.Storage.SetValue(TaskStorageKeys.TaskDelegatedTo, delegatedTo);
-        }
+            string outcome;
+            string description;
 
-        Context.TaskStatus = WorkflowTaskStatus.Completed;
+            switch (workflowEvent)
+            {
+                case WorkflowEventType.TaskRejected:
+                    outcome = "Tagasilükatud";
+                    description = $"Kasutaja {TaskData?.AssignedTo} on tööülesande {AssociationName} tagasilükanud.";
+                    break;
+                case WorkflowEventType.TaskCompleted:
+                    outcome = "Allkirjastatud";
+                    description = $"Kasutajale {TaskData?.AssignedTo} määratud tööülesanne on edukalt lõpetatud.";
+                    break;
+                default:
+                    return;
+            }
+            
+            IsCompleted = true;
+            Context.TaskStatus = WorkflowTaskStatus.Completed;
+
+            Context.Storage.SetValue(TaskStorageKeys.TaskEditor, author);
+            Context.Storage.SetValue(TaskStorageKeys.TaskComment, comment);
+            Context.Storage.SetValue(TaskStorageKeys.TaskOutcome, outcome);
+            
+            await _repository.AddWorkflowHistoryAsync(Context.WorkflowId, workflowEvent, author, description:description, comment:comment, cancellationToken);
+        }
     }
 }

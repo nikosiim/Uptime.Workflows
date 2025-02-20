@@ -132,4 +132,7 @@
   <data name="Rejected" xml:space="preserve">
     <value>Tagasi lükatud</value>
   </data>
+  <data name="Signed" xml:space="preserve">
+    <value>Allkirjastatud</value>
+  </data>
 </root>

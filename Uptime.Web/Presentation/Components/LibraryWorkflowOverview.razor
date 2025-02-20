@@ -9,12 +9,10 @@
             <HeaderContent>
                 <MudTh>Nimi</MudTh>
                 <MudTh>Käivitatud</MudTh>
-                <MudTh>Olek</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd><MudLink Href="@($"/workflow/{context.Id}")">@context.WorkflowTemplateName</MudLink></MudTd>
                 <MudTd>@context.StartDate.ToLocalTime()</MudTd>
-                <MudTd>@context.Outcome</MudTd>
             </RowTemplate>
         </MudTable>
     }

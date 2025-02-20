@@ -1,5 +1,4 @@
-﻿@using Uptime.Shared.Choices
-<MudDialog>
+﻿<MudDialog>
     <TitleContent>@MudDialog.Title</TitleContent>
     <DialogContent>
         <MudText Typo="Typo.subtitle1">@Document kinnitamine</MudText>
@@ -26,17 +25,17 @@
 
     protected virtual async Task Approve()
     {
-        var storage = new Dictionary<string, string?>();
+        var input = new Dictionary<string, string?>();
 
-        storage.SetValue(GlobalConstants.TaskStorageKeys.TaskComment, _comment);
-        storage.SetValue(GlobalConstants.TaskStorageKeys.TaskEditor, "Klient Neli");
-        storage.SetValue(GlobalConstants.TaskStorageKeys.TaskOutcome, TaskOutcome.Approved);
+        input.SetValue(GlobalConstants.TaskStorageKeys.TaskComment, _comment);
+        input.SetValue(GlobalConstants.TaskStorageKeys.TaskEditor, "Klient Neli");
+        input.SetValue(GlobalConstants.TaskStorageKeys.TaskResult, WorkflowEventType.TaskCompleted.ToString());
 
         var command = new AlterTaskCommand
         {
             WorkflowId = WorkflowId,
             TaskId = TaskId,
-            Storage = storage
+            Input = input
         };
 
         bool isSuccess = await Mediator.Send(command);

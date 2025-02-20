@@ -11,7 +11,7 @@ internal static class ApprovalWorkflowDataExtractor
 {
     public static ReplicatorType GetReplicatorType(this IWorkflowPayload payload, string phaseName)
     {
-        var replicatorType = ReplicatorType.Sequential;
+        const ReplicatorType replicatorType = ReplicatorType.Sequential;
 
         return phaseName switch
         {

@@ -14,10 +14,12 @@ public static class GlobalConstants
         public const string TaskExecutors = "TaskExecutors";
         public const string TaskSigners = "TaskSigners";
         public const string TaskOutcome = "TaskOutcome";
+        public const string TaskResult = "TaskResult";
         public const string TaskTitle = "TaskTitle";
     }
 
     public static class WorkflowStorageKeys
     {
+        public const string AssociationName = "AssociationName";
     }
 }

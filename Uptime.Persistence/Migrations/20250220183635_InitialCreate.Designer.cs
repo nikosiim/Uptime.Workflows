@@ -12,7 +12,7 @@ using Uptime.Persistence;
 namespace Uptime.Persistence.Migrations
 {
     [DbContext(typeof(WorkflowDbContext))]
-    [Migration("20250217182031_InitialCreate")]
+    [Migration("20250220183635_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -243,9 +243,13 @@ namespace Uptime.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Comment")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
                     b.Property<string>("Description")
-                        .HasMaxLength(4096)
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
 
                     b.Property<int>("Event")
                         .HasColumnType("int");
@@ -253,12 +257,7 @@ namespace Uptime.Persistence.Migrations
                     b.Property<DateTime>("Occurred")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Outcome")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
                     b.Property<string>("User")
-                        .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 

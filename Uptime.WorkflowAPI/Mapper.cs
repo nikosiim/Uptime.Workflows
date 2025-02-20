@@ -23,9 +23,9 @@ public static class Mapper
         return status != null ? (Domain.Enums.WorkflowTaskStatus)status : null;
     }
 
-    public static Shared.Enums.WorkflowHistoryEventType ToShared(this Domain.Enums.WorkflowHistoryEventType eventType)
+    public static Shared.Enums.WorkflowEventType ToShared(this Domain.Enums.WorkflowEventType eventType)
     {
-        return (Shared.Enums.WorkflowHistoryEventType)eventType;
+        return (Shared.Enums.WorkflowEventType)eventType;
     }
 
     #endregion
@@ -159,7 +159,7 @@ public static class Mapper
         {
             TaskId = (TaskId)taskId,
             WorkflowId = (WorkflowId)request.WorkflowId,
-            Storage = request.Storage
+            Payload = request.Input
         };
     }
 
@@ -214,7 +214,7 @@ public static class Mapper
             Occurred = dto.Occurred,
             Description = dto.Description,
             User = dto.User,
-            Outcome = dto.Outcome,
+            Comment = dto.Comment,
             Event = dto.Event.ToShared()
         }).ToList();
     }

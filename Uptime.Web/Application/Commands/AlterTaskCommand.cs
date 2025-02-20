@@ -6,14 +6,14 @@ public record AlterTaskCommand : IRequest<bool>
 {
     public int TaskId { get; init; }
     public int WorkflowId { get; init; }
-    public Dictionary<string, string?> Storage { get; init; } = new();
+    public Dictionary<string, string?> Input { get; init; } = new();
 }
 
 public class AlterTaskCommandHandler(IHttpClientFactory httpClientFactory) : IRequestHandler<AlterTaskCommand, bool>
 {
     public async Task<bool> Handle(AlterTaskCommand request, CancellationToken cancellationToken)
     {
-        var payload = new { request.WorkflowId, request.Storage };
+        var payload = new { request.WorkflowId, Input = request.Input };
 
         HttpClient httpClient = httpClientFactory.CreateClient(ApiRoutes.WorkflowApiClient);
 

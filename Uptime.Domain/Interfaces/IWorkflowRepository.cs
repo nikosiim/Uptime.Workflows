@@ -27,11 +27,11 @@ public interface IWorkflowRepository
 
     Task AddWorkflowHistoryAsync(
         WorkflowId workflowId,
-        WorkflowHistoryEventType eventType,
-        string? user,
-        string? outcome,
+        WorkflowEventType eventType,
+        string? author,
         string? description,
-        CancellationToken cancellationToken);
+        string? comment = null,
+        CancellationToken cancellationToken = default);
 
     #endregion
 }

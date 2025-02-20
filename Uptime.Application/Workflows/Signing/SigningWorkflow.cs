@@ -16,6 +16,8 @@ public class SigningWorkflow(
 {
     private readonly IWorkflowRepository _repository = repository;
 
+    protected string? AssociationName => WorkflowContext.Storage.GetValueOrDefault(GlobalConstants.WorkflowStorageKeys.AssociationName);
+
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {
         Machine.Configure(WorkflowPhase.NotStarted)
@@ -32,6 +34,8 @@ public class SigningWorkflow(
 
     protected override void OnWorkflowActivatedAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
+        WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
+
         if (payload.Storage.TryGetValue(GlobalConstants.TaskStorageKeys.TaskSigners, out string? signer) && !string.IsNullOrWhiteSpace(signer))
         {
             string? taskDescription = payload.Storage.GetValue(GlobalConstants.TaskStorageKeys.TaskDescription);
@@ -49,14 +53,14 @@ public class SigningWorkflow(
         }             
     }
 
-    protected override async Task AlterTaskInternalAsync(WorkflowTaskContext context, CancellationToken cancellationToken)
+    protected override async Task AlterTaskInternalAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
     {
         var taskActivity = new SigningTaskActivity(_repository, context)
         {
             TaskData = WorkflowContext.SigningTask
         };
 
-        await taskActivity.OnTaskChangedAsync(context.Storage, cancellationToken);
+        await taskActivity.ChangedTaskAsync(payload, cancellationToken);
 
         if (taskActivity.IsCompleted)
         {
@@ -64,18 +68,18 @@ public class SigningWorkflow(
         }
     }
 
-    protected override async Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)
+    protected override Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)
     {
-        await base.OnWorkflowCompletedAsync(cancellationToken);
+        WorkflowContext.Outcome = SigningOutcome.Signed;
+        WorkflowCompletedHistoryDescription = $"{AssociationName} on lõpetatud.";
 
-        logger.LogInformation("Signing Workflow completed with status: {status}", "Signed");
+        return Task.CompletedTask;
     }
 
     private async Task StartSigningTask(CancellationToken cancellationToken)
     {
         if (WorkflowContext.SigningTask == null)
         {
-            Console.WriteLine("No signing task available, skipping to TaskCompleted.");
             await TriggerTransitionAsync(WorkflowTrigger.TaskCompleted, cancellationToken); // TODO: complete task but workflow outcome should be invalid or something
             return;
         }

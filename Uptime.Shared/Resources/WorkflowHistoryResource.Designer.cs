@@ -61,6 +61,15 @@ namespace Uptime.Shared.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Tööülesanne on tühistatud.
+        /// </summary>
+        internal static string TaskCancelled {
+            get {
+                return ResourceManager.GetString("TaskCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tööülesanne on lõpule viidud.
         /// </summary>
         internal static string TaskCompleted {
@@ -79,6 +88,15 @@ namespace Uptime.Shared.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Tööülesanne on suunatud.
+        /// </summary>
+        internal static string TaskDelegated {
+            get {
+                return ResourceManager.GetString("TaskDelegated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tööülesanne on kustutatud.
         /// </summary>
         internal static string TaskDeleted {
@@ -93,6 +111,15 @@ namespace Uptime.Shared.Resources {
         internal static string TaskModified {
             get {
                 return ResourceManager.GetString("TaskModified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tööülesanne on tagasilükatud.
+        /// </summary>
+        internal static string TaskRejected {
+            get {
+                return ResourceManager.GetString("TaskRejected", resourceCulture);
             }
         }
         

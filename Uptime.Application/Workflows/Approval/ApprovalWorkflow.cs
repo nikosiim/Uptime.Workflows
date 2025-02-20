@@ -3,6 +3,7 @@ using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
 using Uptime.Domain.Interfaces;
 using Uptime.Domain.Workflows;
+using Uptime.Shared;
 
 namespace Uptime.Application.Workflows.Approval;
 
@@ -14,8 +15,6 @@ public class ApprovalWorkflow(
     ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
     : ReplicatorActivityWorkflowBase<ApprovalWorkflowContext>(stateMachineFactory, repository, activityFactory, replicatorPhaseBuilder, logger)
 {
-    private readonly ILogger<WorkflowBase<ApprovalWorkflowContext>> _logger1 = logger;
-
     public static class ReplicatorPhases
     {
         public const string ApprovalPhase = "ApprovalPhase";
@@ -42,6 +41,8 @@ public class ApprovalWorkflow(
         }
     };
 
+    protected string? AssociationName => WorkflowContext.Storage.GetValueOrDefault(GlobalConstants.WorkflowStorageKeys.AssociationName);
+    
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {
         Machine.Configure(WorkflowPhase.NotStarted)
@@ -71,15 +72,15 @@ public class ApprovalWorkflow(
     protected override void OnWorkflowActivatedAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
         base.OnWorkflowActivatedAsync(payload, cancellationToken);
+
+        WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
     }
 
     protected override Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)
     {
         WorkflowContext.Outcome = ApprovalOutcome.Approved;
-
-        string status = WorkflowContext.AnyTaskRejected ? "Rejected" : "Approved";
-        _logger1.LogInformation("Approval Workflow completed with status: {status}", status);
-
+        WorkflowCompletedHistoryDescription = $"{AssociationName} on lõpetatud.";
+        
         return Task.CompletedTask;
     }
 }

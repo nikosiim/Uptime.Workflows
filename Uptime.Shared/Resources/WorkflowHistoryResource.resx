@@ -117,17 +117,26 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="TaskCancelled" xml:space="preserve">
+    <value>Tööülesanne on tühistatud</value>
+  </data>
   <data name="TaskCompleted" xml:space="preserve">
     <value>Tööülesanne on lõpule viidud</value>
   </data>
   <data name="TaskCreated" xml:space="preserve">
     <value>Tööülesanne on loodud</value>
   </data>
+  <data name="TaskDelegated" xml:space="preserve">
+    <value>Tööülesanne on suunatud</value>
+  </data>
   <data name="TaskDeleted" xml:space="preserve">
     <value>Tööülesanne on kustutatud</value>
   </data>
   <data name="TaskModified" xml:space="preserve">
     <value>Tööülesanne on muudetud</value>
+  </data>
+  <data name="TaskRejected" xml:space="preserve">
+    <value>Tööülesanne on tagasilükatud</value>
   </data>
   <data name="TaskRolledBack" xml:space="preserve">
     <value>Tööülesanne on tagasivõetud</value>

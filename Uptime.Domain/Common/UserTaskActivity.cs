@@ -18,15 +18,14 @@ public abstract class UserTaskActivity(IWorkflowRepository repository, WorkflowT
         Context.TaskGuid = Guid.NewGuid();
 
         InitializeContext();
-        ExecuteTaskLogic();
+        OnExecuteTask();
 
         await repository.AddWorkflowHistoryAsync(
             context.WorkflowId,
-            WorkflowHistoryEventType.TaskCreated,
+            WorkflowEventType.TaskCreated,
             TaskData?.AssignedBy,
-            outcome: null,
             description: TaskCreatedHistoryDescription,
-            cancellationToken
+            cancellationToken: cancellationToken
         );
 
         Context.TaskId = await repository.CreateWorkflowTaskAsync(Context, cancellationToken);
@@ -43,13 +42,13 @@ public abstract class UserTaskActivity(IWorkflowRepository repository, WorkflowT
         }
     }
 
-    public virtual async Task OnTaskChangedAsync(Dictionary<string, string?> storage, CancellationToken cancellationToken)
+    public virtual async Task ChangedTaskAsync(Dictionary<string, string?> payload, CancellationToken cancellationToken)
     {
-        OnTaskChanged(storage);
-
+        await OnTaskChangedAsync(payload, cancellationToken);
+        
         await repository.SaveWorkflowTaskAsync(Context, cancellationToken);
     }
 
-    protected abstract void ExecuteTaskLogic();
-    protected abstract void OnTaskChanged(Dictionary<string, string?> storage);
+    protected abstract void OnExecuteTask();
+    protected abstract Task OnTaskChangedAsync(Dictionary<string, string?> input, CancellationToken cancellationToken);
 }

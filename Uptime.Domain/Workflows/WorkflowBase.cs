@@ -27,6 +27,8 @@ public abstract class WorkflowBase<TContext>(
 
     public async Task<WorkflowPhase> StartAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
+        WorkflowContext.Storage.MergeWith(payload.Storage);
+
         InitializeStateMachine(WorkflowPhase.NotStarted, cancellationToken);
 
         WorkflowId = await repository.CreateWorkflowInstanceAsync(payload, cancellationToken);
@@ -37,11 +39,10 @@ public abstract class WorkflowBase<TContext>(
 
             await repository.AddWorkflowHistoryAsync(
                 WorkflowId,
-                WorkflowHistoryEventType.WorkflowStarted,
+                WorkflowEventType.WorkflowStarted,
                 payload.Originator,
-                outcome: null,
                 description: WorkflowStartedHistoryDescription,
-                cancellationToken
+                cancellationToken:cancellationToken
             );
 
             await Machine.FireAsync(WorkflowTrigger.Start);
@@ -160,11 +161,10 @@ public abstract class WorkflowBase<TContext>(
                 await OnWorkflowCompletedAsync(cancellationToken);
                 await repository.AddWorkflowHistoryAsync(
                     WorkflowId,
-                    WorkflowHistoryEventType.WorkflowCompleted,
+                    WorkflowEventType.WorkflowCompleted,
                     "System",
-                    outcome: null,
                     description: WorkflowCompletedHistoryDescription,
-                    cancellationToken
+                    cancellationToken: cancellationToken
                 );
             }
             else if (transition.Destination == WorkflowPhase.Cancelled)
@@ -172,11 +172,10 @@ public abstract class WorkflowBase<TContext>(
                 await OnWorkflowCancelledAsync(cancellationToken);
                 await repository.AddWorkflowHistoryAsync(
                     WorkflowId,
-                    WorkflowHistoryEventType.WorkflowCancelled,
+                    WorkflowEventType.WorkflowCancelled,
                     "System",
-                    outcome: null,
                     description: string.Empty,
-                    cancellationToken
+                    cancellationToken: cancellationToken
                 );
             }
         });

@@ -30,7 +30,7 @@ public class GetWorkflowHistoryQueryHandler(IHttpClientFactory httpClientFactory
                     WorkflowId = entry.WorkflowId,
                     Description = entry.Description,
                     Occurred = entry.Occurred.ToLocalTime(),
-                    Outcome = entry.Outcome,
+                    Comment = entry.Comment,
                     User = entry.User,
                     Event = entry.Event
                 });

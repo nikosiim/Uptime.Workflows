@@ -104,5 +104,14 @@ namespace Uptime.Shared.Resources {
                 return ResourceManager.GetString("Rejected", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Allkirjastatud.
+        /// </summary>
+        internal static string Signed {
+            get {
+                return ResourceManager.GetString("Signed", resourceCulture);
+            }
+        }
     }
 }

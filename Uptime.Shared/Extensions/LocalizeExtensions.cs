@@ -31,7 +31,7 @@ public static class WorkflowResources
 
 public static class LocalizeExtensions
 {
-    public static string GetTranslation(this WorkflowHistoryEventType status)
+    public static string GetTranslation(this WorkflowEventType status)
     {
         var resourceKey = status.ToString();
         string? localized = WorkflowHistoryResource.ResourceManager.GetString(resourceKey);

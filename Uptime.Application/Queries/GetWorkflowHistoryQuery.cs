@@ -21,7 +21,7 @@ public class GetWorkflowHistoryQueryHandler(IWorkflowDbContext dbContext) : IReq
                 Description = history.Description,
                 Event = history.Event,
                 Occurred = history.Occurred,
-                Outcome = history.Outcome,
+                Comment = history.Comment,
                 User = history.User
             })
             .ToListAsync(cancellationToken);
