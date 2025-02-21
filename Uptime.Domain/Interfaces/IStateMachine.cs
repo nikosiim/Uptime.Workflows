@@ -15,6 +15,8 @@ public interface IStateMachine<TState, TTrigger>
 public interface IStateConfiguration<in TState, in TTrigger>
 {
     IStateConfiguration<TState, TTrigger> Permit(TTrigger trigger, TState state);
+    IStateConfiguration<TState, TTrigger> PermitIf(TTrigger trigger, TState destinationState, Func<bool> condition);
+    IStateConfiguration<TState, TTrigger> PermitDynamic(TTrigger trigger, Func<TState> destinationStateSelector);
     IStateConfiguration<TState, TTrigger> OnEntry(Action action);
     IStateConfiguration<TState, TTrigger> OnEntryAsync(Func<Task> action);
     IStateConfiguration<TState, TTrigger> OnExit(Action action);

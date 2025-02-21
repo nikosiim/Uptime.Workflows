@@ -11,6 +11,18 @@ public class StatelessStateConfigurationAdapter<TState, TTrigger>(StateMachine<T
         stateConfig.Permit(trigger, state);
         return this;
     }
+    
+    public IStateConfiguration<TState, TTrigger> PermitIf(TTrigger trigger, TState destinationState, Func<bool> condition)
+    {
+        stateConfig.PermitIf(trigger, destinationState, condition);
+        return this;
+    }
+
+    public IStateConfiguration<TState, TTrigger> PermitDynamic(TTrigger trigger, Func<TState> destinationStateSelector)
+    {
+        stateConfig.PermitDynamic(trigger, destinationStateSelector);
+        return this;
+    }
 
     public IStateConfiguration<TState, TTrigger> OnEntry(Action action)
     {

@@ -8,7 +8,7 @@
                 <MudSelectItem T="string" Value="@user">@user</MudSelectItem>
             }
         </MudSelect>
-        
+
         @if (EventType == WorkflowEventType.TaskDelegated)
         {
             <MudSelect T="string" Label="Ülesande saaja" Variant="Variant.Outlined" Placeholder="Vali kasutaja" @bind-Value="_delegatedUser">
@@ -33,6 +33,7 @@
     private string? _delegatedUser;
 
     [Parameter] public string? Document { get; set; }
+    [Parameter] public string? AssignedTo { get; set; }
     [Parameter, EditorRequired] public int TaskId { get; set; }
     [Parameter, EditorRequired] public int WorkflowId { get; set; }
     [Parameter, EditorRequired] public WorkflowEventType EventType { get; set; }
@@ -42,6 +43,11 @@
 
     [CascadingParameter] 
     protected IMudDialogInstance MudDialog { get; set; } = null!;
+
+    protected override void OnInitialized()
+    {
+        _currentUser = AssignedTo;
+    }
 
     protected virtual async Task OnSaveClick()
     {

@@ -4,6 +4,7 @@ public static class Constants
 {
     public static class DialogParams
     {
+        public const string AssignedTo = "AssignedTo";
         public const string Document = "Document";
         public const string EventType = "EventType";
         public const string LibraryId = "LibraryId";

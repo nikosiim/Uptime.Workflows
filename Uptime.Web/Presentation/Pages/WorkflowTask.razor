@@ -119,7 +119,8 @@
             { DialogParams.EventType, eventType },
             { DialogParams.TaskId, task.Id },
             { DialogParams.WorkflowId, task.WorkflowId },
-            { DialogParams.Document, task.Document }
+            { DialogParams.Document, task.Document },
+            { DialogParams.AssignedTo, task.AssignedTo }
         };
 
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };

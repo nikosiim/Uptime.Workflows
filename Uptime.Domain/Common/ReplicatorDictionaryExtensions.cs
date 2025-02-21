@@ -2,6 +2,17 @@
 
 public static class ReplicatorDictionaryExtensions
 {
+    public static void CancelAllItems(this IDictionary<string, ReplicatorState> replicatorStates, string phaseName)
+    {
+        if (replicatorStates.TryGetValue(phaseName, out ReplicatorState? state))
+        {
+            foreach (ReplicatorItem item in state.Items.Where(item => !item.IsCompleted))
+            {
+                item.IsCanceled = true;
+            }
+        }
+    }
+
     public static string? FindPhase(this IReadOnlyDictionary<string, ReplicatorState> states, Guid taskGuid)
     {
         return states.FirstOrDefault(kvp => kvp.Value.HasTaskGuid(taskGuid)).Key;

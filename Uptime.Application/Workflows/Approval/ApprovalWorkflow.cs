@@ -56,7 +56,9 @@ public class ApprovalWorkflow(
         Machine.Configure(ApprovalPhase.Approval)
             .SubstateOf(WorkflowPhase.InProgress)
             .OnEntryAsync(() => RunReplicatorAsync(ReplicatorPhases.ApprovalPhase, cancellationToken))
-            .Permit(WorkflowTrigger.AllTasksCompleted, ApprovalPhase.Signing);
+            //.PermitIf(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Completed, () => WorkflowContext.AnyTaskRejected)
+            //.PermitIf(WorkflowTrigger.AllTasksCompleted, ApprovalPhase.Signing, () => !WorkflowContext.AnyTaskRejected)
+            .PermitDynamic(WorkflowTrigger.AllTasksCompleted, () => WorkflowContext.AnyTaskRejected ? WorkflowPhase.Completed : ApprovalPhase.Signing);
 
         Machine.Configure(ApprovalPhase.Signing)
             .SubstateOf(WorkflowPhase.InProgress)

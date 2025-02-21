@@ -21,7 +21,7 @@ public class Replicator : IReplicator
     /// <summary>
     /// Determines whether all tasks in the replicator have been completed.
     /// </summary>
-    public bool IsComplete => Items.All(item => item.IsCompleted);
+    public bool IsComplete => Items.All(item => item.IsCompleted || item.IsCanceled);
 
     /// <summary>
     /// Event triggered when a child activity is initialized.
@@ -68,10 +68,10 @@ public class Replicator : IReplicator
     /// </summary>
     private async Task ExecuteSequentialAsync(CancellationToken cancellationToken)
     {
-        foreach (ReplicatorItem item in Items.Where(item => !item.IsCompleted))
+        foreach (ReplicatorItem item in Items.Where(item => !item.IsCompleted && !item.IsCanceled))
         {
             IWorkflowActivity activity = await InitializeActivityAsync(item, cancellationToken);
-            if (activity.IsCompleted)
+            if (activity.IsCompleted) // Does not apply to UserActivity, as their response is not immediately apparent
             {
                 item.IsCompleted = true;
             }
@@ -89,11 +89,11 @@ public class Replicator : IReplicator
     private async Task ExecuteParallelAsync(CancellationToken cancellationToken)
     {
         IEnumerable<Task> tasks = Items
-            .Where(item => !item.IsCompleted)
+            .Where(item => !item.IsCompleted && !item.IsCanceled)
             .Select(async item =>
             {
                 IWorkflowActivity activity = await InitializeActivityAsync(item, cancellationToken);
-                if (activity.IsCompleted)
+                if (activity.IsCompleted) // Does not apply to UserActivity, as their response is not immediately apparent
                 {
                     item.IsCompleted = true;
                 }

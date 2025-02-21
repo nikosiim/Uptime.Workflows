@@ -8,4 +8,5 @@ public class ReplicatorItem
     public required object Data { get; set; }
     public Guid TaskGuid { get; set; } = Guid.Empty;
     public bool IsCompleted { get; set; }
+    public bool IsCanceled { get; set; }
 }
