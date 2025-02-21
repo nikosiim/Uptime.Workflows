@@ -39,6 +39,7 @@ public class ApprovalTaskActivity(IWorkflowRepository repository, WorkflowTaskCo
             switch (workflowEvent)
             {
                 case WorkflowEventType.TaskRejected:
+                    IsTaskRejected = true;
                     outcome = "Tagasilükatud";
                     description = $"Kasutaja {TaskData?.AssignedTo} on tööülesande {AssociationName} tagasilükanud.";
                     break;

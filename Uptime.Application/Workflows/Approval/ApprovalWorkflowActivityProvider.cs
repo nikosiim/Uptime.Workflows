@@ -7,8 +7,7 @@ using static Uptime.Shared.GlobalConstants;
 
 namespace Uptime.Application.Workflows.Approval;
 
-public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository) 
-    : ReplicatorActivityProvider(repository)
+public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository) : ReplicatorActivityProvider(repository)
 {
     public override IWorkflowActivity CreateActivity(string phaseName, object data, WorkflowTaskContext context)
     {
@@ -42,31 +41,43 @@ public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository)
 
     public override void OnChildCompleted<TContext>(string phaseName, UserTaskActivity activity, TContext workflowContext)
     {
-        if (phaseName == ReplicatorPhases.ApprovalPhase)
+        switch (phaseName)
         {
-            var taskActivity = (ApprovalTaskActivity)activity;
-            if (taskActivity.IsTaskDelegated)
-            {
-                string? delegatedTo = taskActivity.Context.Storage.GetValueOrDefault(TaskStorageKeys.TaskDelegatedTo);
-                if (!string.IsNullOrWhiteSpace(delegatedTo))
-                {
-                    ApprovalTaskData data = ApprovalTaskData.Copy(taskActivity.TaskData!);
-                    data.AssignedTo = delegatedTo;
+            case ReplicatorPhases.ApprovalPhase:
+                HandleApprovalPhaseChildCompleted((ApprovalTaskActivity)activity, workflowContext);
+                break;
 
-                    if (workflowContext is ApprovalWorkflowContext approvalContext)
-                    {
-                        ReplicatorState replicatorState = approvalContext.ReplicatorStates[phaseName];
-                        replicatorState.Items.Add(new ReplicatorItem()
-                        {
-                            Data = data
-                        });
-                    }
-                }
+            case ReplicatorPhases.SigningPhase:
+                HandleSigningPhaseChildCompleted((SigningTaskActivity)activity, workflowContext);
+                break;
+
+            default:
+                // If you expect more phases in the future, handle them here 
+                // or do nothing if it's safe to ignore unknown phases.
+                break;
+        }
+    }
+
+    private static void HandleApprovalPhaseChildCompleted<TContext>(ApprovalTaskActivity activity, TContext workflowContext)
+    {
+        if (workflowContext is ApprovalWorkflowContext approvalContext)
+        {
+            if (activity.IsTaskDelegated)
+            {
+                ApprovalTaskData data = ApprovalTaskData.Copy(activity.TaskData!);
+                data.AssignedTo = activity.Context.Storage.GetValueOrDefault(TaskStorageKeys.TaskDelegatedTo)!;
+
+                approvalContext.ReplicatorStates.InsertItemAfter(ReplicatorPhases.ApprovalPhase, activity.Context.TaskGuid, new ReplicatorItem { Data = data });
+            }
+            else if (activity.IsTaskRejected)
+            {
+                approvalContext.AnyTaskRejected = true;
             }
         }
-        else if (phaseName == ReplicatorPhases.SigningPhase)
-        {
-            
-        }
+    }
+
+    private static void HandleSigningPhaseChildCompleted<TContext>(SigningTaskActivity activity, TContext workflowContext)
+    {
+        
     }
 }

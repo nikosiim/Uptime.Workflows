@@ -44,23 +44,17 @@ public class Replicator : IReplicator
     /// </summary>
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        if (Items.Count == 0)
+        if (Items.Count != 0)
         {
-            if (OnAllTasksCompleted != null)
+            Task executionTask = Type switch
             {
-                await OnAllTasksCompleted.Invoke();
-            }
-            return;
+                ReplicatorType.Sequential => ExecuteSequentialAsync(cancellationToken),
+                ReplicatorType.Parallel   => ExecuteParallelAsync(cancellationToken),
+                _ => throw new NotSupportedException($"Replicator type '{Type}' is not supported.")
+            };
+
+            await executionTask;
         }
-
-        Task executionTask = Type switch
-        {
-            ReplicatorType.Sequential => ExecuteSequentialAsync(cancellationToken),
-            ReplicatorType.Parallel => ExecuteParallelAsync(cancellationToken),
-            _ => throw new NotSupportedException($"Replicator type '{Type}' is not supported.")
-        };
-
-        await executionTask;
 
         if (IsComplete && OnAllTasksCompleted != null)
         {
@@ -77,14 +71,14 @@ public class Replicator : IReplicator
         foreach (ReplicatorItem item in Items.Where(item => !item.IsCompleted))
         {
             IWorkflowActivity activity = await InitializeActivityAsync(item, cancellationToken);
-
             if (activity.IsCompleted)
             {
                 item.IsCompleted = true;
             }
             else
             {
-                return; // Stop execution, waiting for user action
+                // In a real user-interaction scenario, we stop here and wait.
+                return;
             }
         }
     }
