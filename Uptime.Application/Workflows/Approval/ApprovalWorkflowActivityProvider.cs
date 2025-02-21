@@ -72,7 +72,7 @@ public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository) : 
             else if (activity.IsTaskRejected)
             {
                 approvalContext.AnyTaskRejected = true;
-                approvalContext.ReplicatorStates.CancelAllItems(ReplicatorPhases.ApprovalPhase);
+                approvalContext.ReplicatorStates.CancelAllItems();
             }
         }
     }

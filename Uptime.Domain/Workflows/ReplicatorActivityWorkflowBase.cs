@@ -50,7 +50,7 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
             {
                 activityFactory.OnChildCompleted(phase, taskActivity, WorkflowContext);
 
-                UpdateWorkflowContextReplicatorState(storedTaskContext.TaskGuid, true);
+                UpdateWorkflowContextReplicatorState(storedTaskContext.TaskGuid, ReplicatorItemStatus.Completed);
 
                 await RunReplicatorAsync(phase, cancellationToken);
             }
@@ -68,12 +68,12 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
         return null;
     }
     
-    protected virtual void UpdateWorkflowContextReplicatorState(Guid taskGuid, bool isCompleted)
+    protected virtual void UpdateWorkflowContextReplicatorState(Guid taskGuid, ReplicatorItemStatus status)
     {
         ReplicatorItem? item = WorkflowContext.ReplicatorStates.FindReplicatorItem(taskGuid);
         if (item != null)
         {
-            item.IsCompleted = isCompleted;
+            item.Status = status;
         }
     }
 

@@ -1,4 +1,6 @@
-﻿namespace Uptime.Domain.Common;
+﻿using Uptime.Domain.Enums;
+
+namespace Uptime.Domain.Common;
 
 /// <summary>
 /// Serializable wrapper for tuple data in ReplicatorState.
@@ -7,6 +9,5 @@ public class ReplicatorItem
 {
     public required object Data { get; set; }
     public Guid TaskGuid { get; set; } = Guid.Empty;
-    public bool IsCompleted { get; set; }
-    public bool IsCanceled { get; set; }
+    public ReplicatorItemStatus Status { get; set; } = ReplicatorItemStatus.NotStarted;
 }

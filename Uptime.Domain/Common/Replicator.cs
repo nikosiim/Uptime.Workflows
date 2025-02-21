@@ -21,7 +21,7 @@ public class Replicator : IReplicator
     /// <summary>
     /// Determines whether all tasks in the replicator have been completed.
     /// </summary>
-    public bool IsComplete => Items.All(item => item.IsCompleted || item.IsCanceled);
+    public bool IsComplete => Items.All(item => item.Status is ReplicatorItemStatus.Completed or ReplicatorItemStatus.Canceled);
 
     /// <summary>
     /// Event triggered when a child activity is initialized.
@@ -68,15 +68,16 @@ public class Replicator : IReplicator
     /// </summary>
     private async Task ExecuteSequentialAsync(CancellationToken cancellationToken)
     {
-        foreach (ReplicatorItem item in Items.Where(item => !item.IsCompleted && !item.IsCanceled))
+        foreach (ReplicatorItem item in Items.Where(item => item.Status == ReplicatorItemStatus.NotStarted))
         {
             IWorkflowActivity activity = await InitializeActivityAsync(item, cancellationToken);
             if (activity.IsCompleted) // Does not apply to UserActivity, as their response is not immediately apparent
             {
-                item.IsCompleted = true;
+                item.Status = ReplicatorItemStatus.Completed;
             }
             else
             {
+                item.Status = ReplicatorItemStatus.InProgress;
                 // In a real user-interaction scenario, we stop here and wait.
                 return;
             }
@@ -89,13 +90,15 @@ public class Replicator : IReplicator
     private async Task ExecuteParallelAsync(CancellationToken cancellationToken)
     {
         IEnumerable<Task> tasks = Items
-            .Where(item => !item.IsCompleted && !item.IsCanceled)
+            .Where(item => item.Status == ReplicatorItemStatus.NotStarted)
             .Select(async item =>
             {
+                item.Status = ReplicatorItemStatus.InProgress;
+
                 IWorkflowActivity activity = await InitializeActivityAsync(item, cancellationToken);
                 if (activity.IsCompleted) // Does not apply to UserActivity, as their response is not immediately apparent
                 {
-                    item.IsCompleted = true;
+                    item.Status = ReplicatorItemStatus.Completed;
                 }
             });
 

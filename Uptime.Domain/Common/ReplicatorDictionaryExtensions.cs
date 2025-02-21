@@ -1,14 +1,30 @@
-﻿namespace Uptime.Domain.Common; 
+﻿using Uptime.Domain.Enums;
+
+namespace Uptime.Domain.Common; 
 
 public static class ReplicatorDictionaryExtensions
 {
-    public static void CancelAllItems(this IDictionary<string, ReplicatorState> replicatorStates, string phaseName)
+    public static void CancelAllItems(this IDictionary<string, ReplicatorState> replicatorStates, string? phaseName = null)
     {
-        if (replicatorStates.TryGetValue(phaseName, out ReplicatorState? state))
+        if (phaseName is not null)
         {
-            foreach (ReplicatorItem item in state.Items.Where(item => !item.IsCompleted))
+            if (replicatorStates.TryGetValue(phaseName, out ReplicatorState? state))
             {
-                item.IsCanceled = true;
+                foreach (ReplicatorItem item in state.Items.Where(item => item.Status == ReplicatorItemStatus.NotStarted))
+                {
+                    item.Status = ReplicatorItemStatus.Canceled;
+                }
+            }
+        }
+        else
+        {
+            // If no specific phase provided, cancel all items in all phases
+            foreach (ReplicatorState state in replicatorStates.Values)
+            {
+                foreach (ReplicatorItem item in state.Items.Where(item => item.Status == ReplicatorItemStatus.NotStarted))
+                {
+                    item.Status = ReplicatorItemStatus.Canceled;
+                }
             }
         }
     }
