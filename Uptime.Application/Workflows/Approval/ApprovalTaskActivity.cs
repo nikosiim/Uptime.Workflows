@@ -12,6 +12,9 @@ public class ApprovalTaskActivity(IWorkflowRepository repository, WorkflowTaskCo
     private readonly IWorkflowRepository _repository = repository;
     private string? AssociationName => Context.Storage.GetValueOrDefault(WorkflowStorageKeys.AssociationName);
 
+    public bool IsTaskDelegated { get; private set; }
+    public bool IsTaskRejected { get; private set; }
+
     protected override void OnExecuteTask()
     {
         if (TaskData is null) return;
@@ -40,6 +43,7 @@ public class ApprovalTaskActivity(IWorkflowRepository repository, WorkflowTaskCo
                     description = $"Kasutaja {TaskData?.AssignedTo} on tööülesande {AssociationName} tagasilükanud.";
                     break;
                 case WorkflowEventType.TaskDelegated:
+                    IsTaskDelegated = true;
                     outcome = "Suunatud";
                     description = $"Tööülesanne {AssociationName} on suunatud kasutajale {delegatedTo}";
                     break;

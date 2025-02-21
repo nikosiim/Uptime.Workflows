@@ -42,9 +42,9 @@ public abstract class UserTaskActivity(IWorkflowRepository repository, WorkflowT
         }
     }
 
-    public virtual async Task ChangedTaskAsync(Dictionary<string, string?> payload, CancellationToken cancellationToken)
+    public virtual async Task ChangedTaskAsync(Dictionary<string, string?> alterTaskPayload, CancellationToken cancellationToken)
     {
-        await OnTaskChangedAsync(payload, cancellationToken);
+        await OnTaskChangedAsync(alterTaskPayload, cancellationToken);
         
         await repository.SaveWorkflowTaskAsync(Context, cancellationToken);
     }

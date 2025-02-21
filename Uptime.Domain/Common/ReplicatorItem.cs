@@ -1,6 +1,4 @@
-﻿using Uptime.Domain.Interfaces;
-
-namespace Uptime.Domain.Common;
+﻿namespace Uptime.Domain.Common;
 
 /// <summary>
 /// Serializable wrapper for tuple data in ReplicatorState.

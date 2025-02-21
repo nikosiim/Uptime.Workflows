@@ -7,7 +7,14 @@
     </MudPaper>
 
     <MudForm @ref="Form" Spacing="1">
-        <MudTextField T="string" Label="Assigned To" Variant="Variant.Outlined" @bind-Value="FormModel.AssignedTo" Placeholder="Comma-separated usernames" />
+        <MudSelect T="string" Label="Assigned To" Variant="Variant.Outlined" Placeholder="Select users"
+                   @bind-SelectedValues="FormModel.AssignedTo" MultiSelection="true">
+            @foreach (string user in AvailableUsers)
+            {
+                <MudSelectItem T="string" Value="@user">@user</MudSelectItem>
+            }
+        </MudSelect>
+        
         <MudTextField T="string" Label="Task" Variant="Variant.Outlined" @bind-Value="FormModel.TaskDescription" Lines="4" />
         <MudDatePicker Label="Due Date" Variant="Variant.Outlined" @bind-Date="FormModel.DueDate" DateFormat="dd.MM.yyyy" />
     </MudForm>
@@ -33,7 +40,7 @@
         storage.SetValue(GlobalConstants.WorkflowStorageKeys.AssociationName, FormModel.TemplateName);
         storage.SetValue(GlobalConstants.TaskStorageKeys.TaskDescription, FormModel.TaskDescription);
         storage.SetValueAsDateTime(GlobalConstants.TaskStorageKeys.TaskDueDate, FormModel.DueDate);
-        storage.SetValueAsList(GlobalConstants.TaskStorageKeys.TaskExecutors, [FormModel.AssignedTo!]);
+        storage.SetValueAsList(GlobalConstants.TaskStorageKeys.TaskExecutors, FormModel.AssignedTo);
 
         var command = new StartWorkflowCommand
         {

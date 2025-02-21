@@ -11,11 +11,9 @@ public abstract class ReplicatorActivityProvider(IWorkflowRepository repository)
 
     public virtual void OnChildInitialized(string phaseName, object data, IWorkflowActivity activity)
     {
-        Console.WriteLine($"Child activity initialized for phase {phaseName}.");
     }
 
-    public virtual void OnChildCompleted(string phaseName, object data, IWorkflowActivity activity)
+    public virtual void OnChildCompleted<TContext>(string phaseName, UserTaskActivity activity, TContext workflowContext)
     {
-        Console.WriteLine($"Child activity completed for phase {phaseName}.");
     }
 }

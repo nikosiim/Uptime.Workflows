@@ -6,4 +6,5 @@ public class ReplicatorState
 {
     public ReplicatorType Type { get; set; }
     public List<ReplicatorItem> Items { get; set; } = [];
+    public bool HasTaskGuid(Guid guid) => Items.Any(i => i.TaskGuid == guid);
 }

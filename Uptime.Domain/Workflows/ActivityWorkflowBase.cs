@@ -14,11 +14,11 @@ public abstract class ActivityWorkflowBase<TContext>(
 {
     private readonly ILogger<WorkflowBase<TContext>> _logger = logger;
 
-    public async Task AlterTaskCoreAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
+    public async Task AlterTaskCoreAsync(WorkflowTaskContext storedTaskContext, Dictionary<string, string?> alterTaskPayload, CancellationToken cancellationToken)
     {
         if (CanAlterTask())
         {
-            await AlterTaskInternalAsync(context, payload, cancellationToken);
+            await AlterTaskInternalAsync(storedTaskContext, alterTaskPayload, cancellationToken);
             await SaveWorkflowStateAsync(cancellationToken);
         }
     }

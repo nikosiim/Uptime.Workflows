@@ -33,51 +33,47 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
         InitializeReplicatorManagerAsync(cancellationToken);
     }
     
-    protected override async Task AlterTaskInternalAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
+    protected override async Task AlterTaskInternalAsync(WorkflowTaskContext storedTaskContext, Dictionary<string, string?> alterTaskPayload, CancellationToken cancellationToken)
     {
-        if (CreateChildActivity(context) is not { } taskActivity)
+        if (CreateChildActivity(storedTaskContext) is not { } taskActivity)
         {
-            throw new InvalidOperationException($"Task {context.TaskId} is not a user-interrupting activity.");
+            throw new InvalidOperationException($"Task {storedTaskContext.TaskId} is not a user-interrupting activity.");
         }
 
-        await taskActivity.ChangedTaskAsync(payload, cancellationToken);
-
-        UpdateWorkflowContextReplicatorState(context.TaskGuid, taskActivity.IsCompleted);
-
-        // When a task is completed, force the workflow to move forward
-        if (taskActivity.IsCompleted)
+        if (!taskActivity.IsCompleted)
         {
-            string? phaseName = WorkflowContext.ReplicatorStates.FirstOrDefault(kvp => kvp.Value.Items.Any(item => item.TaskGuid == context.TaskGuid)).Key;
-            if (phaseName != null)
+            await taskActivity.ChangedTaskAsync(alterTaskPayload, cancellationToken);
+            
+            string? phase = WorkflowContext.ReplicatorStates.FindPhase(storedTaskContext.TaskGuid);
+
+            if (taskActivity.IsCompleted && !string.IsNullOrWhiteSpace(phase))
             {
-                await RunReplicatorAsync(phaseName, cancellationToken);
+                activityFactory.OnChildCompleted(phase, taskActivity, WorkflowContext);
+
+                UpdateWorkflowContextReplicatorState(storedTaskContext.TaskGuid, true);
+
+                await RunReplicatorAsync(phase, cancellationToken);
             }
         }
     }
-    
+
     protected virtual UserTaskActivity? CreateChildActivity(WorkflowTaskContext context)
     {
-        KeyValuePair<string, ReplicatorState> phaseEntry = WorkflowContext.ReplicatorStates
-            .FirstOrDefault(kvp => kvp.Value.Items.Any(item => item.TaskGuid == context.TaskGuid));
-        if (phaseEntry.Key == null)
-            return null; // Task not found in any phase
+        ReplicatorItem? item = WorkflowContext.ReplicatorStates.FindReplicatorItem(context.TaskGuid, out string? phase);
+        if (item != null)
+        {
+            return activityFactory.CreateActivity(phase!, item.Data, context) as UserTaskActivity;
+        }
 
-        ReplicatorItem? item = phaseEntry.Value.Items.FirstOrDefault(i => i.TaskGuid == context.TaskGuid);
-        if (item == null)
-            return null;
-
-        return activityFactory.CreateActivity(phaseEntry.Key, item.Data, context) as UserTaskActivity;
+        return null;
     }
     
     protected virtual void UpdateWorkflowContextReplicatorState(Guid taskGuid, bool isCompleted)
     {
-        foreach (ReplicatorState state in WorkflowContext.ReplicatorStates.Values)
+        ReplicatorItem? item = WorkflowContext.ReplicatorStates.FindReplicatorItem(taskGuid);
+        if (item != null)
         {
-            foreach (ReplicatorItem item in state.Items.Where(item => item.TaskGuid == taskGuid))
-            {
-                item.IsCompleted = isCompleted;
-                return;
-            }
+            item.IsCompleted = isCompleted;
         }
     }
 

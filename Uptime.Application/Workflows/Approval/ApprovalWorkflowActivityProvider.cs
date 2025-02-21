@@ -3,6 +3,7 @@ using Uptime.Application.Workflows.Signing;
 using Uptime.Domain.Common;
 using Uptime.Domain.Interfaces;
 using static Uptime.Application.Workflows.Approval.ApprovalWorkflow;
+using static Uptime.Shared.GlobalConstants;
 
 namespace Uptime.Application.Workflows.Approval;
 
@@ -39,17 +40,33 @@ public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository)
         }
     }
 
-    public override void OnChildCompleted(string phaseName, object data, IWorkflowActivity activity)
+    public override void OnChildCompleted<TContext>(string phaseName, UserTaskActivity activity, TContext workflowContext)
     {
         if (phaseName == ReplicatorPhases.ApprovalPhase)
         {
-            var taskData = data.DeserializeTaskData<ApprovalTaskData>();
-            Console.WriteLine($"Approval task completed for {taskData.AssignedTo}");
+            var taskActivity = (ApprovalTaskActivity)activity;
+            if (taskActivity.IsTaskDelegated)
+            {
+                string? delegatedTo = taskActivity.Context.Storage.GetValueOrDefault(TaskStorageKeys.TaskDelegatedTo);
+                if (!string.IsNullOrWhiteSpace(delegatedTo))
+                {
+                    ApprovalTaskData data = ApprovalTaskData.Copy(taskActivity.TaskData!);
+                    data.AssignedTo = delegatedTo;
+
+                    if (workflowContext is ApprovalWorkflowContext approvalContext)
+                    {
+                        ReplicatorState replicatorState = approvalContext.ReplicatorStates[phaseName];
+                        replicatorState.Items.Add(new ReplicatorItem()
+                        {
+                            Data = data
+                        });
+                    }
+                }
+            }
         }
         else if (phaseName == ReplicatorPhases.SigningPhase)
         {
-            var taskData = data.DeserializeTaskData<SigningTaskData>();
-            Console.WriteLine($"Signing task completed for {taskData.AssignedTo}");
+            
         }
     }
 }

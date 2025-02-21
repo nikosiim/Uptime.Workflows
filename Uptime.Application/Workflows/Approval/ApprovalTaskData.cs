@@ -9,7 +9,7 @@ public sealed class ApprovalTaskData : IUserTaskActivityData
     public string? TaskDescription { get; set; }
     public DateTime? DueDate { get; set; }
 
-    public static ApprovalTaskData Copy(ApprovalTaskData source)
+    public static ApprovalTaskData Copy(IUserTaskActivityData source)
     {
         return new ApprovalTaskData
         {

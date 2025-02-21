@@ -5,6 +5,7 @@ public static class Constants
     public static class DialogParams
     {
         public const string Document = "Document";
+        public const string EventType = "EventType";
         public const string LibraryId = "LibraryId";
         public const string TaskId = "TaskId";
         public const string TemplateId = "TemplateId";
@@ -26,4 +27,11 @@ public static class Constants
         public const string Contracts = "contracts";
         public const string Letters = "letters";
     }
+
+    public static readonly string[] AvailableUsers =
+    [
+        "Klient Üks", "Klient Kaks", "Klient Kolm", "Klient Neli", "Klient Viis",
+        "Lauri Saar", "Marika Oja", "Jana Pärn", "Piia Saar", "Urve Oja", "Riin Koppel", "Peeter Sepp", "Kristina Kroon",
+        "Markus Lepik", "Marta Laine", "Anton Rebane", "Signe Kask", "Viljar Laine"
+    ];
 }

@@ -27,12 +27,7 @@ public class Replicator : IReplicator
     /// Event triggered when a child activity is initialized.
     /// </summary>
     public Action<object, IWorkflowActivity>? OnChildInitialized { get; set; }
-
-    /// <summary>
-    /// Event triggered when a child activity is completed.
-    /// </summary>
-    public Action<object, IWorkflowActivity>? OnChildCompleted { get; set; }
-
+    
     /// <summary>
     /// Event triggered when all tasks in the replicator are completed.
     /// </summary>
@@ -86,7 +81,6 @@ public class Replicator : IReplicator
             if (activity.IsCompleted)
             {
                 item.IsCompleted = true;
-                OnChildCompleted?.Invoke(item.Data, activity);
             }
             else
             {
@@ -108,7 +102,6 @@ public class Replicator : IReplicator
                 if (activity.IsCompleted)
                 {
                     item.IsCompleted = true;
-                    OnChildCompleted?.Invoke(item.Data, activity);
                 }
             });
 

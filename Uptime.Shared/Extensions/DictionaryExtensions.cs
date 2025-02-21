@@ -5,6 +5,8 @@ namespace Uptime.Shared.Extensions;
 
 public static class DictionaryExtensions
 {
+    public static string ListSeparator = ";#";
+
     #region Get Values
 
     /// <summary>
@@ -53,7 +55,7 @@ public static class DictionaryExtensions
     {
         if (data.TryGetValue(key, out string? value) && !string.IsNullOrWhiteSpace(value))
         {
-            return value.Split(";#", StringSplitOptions.RemoveEmptyEntries).ToList();
+            return value.Split(ListSeparator, StringSplitOptions.RemoveEmptyEntries).ToList();
         }
 
         return [];
@@ -182,7 +184,7 @@ public static class DictionaryExtensions
     {
         if (data.TryGetValue(key, out string? value) && !string.IsNullOrWhiteSpace(value))
         {
-            result = value.Split(";#", StringSplitOptions.RemoveEmptyEntries).ToList();
+            result = value.Split(ListSeparator, StringSplitOptions.RemoveEmptyEntries).ToList();
             return true;
         }
 
@@ -235,9 +237,16 @@ public static class DictionaryExtensions
     /// <summary>
     /// Stores a list of strings as a single string, using ";#" as a separator, or sets the key to null if the value is null.
     /// </summary>
-    public static void SetValueAsList(this Dictionary<string, string?> data, string key, List<string>? values)
+    public static void SetValueAsList(this Dictionary<string, string?> data, string key, IEnumerable<string>? values)
     {
-        data[key] = values is { Count: > 0 } ? string.Join(";#", values) : null;
+        if (values != null)
+        {
+            data[key] = string.Join(ListSeparator, values);
+        }
+        else
+        {
+            data[key] =  null;
+        }
     }
 
     /// <summary>
