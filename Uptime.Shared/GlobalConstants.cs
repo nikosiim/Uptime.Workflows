@@ -21,5 +21,6 @@ public static class GlobalConstants
     public static class WorkflowStorageKeys
     {
         public const string AssociationName = "AssociationName";
+        public const string ReplicatorType = "ReplicatorType";
     }
 }

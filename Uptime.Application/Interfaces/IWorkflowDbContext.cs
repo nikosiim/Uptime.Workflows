@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Uptime.Application.Interfaces;
 
-public interface IWorkflowDbContext
+public interface IWorkflowDbContext : IDisposable
 {
     DbSet<WorkflowTask> WorkflowTasks { get; }
     DbSet<Document> Documents { get; }

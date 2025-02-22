@@ -17,6 +17,12 @@ public static class PersistenceServiceRegistration
         services.AddDbContext<WorkflowDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString(ConnectionStrings.DefaultConnection)));
 
+        services.AddDbContextFactory<WorkflowDbContext>(
+            options => options.UseSqlServer(configuration.GetConnectionString(ConnectionStrings.DefaultConnection)),
+            ServiceLifetime.Scoped
+        );
+
+        services.AddScoped<IWorkflowDbContextFactory, WorkflowDbContextFactory>();
         services.AddScoped<IWorkflowDbContext>(provider => provider.GetRequiredService<WorkflowDbContext>());
     }
 }

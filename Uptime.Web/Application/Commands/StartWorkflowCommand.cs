@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Uptime.Shared.Enums;
 
 namespace Uptime.Web.Application.Commands;
 
@@ -15,7 +16,7 @@ public class StartWorkflowCommandHandler(IHttpClientFactory httpClientFactory)
 {
     public async Task<bool> Handle(StartWorkflowCommand request, CancellationToken cancellationToken)
     {
-        var payload = new { request.Originator, request.DocumentId, request.WorkflowTemplateId, Storage = request.Storage };
+        var payload = new { request.Originator, request.DocumentId, request.WorkflowTemplateId, request.Storage };
 
         HttpClient httpClient = httpClientFactory.CreateClient(ApiRoutes.WorkflowApiClient);
         HttpResponseMessage response = await httpClient.PostAsJsonAsync(ApiRoutes.Workflows.StartWorkflow, payload, cancellationToken);

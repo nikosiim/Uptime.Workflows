@@ -7,16 +7,28 @@
     </MudPaper>
 
     <MudForm @ref="Form" Spacing="1">
-        <MudSelect T="string" Label="Assigned To" Variant="Variant.Outlined" Placeholder="Select users"
-                   @bind-SelectedValues="FormModel.AssignedTo" MultiSelection="true">
+        <MudPaper Class="pa-2 mb-2" Elevation="3" Outlined="true">
+            <MudRadioGroup T="int" @bind-Value="ReplicatorType">
+                <MudRadio Value="1" Color="Color.Primary" UncheckedColor="Color.Default" Size="Size.Small">Jadamisi</MudRadio>
+                <MudRadio Value="2" Color="Color.Secondary" UncheckedColor="Color.Default" Size="Size.Small">Paralleelselt</MudRadio>
+            </MudRadioGroup>
+        </MudPaper>
+        <MudSelect T="string" Label="Kinnitajad" Variant="Variant.Outlined" Placeholder="Vali kinnitajad"
+        @bind-SelectedValues="FormModel.AssignedTo" MultiSelection="true">
             @foreach (string user in AvailableUsers)
             {
                 <MudSelectItem T="string" Value="@user">@user</MudSelectItem>
             }
         </MudSelect>
-        
-        <MudTextField T="string" Label="Task" Variant="Variant.Outlined" @bind-Value="FormModel.TaskDescription" Lines="4" />
-        <MudDatePicker Label="Due Date" Variant="Variant.Outlined" @bind-Date="FormModel.DueDate" DateFormat="dd.MM.yyyy" />
+        <MudTextField T="string" Label="Ülesanne" Variant="Variant.Outlined" @bind-Value="FormModel.TaskDescription" Lines="4"/>
+        <MudDatePicker Label="Ülesande täitmise aeg" Variant="Variant.Outlined" @bind-Date="FormModel.DueDate" DateFormat="dd.MM.yyyy"/>
+        <MudSelect T="string" Label="Allkirjastaja" Variant="Variant.Outlined" Placeholder="Vali allkirjastaja"
+        @bind-Value="FormModel.Signer" MultiSelection="false">
+            @foreach (string user in AvailableUsers)
+            {
+                <MudSelectItem T="string" Value="@user">@user</MudSelectItem>
+            }
+        </MudSelect>
     </MudForm>
 
     <MudStack Row="true" Class="mt-4" Justify="Justify.FlexStart">
@@ -28,6 +40,7 @@
 @code
 {
     private bool _isDisabled;
+    private int ReplicatorType { get; set; } = 1;
 
     protected override async Task StartWorkflow()
     {
@@ -37,11 +50,17 @@
 
         var storage = new Dictionary<string, string?>();
 
+        storage.SetValue(GlobalConstants.WorkflowStorageKeys.ReplicatorType, ReplicatorType.ToString());
         storage.SetValue(GlobalConstants.WorkflowStorageKeys.AssociationName, FormModel.TemplateName);
         storage.SetValue(GlobalConstants.TaskStorageKeys.TaskDescription, FormModel.TaskDescription);
         storage.SetValueAsDateTime(GlobalConstants.TaskStorageKeys.TaskDueDate, FormModel.DueDate);
         storage.SetValueAsList(GlobalConstants.TaskStorageKeys.TaskExecutors, FormModel.AssignedTo);
 
+        if (!string.IsNullOrWhiteSpace(FormModel.Signer))
+        {
+            storage.SetValueAsList(GlobalConstants.TaskStorageKeys.TaskSigners, [FormModel.Signer]);
+        }
+        
         var command = new StartWorkflowCommand
         {
             WorkflowTemplateId = TemplateId,

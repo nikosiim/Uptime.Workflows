@@ -32,7 +32,7 @@
 
         var storage = new Dictionary<string, string?>();
 
-        storage.SetValue(GlobalConstants.WorkflowStorageKeys.AssociationName, FormModel.TemplateName);
+        storage.SetValue(GlobalConstants.WorkflowStorageKeys.AssociationName, FormModel.TemplateName); 
         storage.SetValue(GlobalConstants.TaskStorageKeys.TaskDescription, FormModel.TaskDescription);
         storage.SetValue(GlobalConstants.TaskStorageKeys.TaskDueDays, FormModel.DueDays.ToString());
         storage.SetValueAsList(GlobalConstants.TaskStorageKeys.TaskSigners, [FormModel.Signer!]);

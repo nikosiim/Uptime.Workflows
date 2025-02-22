@@ -11,12 +11,16 @@ internal static class ApprovalWorkflowDataExtractor
 {
     public static ReplicatorType GetReplicatorType(this IWorkflowPayload payload, string phaseName)
     {
-        const ReplicatorType replicatorType = ReplicatorType.Sequential;
+        var replicatorType = ReplicatorType.Sequential;
+        if (payload.Storage.TryGetValueAsEnum(WorkflowStorageKeys.ReplicatorType, out ReplicatorType type))
+        {
+            replicatorType = type;
+        }
 
         return phaseName switch
         {
             ApprovalWorkflow.ReplicatorPhases.ApprovalPhase => replicatorType,
-            ApprovalWorkflow.ReplicatorPhases.SigningPhase => replicatorType,
+            ApprovalWorkflow.ReplicatorPhases.SigningPhase => ReplicatorType.Sequential,
             _ => throw new InvalidOperationException($"Unknown phase: {phaseName}")
         };
     }
@@ -40,18 +44,16 @@ internal static class ApprovalWorkflowDataExtractor
 
     public static List<SigningTaskData> GetSigningTasks(this IWorkflowPayload payload, WorkflowId workflowId)
     {
-        //if (!payload.Storage.TryGetValueAsList(TaskStorageKeys.TaskSigners, out List<string> signers))
-        //    return [];
-
-        List<string> signers = ["Klient Neli"];
-
+        if (!payload.Storage.TryGetValueAsList(TaskStorageKeys.TaskSigners, out List<string> signers)) 
+            return [];
+        
         string? taskDescription = payload.Storage.GetValue(TaskStorageKeys.SignerTask);
         DateTime dueDate = payload.Storage.GetValueAsDateTime(TaskStorageKeys.TaskDueDate);
 
-        return signers.Select(executor => new SigningTaskData
+        return signers.Select(signer => new SigningTaskData
         {
             AssignedBy = payload.Originator,
-            AssignedTo = executor,
+            AssignedTo = signer,
             TaskDescription = taskDescription,
             DueDate = dueDate
         }).ToList();

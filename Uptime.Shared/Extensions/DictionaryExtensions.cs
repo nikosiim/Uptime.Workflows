@@ -38,8 +38,7 @@ public static class DictionaryExtensions
     /// </summary>
     public static TEnum GetValueAsEnum<TEnum>(this Dictionary<string, string?> data, string key) where TEnum : struct
     {
-        if (data.TryGetValue(key, out string? value) &&
-            Enum.TryParse(value, out TEnum parsedEnum))
+        if (data.TryGetValue(key, out string? value) && Enum.TryParse(value, out TEnum parsedEnum))
         {
             return parsedEnum;
         }

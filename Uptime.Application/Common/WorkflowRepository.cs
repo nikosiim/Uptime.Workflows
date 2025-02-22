@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
+﻿using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
@@ -8,7 +8,7 @@ using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application.Common;
 
-public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowRepository
+public class WorkflowRepository(IWorkflowDbContextFactory factory) : IWorkflowRepository
 {
     #region Workflows
 
@@ -24,6 +24,8 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
             DocumentId = payload.DocumentId.Value,
             WorkflowTemplateId = payload.WorkflowTemplateId.Value
         };
+
+        using IWorkflowDbContext dbContext = factory.CreateDbContext();
 
         dbContext.Workflows.Add(instance);
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -44,18 +46,22 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
         instance.Phase = WorkflowPhase.Invalid.Value;
         instance.EndDate = DateTime.UtcNow;
         
+        using IWorkflowDbContext dbContext = factory.CreateDbContext();
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<Workflow?> GetWorkflowInstanceAsync(WorkflowId workflowId, CancellationToken cancellationToken)
     {
+        using IWorkflowDbContext dbContext = factory.CreateDbContext();
         return await dbContext.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId.Value, cancellationToken);
     }
     
     public async Task SaveWorkflowStateAsync<TContext>(WorkflowId workflowId, WorkflowPhase phase, TContext context, CancellationToken cancellationToken)
         where TContext : IWorkflowContext, new()
     {
-        Workflow? instance = await GetWorkflowInstanceAsync(workflowId, cancellationToken);
+        using IWorkflowDbContext dbContext = factory.CreateDbContext();
+
+        Workflow? instance =  await dbContext.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId.Value, cancellationToken);
         if (instance == null)
         {
             throw new InvalidOperationException($"Workflow with ID {workflowId} not found.");
@@ -83,6 +89,7 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
 
     public async Task<TaskId> CreateWorkflowTaskAsync(IWorkflowTask request, CancellationToken cancellationToken)
     {
+        using IWorkflowDbContext dbContext = factory.CreateDbContext();
         bool workflowExists = await dbContext.Workflows.AnyAsync(w => w.Id == request.WorkflowId.Value, cancellationToken: cancellationToken);
         if (!workflowExists)
         {
@@ -112,6 +119,8 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
 
     public async Task CancelAllActiveTasksAsync(WorkflowId workflowId, CancellationToken cancellationToken)
     {
+        using IWorkflowDbContext dbContext = factory.CreateDbContext();
+
         List<WorkflowTask> tasks = await dbContext.WorkflowTasks
             .Where(t => t.WorkflowId == workflowId.Value && t.InternalStatus != WorkflowTaskStatus.Completed && t.InternalStatus != WorkflowTaskStatus.Cancelled)
             .ToListAsync(cancellationToken);
@@ -130,6 +139,7 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
     
     public async Task SaveWorkflowTaskAsync(IWorkflowTask request, CancellationToken cancellationToken)
     {
+        using IWorkflowDbContext dbContext = factory.CreateDbContext();
         WorkflowTask? task = await dbContext.WorkflowTasks.FirstOrDefaultAsync(t => t.Id == request.TaskId.Value, cancellationToken);
 
         if (task == null)
@@ -172,6 +182,8 @@ public class WorkflowRepository(IWorkflowDbContext dbContext) : IWorkflowReposit
             Comment = comment,
             WorkflowId = workflowId.Value
         };
+
+        using IWorkflowDbContext dbContext = factory.CreateDbContext();
 
         dbContext.WorkflowHistories.Add(historyEntry);
         await dbContext.SaveChangesAsync(cancellationToken);
