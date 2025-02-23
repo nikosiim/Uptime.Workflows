@@ -1,4 +1,6 @@
-﻿<MudStack Spacing="4">
+﻿@inject IMediator Mediator
+
+<MudStack Spacing="4">
     
     <MudStack Spacing="0">
         <MudLink Href="#">Töövoo muutmine</MudLink>
@@ -11,8 +13,16 @@
     </MudStack>
 
     <MudStack Spacing="0">
-        <MudLink Href="#">Kustuta töövoog</MudLink>
+        <MudLink OnClick="OnDeleteClick">Kustuta töövoog</MudLink>
         <MudText Typo="Typo.subtitle2">Töövoo kustutamisel aktiivsed ülesanded katkestatakse ja uusi ülesandeid ei lisada.</MudText>
     </MudStack>
 
 </MudStack>
+
+@code
+{
+    private void OnDeleteClick()
+    {
+
+    }
+}
