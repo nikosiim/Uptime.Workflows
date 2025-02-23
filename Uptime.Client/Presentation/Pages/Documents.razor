@@ -1,0 +1,33 @@
+﻿@page "/documents"
+
+@inherits FluxorComponent
+@inject IState<WorkflowState> WorkflowState
+@inject IDispatcher Dispatcher
+
+<MudContainer>
+    @switch (WorkflowState.Value.LibraryDocumentsQuery.Status)
+    {
+        case QueryStatus.Loading:
+            <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+            break;
+        case QueryStatus.Loaded when WorkflowState.Value.LibraryDocumentsQuery.Result.Succeeded:
+            <LibraryComponent Name="Documents" ViewModel="WorkflowState.Value.LibraryDocumentsQuery.Result.Value" />
+            break;
+        case QueryStatus.Loaded:
+            <MudAlert Severity="Severity.Error">@WorkflowState.Value.LibraryDocumentsQuery.Result.Error</MudAlert>
+            break;
+    }
+</MudContainer>
+
+@code
+{
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        
+        if (WorkflowState.Value.LibraryDocumentsQuery.Status == QueryStatus.Uninitialized)
+        {
+            Dispatcher.Dispatch(new LoadDocumentsAction());
+        }
+    }
+}

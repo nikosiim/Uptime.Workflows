@@ -1,0 +1,39 @@
+﻿@inject NavigationManager Navigation
+
+<MudTable Items="@ViewModel" Hover="true" Bordered="true" Striped="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Documents</MudText>
+        <MudSpacer />
+        <MudButton Variant="Variant.Filled" OnClick="@NavigateToWorkflowSettings">Workflow Settings</MudButton>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Title</MudTh>
+        <MudTh>Description</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.Title</MudTd>
+        <MudTd>@context.Description</MudTd>
+        <MudTd>
+            <MudButton Size="Size.Small" Variant="Variant.Filled" OnClick="() => NavigateToWorkflows(context)">Workflows</MudButton>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Name { get; set; } = null!;
+
+    [Parameter, EditorRequired]
+    public List<LibraryDocument> ViewModel { get; set; } = null!;
+    
+    private void NavigateToWorkflowSettings()
+    {
+        Navigation.NavigateTo($"/{Constants.PageRoutes.WorkflowSettings}/{Name.ToLower()}");
+    }
+
+    private void NavigateToWorkflows(LibraryDocument document)
+    {
+        Navigation.NavigateTo($"/{Constants.PageRoutes.LibraryWorkflows}/{document.LibraryId}/{document.Id}");
+    }
+}

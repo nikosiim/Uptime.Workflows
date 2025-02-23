@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Uptime.Application", "Uptim
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Uptime.Persistence", "Uptime.Persistence\Uptime.Persistence.csproj", "{6413E2DE-F398-4546-AE1C-21C4A08E587A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Uptime.Client", "Uptime.Client\Uptime.Client.csproj", "{B28D6076-0C3C-4FB2-BDF3-1153B9FAB5BF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,8 +52,15 @@ Global
 		{6413E2DE-F398-4546-AE1C-21C4A08E587A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6413E2DE-F398-4546-AE1C-21C4A08E587A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6413E2DE-F398-4546-AE1C-21C4A08E587A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B28D6076-0C3C-4FB2-BDF3-1153B9FAB5BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B28D6076-0C3C-4FB2-BDF3-1153B9FAB5BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B28D6076-0C3C-4FB2-BDF3-1153B9FAB5BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B28D6076-0C3C-4FB2-BDF3-1153B9FAB5BF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {60F45378-E38D-4AE1-93F2-7571FB6491B8}
 	EndGlobalSection
 EndGlobal
