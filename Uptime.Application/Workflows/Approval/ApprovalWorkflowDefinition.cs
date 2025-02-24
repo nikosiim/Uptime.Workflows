@@ -6,50 +6,51 @@ namespace Uptime.Application.Workflows.Approval;
 
 public sealed class ApprovalWorkflowDefinition : IWorkflowDefinition
 {
-    public string WorkflowBaseId => "ApprovalWorkflow";
+    public string Name => "ApprovalWorkflow";
+    public string DisplayName => "Kinnitamise töövoog";
+    public string Id => "16778969-6d4c-4367-9106-1b0ae4a4594f";
 
-    public WorkflowConfiguration Configuration { get; } = new()
+    public WorkflowDefinition GetDefinition()
     {
-        Phases =
+        return new WorkflowDefinition
+        {
+            Id = Id,
+            Name = Name,
+            DisplayName = DisplayName,
+            ReplicatorPhaseDefinitions = ReplicatorConfiguration.PhaseActivities
+        };
+    }
+
+    // ReplicatorPhaseBuilderConfiguration
+    public ReplicatorConfiguration ReplicatorConfiguration { get; } = new()
+    {
+        PhaseActivities = 
         [
-            new PhaseConfiguration
+            new PhaseActivity
             {
-                Id = ReplicatorPhases.Approval,
-                DisplayName = "Approval",
+                PhaseId = ReplicatorPhases.Approval,
                 SupportsSequential = true,
                 SupportsParallel = true,
                 Actions = ["Approval", "Rejection", "Forward", "Cancellation"]
             },
-
-            new PhaseConfiguration
+            new PhaseActivity
             {
-                Id = ReplicatorPhases.Signing,
-                DisplayName = "Signing",
+                PhaseId = ReplicatorPhases.Signing,
                 SupportsSequential = true,
                 SupportsParallel = false,
                 Actions = ["Signing"]
             }
         ],
-        // Outcome definitions (base outcomes plus approval-specific ones)
-        Outcomes =
-        [
-            new OutcomeConfiguration { Key = "Completed", DisplayValue = "Completed" },
-            new OutcomeConfiguration { Key = "Cancelled", DisplayValue = "Cancelled" },
-            new OutcomeConfiguration { Key = "Invalid", DisplayValue = "Invalid" },
-            new OutcomeConfiguration { Key = "Approved", DisplayValue = "Approved" },
-            new OutcomeConfiguration { Key = "Rejected", DisplayValue = "Rejected" }
-        ],
-        // Replicator phase configurations are now centralized here.
-        ReplicatorPhaseConfigurations = new Dictionary<string, ReplicatorPhaseConfiguration>
+        PhaseConfigurations = new Dictionary<string, ReplicatorPhaseConfiguration>
         {
-            { 
+            {
                 ReplicatorPhases.Approval, new ReplicatorPhaseConfiguration
                 {
                     ActivityData = (payload, workflowId) => payload.GetApprovalTasks(workflowId),
                     ReplicatorType = payload => payload.GetReplicatorType(ReplicatorPhases.Approval)
                 }
             },
-            { 
+            {
                 ReplicatorPhases.Signing, new ReplicatorPhaseConfiguration
                 {
                     ActivityData = (payload, workflowId) => payload.GetSigningTasks(workflowId),
@@ -58,10 +59,4 @@ public sealed class ApprovalWorkflowDefinition : IWorkflowDefinition
             }
         }
     };
-
-    //public WorkflowDefinition GetDefinition()
-    //{
-    //    // Here you might build and return a client-friendly definition.
-    //    return new WorkflowDefinition();
-    //}
 }

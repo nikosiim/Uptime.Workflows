@@ -8,7 +8,9 @@ namespace Uptime.Domain.Interfaces;
 /// </summary>
 public interface IWorkflowDefinition
 {
-    string WorkflowBaseId { get; }
-    WorkflowConfiguration Configuration { get; }
-    //WorkflowDefinition GetDefinition();
+    string Id { get; }
+    string Name { get; }
+    string DisplayName { get; }
+    WorkflowDefinition GetDefinition();
+    ReplicatorConfiguration? ReplicatorConfiguration { get; }
 }

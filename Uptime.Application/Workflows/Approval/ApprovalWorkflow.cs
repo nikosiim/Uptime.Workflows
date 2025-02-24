@@ -14,11 +14,13 @@ public class ApprovalWorkflow(
     ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
     : ReplicatorActivityWorkflowBase<ApprovalWorkflowContext>(stateMachineFactory, repository, logger)
 {
+    private readonly IWorkflowRepository _repository = repository;
+
     private string? AssociationName => WorkflowContext.Storage.GetValueOrDefault(GlobalConstants.WorkflowStorageKeys.AssociationName);
 
     protected override IWorkflowDefinition WorkflowDefinition => new ApprovalWorkflowDefinition();
 
-    protected override IReplicatorActivityProvider ActivityProvider  => new ApprovalWorkflowActivityProvider(repository);
+    protected override IReplicatorActivityProvider ActivityProvider  => new ApprovalWorkflowActivityProvider(_repository);
     
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {

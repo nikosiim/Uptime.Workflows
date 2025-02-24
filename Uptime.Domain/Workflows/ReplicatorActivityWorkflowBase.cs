@@ -18,7 +18,7 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
 
     protected virtual IReplicatorPhaseBuilder CreateReplicatorPhaseBuilder()
     {
-        return new ReplicatorPhaseBuilder(WorkflowDefinition.Configuration.ReplicatorPhaseConfigurations);
+        return new ReplicatorPhaseBuilder(WorkflowDefinition.ReplicatorConfiguration!.PhaseConfigurations);
     }
     
     protected override void OnWorkflowActivatedAsync(IWorkflowPayload payload, CancellationToken cancellationToken)

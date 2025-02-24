@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.Threading;
 using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
 using Uptime.Domain.Enums;
@@ -137,13 +136,7 @@ public abstract class WorkflowBase<TContext>(
     {
         await repository.CancelAllActiveTasksAsync(WorkflowId, cancellationToken);
     }
-
-    protected OutcomeConfiguration GetOutcomeConfig(string key)
-    {
-        return WorkflowDefinition.Configuration.Outcomes.FirstOrDefault(o => o.Key == key)
-               ?? new OutcomeConfiguration { Key = key, DisplayValue = key };
-    }
-
+    
     #endregion
 
     #region Abstract Methods 
