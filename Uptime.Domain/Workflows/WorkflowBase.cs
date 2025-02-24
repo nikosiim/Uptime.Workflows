@@ -138,12 +138,19 @@ public abstract class WorkflowBase<TContext>(
         await repository.CancelAllActiveTasksAsync(WorkflowId, cancellationToken);
     }
 
+    protected OutcomeConfiguration GetOutcomeConfig(string key)
+    {
+        return WorkflowDefinition.Configuration.Outcomes.FirstOrDefault(o => o.Key == key)
+               ?? new OutcomeConfiguration { Key = key, DisplayValue = key };
+    }
+
     #endregion
 
     #region Abstract Methods 
 
     protected abstract void OnWorkflowActivatedAsync(IWorkflowPayload payload, CancellationToken cancellationToken);
     protected abstract void ConfigureStateMachineAsync(CancellationToken cancellationToken);
+    protected abstract IWorkflowDefinition WorkflowDefinition { get; }
 
     #endregion
 

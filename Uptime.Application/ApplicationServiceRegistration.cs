@@ -4,7 +4,6 @@ using Uptime.Application.Common;
 using Uptime.Application.Interfaces;
 using Uptime.Application.Workflows.Approval;
 using Uptime.Application.Workflows.Signing;
-using Uptime.Domain.Common;
 using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application;
@@ -24,8 +23,5 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IWorkflowFactory, WorkflowFactory>();
         services.AddScoped<IWorkflowRepository, WorkflowRepository>();
         services.AddTransient(typeof(IStateMachineFactory<,>), typeof(StatelessStateMachineFactory<,>));
-
-        services.AddScoped<IReplicatorActivityProvider, ApprovalWorkflowActivityProvider>();
-        services.AddScoped<IReplicatorPhaseBuilder>(_ => new ReplicatorPhaseBuilder(ApprovalWorkflow.PhaseConfiguration));
     }
 }

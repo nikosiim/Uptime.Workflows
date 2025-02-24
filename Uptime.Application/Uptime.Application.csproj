@@ -29,6 +29,7 @@
     <Compile Remove="Common\StateTransitionQueue.cs" />
     <Compile Remove="Common\UserTaskActivity.cs" />
     <Compile Remove="Common\WorkflowBase.cs" />
+    <Compile Remove="Common\WorkflowDefinition.cs" />
     <Compile Remove="Common\WorkflowStateRepository.cs" />
     <Compile Remove="Common\WorkflowStatusMapper.cs" />
     <Compile Remove="Common\WorkflowTaskContext.cs" />
@@ -50,6 +51,7 @@
     <Compile Remove="Interfaces\IWorkflowActivity.cs" />
     <Compile Remove="Interfaces\IWorkflowActivityFactory.cs" />
     <Compile Remove="Interfaces\IWorkflowContext.cs" />
+    <Compile Remove="Interfaces\IWorkflowDefinition.cs" />
     <Compile Remove="Interfaces\IWorkflowMachine.cs" />
     <Compile Remove="Interfaces\IWorkflowPayload.cs" />
     <Compile Remove="Interfaces\IWorkflowStateRepository.cs" />

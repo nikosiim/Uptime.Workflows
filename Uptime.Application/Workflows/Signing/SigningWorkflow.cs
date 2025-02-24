@@ -18,6 +18,8 @@ public class SigningWorkflow(
 
     protected string? AssociationName => WorkflowContext.Storage.GetValueOrDefault(GlobalConstants.WorkflowStorageKeys.AssociationName);
 
+    protected override IWorkflowDefinition WorkflowDefinition => throw new NotImplementedException();
+
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {
         Machine.Configure(WorkflowPhase.NotStarted)

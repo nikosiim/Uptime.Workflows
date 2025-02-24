@@ -2,7 +2,6 @@
 using Uptime.Application.Workflows.Signing;
 using Uptime.Domain.Common;
 using Uptime.Domain.Interfaces;
-using static Uptime.Application.Workflows.Approval.ApprovalWorkflow;
 using static Uptime.Shared.GlobalConstants;
 
 namespace Uptime.Application.Workflows.Approval;
@@ -11,7 +10,7 @@ public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository) : 
 {
     public override IWorkflowActivity CreateActivity(string phaseName, object data, WorkflowTaskContext context)
     {
-        if (phaseName == ReplicatorPhases.SigningPhase)
+        if (phaseName == ReplicatorPhases.Signing)
         {
             return new SigningTaskActivity(Repository, context)
             {
@@ -27,12 +26,12 @@ public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository) : 
 
     public override void OnChildInitialized(string phaseName, object data, IWorkflowActivity activity)
     {
-        if (phaseName == ReplicatorPhases.ApprovalPhase)
+        if (phaseName == ReplicatorPhases.Approval)
         {
             var taskData = data.DeserializeTaskData<ApprovalTaskData>();
             Console.WriteLine($"Approval task initialized for {taskData.AssignedTo}");
         }
-        else if (phaseName == ReplicatorPhases.SigningPhase)
+        else if (phaseName == ReplicatorPhases.Signing)
         {
             var taskData = data.DeserializeTaskData<SigningTaskData>();
             Console.WriteLine($"Signing task initialized for {taskData.AssignedTo}");
@@ -43,11 +42,11 @@ public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository) : 
     {
         switch (phaseName)
         {
-            case ReplicatorPhases.ApprovalPhase:
+            case ReplicatorPhases.Approval:
                 HandleApprovalPhaseChildCompleted((ApprovalTaskActivity)activity, workflowContext);
                 break;
 
-            case ReplicatorPhases.SigningPhase:
+            case ReplicatorPhases.Signing:
                 HandleSigningPhaseChildCompleted((SigningTaskActivity)activity, workflowContext);
                 break;
 
@@ -67,7 +66,7 @@ public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository) : 
                 ApprovalTaskData data = ApprovalTaskData.Copy(activity.TaskData!);
                 data.AssignedTo = activity.Context.Storage.GetValueOrDefault(TaskStorageKeys.TaskDelegatedTo)!;
 
-                approvalContext.ReplicatorStates.InsertItemAfter(ReplicatorPhases.ApprovalPhase, activity.Context.TaskGuid, new ReplicatorItem { Data = data });
+                approvalContext.ReplicatorStates.InsertItemAfter(ReplicatorPhases.Approval, activity.Context.TaskGuid, new ReplicatorItem { Data = data });
             }
             else if (activity.IsTaskRejected)
             {

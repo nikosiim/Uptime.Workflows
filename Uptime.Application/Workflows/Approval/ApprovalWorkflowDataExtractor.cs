@@ -1,4 +1,5 @@
-﻿using Uptime.Application.Workflows.Signing;
+﻿using Uptime.Application.Common;
+using Uptime.Application.Workflows.Signing;
 using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
 using Uptime.Domain.Interfaces;
@@ -19,8 +20,8 @@ internal static class ApprovalWorkflowDataExtractor
 
         return phaseName switch
         {
-            ApprovalWorkflow.ReplicatorPhases.ApprovalPhase => replicatorType,
-            ApprovalWorkflow.ReplicatorPhases.SigningPhase => ReplicatorType.Sequential,
+            ReplicatorPhases.Approval => replicatorType,
+            ReplicatorPhases.Signing => ReplicatorType.Sequential,
             _ => throw new InvalidOperationException($"Unknown phase: {phaseName}")
         };
     }

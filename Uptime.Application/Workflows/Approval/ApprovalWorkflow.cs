@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Uptime.Application.Common;
 using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
 using Uptime.Domain.Interfaces;
@@ -9,39 +10,15 @@ namespace Uptime.Application.Workflows.Approval;
 
 public class ApprovalWorkflow(
     IStateMachineFactory<WorkflowPhase, WorkflowTrigger> stateMachineFactory,
-    IWorkflowRepository repository, 
-    IReplicatorPhaseBuilder replicatorPhaseBuilder,
-    IReplicatorActivityProvider activityFactory, 
+    IWorkflowRepository repository,
     ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
-    : ReplicatorActivityWorkflowBase<ApprovalWorkflowContext>(stateMachineFactory, repository, activityFactory, replicatorPhaseBuilder, logger)
+    : ReplicatorActivityWorkflowBase<ApprovalWorkflowContext>(stateMachineFactory, repository, logger)
 {
-    public static class ReplicatorPhases
-    {
-        public const string ApprovalPhase = "ApprovalPhase";
-        public const string SigningPhase = "SigningPhase";
-    }
+    private string? AssociationName => WorkflowContext.Storage.GetValueOrDefault(GlobalConstants.WorkflowStorageKeys.AssociationName);
 
-    public static Dictionary<string, ReplicatorPhaseConfiguration> PhaseConfiguration => new()
-    {
-        {
-            ReplicatorPhases.ApprovalPhase,
-            new ReplicatorPhaseConfiguration
-            {
-                ActivityData = (payload, workflowId) => payload.GetApprovalTasks(workflowId),
-                ReplicatorType = payload => payload.GetReplicatorType(ReplicatorPhases.ApprovalPhase)
-            }
-        },
-        {
-            ReplicatorPhases.SigningPhase,
-            new ReplicatorPhaseConfiguration
-            {
-                ActivityData = (payload, workflowId) => payload.GetSigningTasks(workflowId),
-                ReplicatorType = payload => payload.GetReplicatorType(ReplicatorPhases.ApprovalPhase)
-            }
-        }
-    };
+    protected override IWorkflowDefinition WorkflowDefinition => new ApprovalWorkflowDefinition();
 
-    protected string? AssociationName => WorkflowContext.Storage.GetValueOrDefault(GlobalConstants.WorkflowStorageKeys.AssociationName);
+    protected override IReplicatorActivityProvider ActivityProvider  => new ApprovalWorkflowActivityProvider(repository);
     
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {
@@ -55,14 +32,14 @@ public class ApprovalWorkflow(
 
         Machine.Configure(ApprovalPhase.Approval)
             .SubstateOf(WorkflowPhase.InProgress)
-            .OnEntryAsync(() => RunReplicatorAsync(ReplicatorPhases.ApprovalPhase, cancellationToken))
+            .OnEntryAsync(() => RunReplicatorAsync(ReplicatorPhases.Approval, cancellationToken))
             //.PermitIf(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Completed, () => WorkflowContext.AnyTaskRejected)
             //.PermitIf(WorkflowTrigger.AllTasksCompleted, ApprovalPhase.Signing, () => !WorkflowContext.AnyTaskRejected)
             .PermitDynamic(WorkflowTrigger.AllTasksCompleted, () => WorkflowContext.AnyTaskRejected ? WorkflowPhase.Completed : ApprovalPhase.Signing);
 
         Machine.Configure(ApprovalPhase.Signing)
             .SubstateOf(WorkflowPhase.InProgress)
-            .OnEntryAsync(() => RunReplicatorAsync(ReplicatorPhases.SigningPhase, cancellationToken))
+            .OnEntryAsync(() => RunReplicatorAsync(ReplicatorPhases.Signing, cancellationToken))
             .Permit(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Completed);
 
         Machine.Configure(WorkflowPhase.Completed)
@@ -74,7 +51,7 @@ public class ApprovalWorkflow(
     protected override void OnWorkflowActivatedAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
         base.OnWorkflowActivatedAsync(payload, cancellationToken);
-
+        
         WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
     }
 
