@@ -17,7 +17,7 @@ public class WorkflowRepository(IWorkflowDbContextFactory factory) : IWorkflowRe
         var instance = new Workflow
         {
             IsActive = true,
-            Phase = WorkflowPhase.NotStarted.Value,
+            Phase = BaseState.NotStarted.Value,
             StorageJson = null,
             Originator = payload.Originator,
             StartDate = DateTime.UtcNow,
@@ -43,7 +43,7 @@ public class WorkflowRepository(IWorkflowDbContextFactory factory) : IWorkflowRe
 
         instance.IsActive = false;
         instance.Outcome = WorkflowOutcome.Invalid.Value;
-        instance.Phase = WorkflowPhase.Invalid.Value;
+        instance.Phase = BaseState.Invalid.Value;
         instance.EndDate = DateTime.UtcNow;
         
         using IWorkflowDbContext dbContext = factory.CreateDbContext();
@@ -56,7 +56,7 @@ public class WorkflowRepository(IWorkflowDbContextFactory factory) : IWorkflowRe
         return await dbContext.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId.Value, cancellationToken);
     }
     
-    public async Task SaveWorkflowStateAsync<TContext>(WorkflowId workflowId, WorkflowPhase phase, TContext context, CancellationToken cancellationToken)
+    public async Task SaveWorkflowStateAsync<TContext>(WorkflowId workflowId, BaseState phase, TContext context, CancellationToken cancellationToken)
         where TContext : IWorkflowContext, new()
     {
         using IWorkflowDbContext dbContext = factory.CreateDbContext();

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Uptime.Application.Common;
 using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
 using Uptime.Domain.Interfaces;
@@ -9,7 +10,7 @@ using Uptime.Shared.Extensions;
 namespace Uptime.Application.Workflows.Signing;
 
 public class SigningWorkflow(
-    IStateMachineFactory<WorkflowPhase, WorkflowTrigger> stateMachineFactory,
+    IStateMachineFactory<BaseState, WorkflowTrigger> stateMachineFactory,
     IWorkflowRepository repository,
     ILogger<WorkflowBase<SigningWorkflowContext>> logger)
     : ActivityWorkflowBase<SigningWorkflowContext>(stateMachineFactory, repository, logger)
@@ -22,16 +23,16 @@ public class SigningWorkflow(
 
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {
-        Machine.Configure(WorkflowPhase.NotStarted)
-            .Permit(WorkflowTrigger.Start, SigningPhase.Signing);
+        Machine.Configure(BaseState.NotStarted)
+            .Permit(WorkflowTrigger.Start, ExtendedState.Signing);
 
-        Machine.Configure(SigningPhase.Signing)
+        Machine.Configure(ExtendedState.Signing)
             .OnEntryAsync(() => StartSigningTask(cancellationToken))
             .OnExit(OnSigningTaskCompleted) 
-            .Permit(WorkflowTrigger.TaskCompleted, WorkflowPhase.Completed)
-            .Permit(WorkflowTrigger.TaskRejected, WorkflowPhase.Completed);
+            .Permit(WorkflowTrigger.TaskCompleted, BaseState.Completed)
+            .Permit(WorkflowTrigger.TaskRejected, BaseState.Completed);
 
-        Machine.Configure(WorkflowPhase.Completed);
+        Machine.Configure(BaseState.Completed);
     }
 
     protected override void OnWorkflowActivatedAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
@@ -72,7 +73,7 @@ public class SigningWorkflow(
 
     protected override Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)
     {
-        WorkflowContext.Outcome = SigningOutcome.Signed;
+        WorkflowContext.Outcome = ExtendedOutcome.Signed;
         WorkflowCompletedHistoryDescription = $"{AssociationName} on lõpetatud.";
 
         return Task.CompletedTask;

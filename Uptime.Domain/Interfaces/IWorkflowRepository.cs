@@ -11,7 +11,7 @@ public interface IWorkflowRepository
     Task<WorkflowId> CreateWorkflowInstanceAsync(IWorkflowPayload payload, CancellationToken cancellationToken);
     Task MarkWorkflowAsInvalidAsync(WorkflowId workflowId, CancellationToken cancellationToken);
     Task<Workflow?> GetWorkflowInstanceAsync(WorkflowId workflowId, CancellationToken cancellationToken);
-    Task SaveWorkflowStateAsync<TContext>(WorkflowId workflowId, WorkflowPhase phase, TContext context, CancellationToken cancellationToken) where TContext : IWorkflowContext, new();
+    Task SaveWorkflowStateAsync<TContext>(WorkflowId workflowId, BaseState phase, TContext context, CancellationToken cancellationToken) where TContext : IWorkflowContext, new();
     
     #endregion
 

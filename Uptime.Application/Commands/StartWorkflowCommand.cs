@@ -26,7 +26,7 @@ public class StartWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflow
 
         if (!Guid.TryParse(workflowBaseIdString, out Guid workflowBaseId))
         {
-            return WorkflowPhase.Invalid.Value;
+            return BaseState.Invalid.Value;
         }
 
         var payload = new StartWorkflowPayload

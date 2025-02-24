@@ -9,7 +9,7 @@ using Uptime.Shared;
 namespace Uptime.Application.Workflows.Approval;
 
 public class ApprovalWorkflow(
-    IStateMachineFactory<WorkflowPhase, WorkflowTrigger> stateMachineFactory,
+    IStateMachineFactory<BaseState, WorkflowTrigger> stateMachineFactory,
     IWorkflowRepository repository,
     ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
     : ReplicatorActivityWorkflowBase<ApprovalWorkflowContext>(stateMachineFactory, repository, logger)
@@ -24,29 +24,29 @@ public class ApprovalWorkflow(
     
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {
-        Machine.Configure(WorkflowPhase.NotStarted)
-            .Permit(WorkflowTrigger.Start, WorkflowPhase.InProgress);
+        Machine.Configure(BaseState.NotStarted)
+            .Permit(WorkflowTrigger.Start, BaseState.InProgress);
 
-        Machine.Configure(WorkflowPhase.InProgress)
-            .InitialTransition(ApprovalPhase.Approval) 
-            .Permit(WorkflowTrigger.Cancel, WorkflowPhase.Cancelled)
-            .Permit(WorkflowTrigger.TaskRejected, WorkflowPhase.Completed);
+        Machine.Configure(BaseState.InProgress)
+            .InitialTransition(ExtendedState.Approval)
+            .Permit(WorkflowTrigger.Cancel, BaseState.Cancelled)
+            .Permit(WorkflowTrigger.TaskRejected, BaseState.Completed);
 
-        Machine.Configure(ApprovalPhase.Approval)
-            .SubstateOf(WorkflowPhase.InProgress)
+        Machine.Configure(ExtendedState.Approval)
+            .SubstateOf(BaseState.InProgress)
             .OnEntryAsync(() => RunReplicatorAsync(ReplicatorPhases.Approval, cancellationToken))
             //.PermitIf(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Completed, () => WorkflowContext.AnyTaskRejected)
             //.PermitIf(WorkflowTrigger.AllTasksCompleted, ApprovalPhase.Signing, () => !WorkflowContext.AnyTaskRejected)
-            .PermitDynamic(WorkflowTrigger.AllTasksCompleted, () => WorkflowContext.AnyTaskRejected ? WorkflowPhase.Completed : ApprovalPhase.Signing);
+            .PermitDynamic(WorkflowTrigger.AllTasksCompleted, () => WorkflowContext.AnyTaskRejected ? BaseState.Completed : ExtendedState.Signing);
 
-        Machine.Configure(ApprovalPhase.Signing)
-            .SubstateOf(WorkflowPhase.InProgress)
+        Machine.Configure(ExtendedState.Signing)
+            .SubstateOf(BaseState.InProgress)
             .OnEntryAsync(() => RunReplicatorAsync(ReplicatorPhases.Signing, cancellationToken))
-            .Permit(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Completed);
+            .Permit(WorkflowTrigger.AllTasksCompleted, BaseState.Completed);
 
-        Machine.Configure(WorkflowPhase.Completed)
+        Machine.Configure(BaseState.Completed)
             .OnEntry(() => Console.WriteLine("Workflow completed successfully."));
-        Machine.Configure(WorkflowPhase.Cancelled)
+        Machine.Configure(BaseState.Cancelled)
             .OnEntry(() => Console.WriteLine("Workflow was cancelled."));
     }
 
@@ -59,7 +59,7 @@ public class ApprovalWorkflow(
 
     protected override Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)
     {
-        WorkflowContext.Outcome = ApprovalOutcome.Approved;
+        WorkflowContext.Outcome = ExtendedOutcome.Approved;
         WorkflowCompletedHistoryDescription = $"{AssociationName} on lõpetatud.";
         
         return Task.CompletedTask;

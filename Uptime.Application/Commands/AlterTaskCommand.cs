@@ -27,24 +27,24 @@ public class AlterTaskCommandHandler(IWorkflowDbContext dbContext, IWorkflowFact
             .FirstOrDefaultAsync(task => task.Id == request.TaskId.Value, cancellationToken);
 
         if (workflowTask is null) 
-            return WorkflowPhase.Invalid.Value;
+            return BaseState.Invalid.Value;
         
         if (!Guid.TryParse(workflowTask.Workflow.WorkflowTemplate.WorkflowBaseId, out Guid workflowBaseId))
         {
-            return WorkflowPhase.Invalid.Value;
+            return BaseState.Invalid.Value;
         }
         
         IWorkflowMachine? workflow = workflowFactory.GetWorkflow(workflowBaseId);
         if (workflow is not IActivityWorkflowMachine machine)
         {
             logger.LogWarning("The workflow with ID {WorkflowBaseId} does not support task alterations.", workflowBaseId);
-            return WorkflowPhase.Invalid.Value;
+            return BaseState.Invalid.Value;
         }
 
         bool isRehydrated = await machine.RehydrateAsync(request.WorkflowId, cancellationToken);
         if (!isRehydrated)
         {
-            return WorkflowPhase.Invalid.Value;
+            return BaseState.Invalid.Value;
         }
         
         var taskContext = new WorkflowTaskContext((WorkflowId)workflowTask.WorkflowId)

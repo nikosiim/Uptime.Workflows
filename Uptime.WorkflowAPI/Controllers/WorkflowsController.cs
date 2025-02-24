@@ -55,7 +55,7 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
         StartWorkflowCommand cmd = Mapper.MapToStartWorkflowCommand(request);
         string phase = await mediator.Send(cmd);
 
-        if (phase == WorkflowPhase.Invalid.Value)
+        if (phase == BaseState.Invalid.Value)
             return BadRequest("Failed to start workflow.");
 
         return Ok();

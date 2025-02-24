@@ -30,7 +30,7 @@ public class WorkflowTasksController(IMediator mediator) : ControllerBase
         AlterTaskCommand command = Mapper.MapToAlterTaskCommand(request, taskId);
         string phase = await mediator.Send(command);
 
-        if (phase == WorkflowPhase.Invalid.Value)
+        if (phase == BaseState.Invalid.Value)
         {
             return BadRequest("An unexpected error occurred in the workflow process.");
         }

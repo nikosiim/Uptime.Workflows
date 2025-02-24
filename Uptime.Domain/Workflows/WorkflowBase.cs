@@ -7,28 +7,28 @@ using Uptime.Domain.Interfaces;
 namespace Uptime.Domain.Workflows;
 
 public abstract class WorkflowBase<TContext>(
-    IStateMachineFactory<WorkflowPhase, WorkflowTrigger> stateMachineFactory, 
+    IStateMachineFactory<BaseState, WorkflowTrigger> stateMachineFactory, 
     IWorkflowRepository repository, 
     ILogger<WorkflowBase<TContext>> logger)
     : IWorkflowMachine, IWorkflow<TContext> where TContext : class, IWorkflowContext, new()
 {
     #region Fields & Properties
 
-    protected IStateMachine<WorkflowPhase, WorkflowTrigger> Machine = null!;
+    protected IStateMachine<BaseState, WorkflowTrigger> Machine = null!;
     protected WorkflowId WorkflowId;
 
     public TContext WorkflowContext { get; private set; } = new();
-    public WorkflowPhase CurrentState => Machine.CurrentState;
+    public BaseState CurrentState => Machine.CurrentState;
 
     #endregion
 
     #region Public Methods
 
-    public async Task<WorkflowPhase> StartAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
+    public async Task<BaseState> StartAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
         WorkflowContext.Storage.MergeWith(payload.Storage);
 
-        InitializeStateMachine(WorkflowPhase.NotStarted, cancellationToken);
+        InitializeStateMachine(BaseState.NotStarted, cancellationToken);
 
         WorkflowId = await repository.CreateWorkflowInstanceAsync(payload, cancellationToken);
 
@@ -87,14 +87,14 @@ public abstract class WorkflowBase<TContext>(
         WorkflowContext = WorkflowContextHelper.Deserialize<TContext>(instance.StorageJson);
         WorkflowId = workflowId;
         
-        InitializeStateMachine(WorkflowPhase.FromString(instance.Phase), cancellationToken);
+        InitializeStateMachine(BaseState.FromString(instance.Phase), cancellationToken);
 
         return true;
     }
 
     public async Task TriggerTransitionAsync(WorkflowTrigger trigger, CancellationToken cancellationToken, bool autoCommit = true)
     {
-        var transitionQueue = new StateTransitionQueue<WorkflowPhase, WorkflowTrigger>(Machine, logger);
+        var transitionQueue = new StateTransitionQueue<BaseState, WorkflowTrigger>(Machine, logger);
         await transitionQueue.EnqueueTriggerAsync(trigger, cancellationToken);
 
         if (autoCommit)
@@ -149,14 +149,14 @@ public abstract class WorkflowBase<TContext>(
 
     #region Private Methods
 
-    private void InitializeStateMachine(WorkflowPhase initialPhase, CancellationToken cancellationToken)
+    private void InitializeStateMachine(BaseState initialPhase, CancellationToken cancellationToken)
     {
         Machine = stateMachineFactory.Create(initialPhase);
         ConfigureStateMachineAsync(cancellationToken);
 
         Machine.OnTransitionCompletedAsync(async transition =>
         {
-            if (transition.Destination == WorkflowPhase.Completed)
+            if (transition.Destination == BaseState.Completed)
             {
                 await OnWorkflowCompletedAsync(cancellationToken);
                 await repository.AddWorkflowHistoryAsync(
@@ -167,7 +167,7 @@ public abstract class WorkflowBase<TContext>(
                     cancellationToken: cancellationToken
                 );
             }
-            else if (transition.Destination == WorkflowPhase.Cancelled)
+            else if (transition.Destination == BaseState.Cancelled)
             {
                 await OnWorkflowCancelledAsync(cancellationToken);
                 await repository.AddWorkflowHistoryAsync(

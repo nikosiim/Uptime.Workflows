@@ -22,7 +22,7 @@ public class WorkflowFactory : IWorkflowFactory
 
     public async Task<string> StartWorkflowAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
-        WorkflowPhase phase = WorkflowPhase.Invalid;
+        BaseState phase = BaseState.Invalid;
         if (_workflowMap.TryGetValue(payload.WorkflowBaseId, out IWorkflowMachine? workflow))
         {
             phase = await workflow.StartAsync(payload, cancellationToken);

@@ -21,7 +21,6 @@ public sealed class ApprovalWorkflowDefinition : IWorkflowDefinition
         };
     }
 
-    // ReplicatorPhaseBuilderConfiguration
     public ReplicatorConfiguration ReplicatorConfiguration { get; } = new()
     {
         PhaseActivities = 
