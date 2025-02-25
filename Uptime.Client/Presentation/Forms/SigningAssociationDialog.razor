@@ -1,0 +1,23 @@
+﻿@inherits WorkflowAssocForm<SigningFormModel>
+
+<MudDialog>
+    <TitleContent>@MudDialog.Title</TitleContent>
+    <DialogContent>
+        <MudForm @ref="Form">
+            <MudTextField T="string" Label="Töövoo kordumatu nimi" Variant="Variant.Outlined" @bind-Value="FormModel.TemplateName" Required="true" />
+            <MudSelect T="string" Label="Allkirjastaja" Variant="Variant.Outlined" Placeholder="Vali allkirjastaja" @bind-Value="FormModel.Signer" MultiSelection="false">
+                @foreach (string user in AvailableUsers)
+                {
+                    <MudSelectItem T="string" Value="@user">@user</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudTextField T="string" Label="Ülesanne" Variant="Variant.Outlined" @bind-Value="FormModel.TaskDescription" Lines="4" />
+            <MudNumericField Label="Ülesande täitmise aeg" Variant="Variant.Outlined" @bind-Value="FormModel.DueDays" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" OnClick="SaveTemplate">Salvesta</MudButton>
+        <MudButton Variant="Variant.Outlined" OnClick="Cancel">Loobu</MudButton>
+    </DialogActions>
+</MudDialog>

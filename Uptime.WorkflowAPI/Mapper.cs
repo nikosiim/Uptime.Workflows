@@ -143,7 +143,7 @@ public static class Mapper
             Name = wd.Name,
             DisplayName = wd.DisplayName,
             Actions = wd.Actions?.ToList(),
-            Phases = wd.ReplicatorPhaseDefinitions?
+            Phases = wd.ReplicatorActivities?
                 .Select(pa => new PhaseResponse
                 {
                     PhaseId = pa.PhaseId,

@@ -1,0 +1,54 @@
+﻿@page "/workflow-settings/{library}"
+
+@inherits FluxorComponent
+@inject IDispatcher Dispatcher
+@inject IState<WorkflowState> WorkflowState
+
+<MudContainer>
+    @switch (WorkflowState.Value.WorkflowTemplatesQuery.Status)
+    {
+        case QueryStatus.Loading:
+            <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+            break;
+        case QueryStatus.Loaded when WorkflowState.Value.WorkflowTemplatesQuery.Result.Succeeded:
+            <SettingsComponent ViewModel="WorkflowState.Value.WorkflowTemplatesQuery.Result.Value" OnTemplateDeleted="@(id => DeleteTemplate(id))" />
+            break;
+        case QueryStatus.Loaded:
+            <MudAlert Severity="Severity.Error" ShowCloseIcon="true" CloseIconClicked="() => CloseError()">@WorkflowState.Value.WorkflowTemplatesQuery.Result.Error</MudAlert>
+            break;
+    }
+</MudContainer>
+
+@code {
+    [Parameter]
+    public string Library { get; set; } = null!;
+
+    private int LibraryId
+    {
+        get
+        {
+            Libraries.TryGetValue(Library, out int libraryId);
+            return libraryId;
+        }
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        
+        if (WorkflowState.Value.WorkflowTemplatesQuery.Status == QueryStatus.Uninitialized)
+        {
+            Dispatcher.Dispatch(new LoadWorkflowTemplatesAction(LibraryId));
+        }
+    }
+
+    private void DeleteTemplate(int templateId)
+    {
+        Dispatcher.Dispatch(new DeleteWorkflowTemplateAction(templateId));
+    }
+
+    private void CloseError()
+    {
+        Dispatcher.Dispatch(new ResetWorkflowTemplatesErrorAction());
+    }
+}

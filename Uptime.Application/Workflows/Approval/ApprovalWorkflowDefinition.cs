@@ -17,7 +17,7 @@ public sealed class ApprovalWorkflowDefinition : IWorkflowDefinition
             Id = Id,
             Name = Name,
             DisplayName = DisplayName,
-            ReplicatorPhaseDefinitions = ReplicatorConfiguration.PhaseActivities
+            ReplicatorActivities = ReplicatorConfiguration.PhaseActivities
         };
     }
 

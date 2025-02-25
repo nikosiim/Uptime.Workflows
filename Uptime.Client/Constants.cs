@@ -1,7 +1,17 @@
-﻿namespace Uptime.Client;
+﻿using Uptime.Client.Application.Common;
+using Uptime.Client.Presentation.Forms;
+
+namespace Uptime.Client;
 
 public static class Constants
 {
+    public static readonly string[] AvailableUsers =
+    [
+        "Klient Üks", "Klient Kaks", "Klient Kolm", "Klient Neli", "Klient Viis",
+        "Lauri Saar", "Marika Oja", "Jana Pärn", "Piia Saar", "Urve Oja", "Riin Koppel", "Peeter Sepp", "Kristina Kroon",
+        "Markus Lepik", "Marta Laine", "Anton Rebane", "Signe Kask", "Viljar Laine"
+    ];
+
     public static class DialogParams
     {
         public const string AssignedTo = "AssignedTo";
@@ -16,7 +26,7 @@ public static class Constants
 
     public static Dictionary<string, int> Libraries = new(StringComparer.OrdinalIgnoreCase)
     {
-        { "Contracts", 1 }, { "Letters", 2 }
+        { "Documents", 1 }, { "Letters", 2 }
     };
 
     public static class PageRoutes
@@ -29,10 +39,19 @@ public static class Constants
         public const string Letters = "letters";
     }
 
-    public static readonly string[] AvailableUsers =
-    [
-        "Klient Üks", "Klient Kaks", "Klient Kolm", "Klient Neli", "Klient Viis",
-        "Lauri Saar", "Marika Oja", "Jana Pärn", "Piia Saar", "Urve Oja", "Riin Koppel", "Peeter Sepp", "Kristina Kroon",
-        "Markus Lepik", "Marta Laine", "Anton Rebane", "Signe Kask", "Viljar Laine"
-    ];
+    public static IReadOnlyList<FormsConfiguration> WorkflowMappings { get; } = new List<FormsConfiguration>
+    {
+        new FormsConfiguration
+        {
+            Id = "16778969-6d4c-4367-9106-1b0ae4a4594f",
+            InitiationPage = "approval-initiation",
+            AssociationDialogType = typeof(ApprovalAssociationDialog)
+        },
+        new FormsConfiguration
+        {
+            Id = "52C90EB4-7F3D-4A1D-B469-3F3B064F76D7",
+            InitiationPage = "signing-initiation",
+            AssociationDialogType = typeof(SigningAssociationDialog)
+        }
+    };
 }

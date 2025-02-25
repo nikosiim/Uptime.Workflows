@@ -30,11 +30,6 @@ namespace Uptime.WorkflowAPI.Controllers
         {
             var query = new GetLibraryDocumentsQuery((LibraryId)libraryId);
             List<LibraryDocumentDto> documents = await mediator.Send(query);
-
-            if (documents.Count == 0)
-            {
-                return NotFound($"No documents were found for the library with ID '{libraryId}'.");
-            }
             
             return Ok(Mapper.MapToLibraryDocumentResponse(documents));
         }
@@ -44,12 +39,7 @@ namespace Uptime.WorkflowAPI.Controllers
         {
             var query = new GetLibraryWorkflowTemplatesQuery((LibraryId)libraryId);
             List<LibraryWorkflowTemplateDto> templates = await mediator.Send(query);
-
-            if (templates.Count == 0)
-            {
-                return NotFound($"No workflow templates found for library with ID {libraryId}.");
-            }
-
+            
             return Ok(Mapper.MapToLibraryWorkflowTemplateResponse(templates));
         }
     }
