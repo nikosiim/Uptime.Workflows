@@ -23,5 +23,8 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IWorkflowFactory, WorkflowFactory>();
         services.AddScoped<IWorkflowRepository, WorkflowRepository>();
         services.AddTransient(typeof(IStateMachineFactory<,>), typeof(StatelessStateMachineFactory<,>));
+
+        services.AddSingleton<IWorkflowDefinition, ApprovalWorkflowDefinition>();
+        services.AddSingleton<IWorkflowDefinition, SigningWorkflowDefinition>();
     }
 }

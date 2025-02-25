@@ -132,6 +132,28 @@ public static class Mapper
         };
     }
 
+    public static List<WorkflowDefinitionResponse> MapToWorkflowDefinitionResponse(List<WorkflowDefinition>? source)
+    {
+        if (source is null)
+            return [];
+
+        return source.Select(wd => new WorkflowDefinitionResponse
+        {
+            Id = wd.Id,
+            Name = wd.Name,
+            DisplayName = wd.DisplayName,
+            Actions = wd.Actions?.ToList(),
+            Phases = wd.ReplicatorPhaseDefinitions?
+                .Select(pa => new PhaseResponse
+                {
+                    PhaseId = pa.PhaseId,
+                    SupportsSequential = pa.SupportsSequential,
+                    SupportsParallel = pa.SupportsParallel,
+                    Actions = pa.Actions.ToList()
+                }).ToList()
+        }).ToList();
+    }
+
     #endregion
 
     #region WorkflowTasks

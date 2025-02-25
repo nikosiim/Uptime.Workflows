@@ -1,6 +1,6 @@
 ﻿namespace Uptime.Domain.Common;
 
-public sealed class WorkflowDefinition
+public record WorkflowDefinition
 {
     public required string Id { get; init; }
     public required string Name { get; init; }
@@ -15,7 +15,7 @@ public class ReplicatorConfiguration
     public Dictionary<string, ReplicatorPhaseConfiguration> PhaseConfigurations { get; set; } = new();
 }
 
-public sealed record PhaseActivity
+public record PhaseActivity
 {
     public required string PhaseId { get; init; }
     public bool SupportsSequential { get; init; }

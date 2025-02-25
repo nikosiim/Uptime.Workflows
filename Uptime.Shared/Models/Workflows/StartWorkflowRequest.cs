@@ -2,8 +2,8 @@
 
 public record StartWorkflowRequest
 {
-    public required string Originator { get; set; }
-    public required int DocumentId { get; set; }
-    public required int WorkflowTemplateId { get; set; }
+    public required string Originator { get; init; }
+    public required int DocumentId { get; init; }
+    public required int WorkflowTemplateId { get; init; }
     public Dictionary<string, string?> Storage { get; init; } = new();
 }

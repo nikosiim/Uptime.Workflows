@@ -13,6 +13,15 @@ namespace Uptime.WorkflowAPI.Controllers;
 [Route("api/[controller]")]
 public class WorkflowsController(IMediator mediator) : ControllerBase
 {
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<WorkflowDefinitionResponse>>> GetDefinitions()
+    {
+        var query = new GetWorkflowDefinitionQuery();
+        List<WorkflowDefinition> definitions = await mediator.Send(query);
+
+        return Ok(definitions);
+    }
+
     [HttpGet("{workflowId:int}")]
     public async Task<ActionResult<WorkflowResponse>> GetWorkflow(int workflowId)
     {
@@ -28,7 +37,7 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("{workflowId:int}/workflow-tasks")]
-    public async Task<ActionResult<List<WorkflowTasksResponse>>> GetWorkflowTasks(int workflowId, [FromQuery] WorkflowTaskStatus? status = null)
+    public async Task<ActionResult<IEnumerable<WorkflowTasksResponse>>> GetWorkflowTasks(int workflowId, [FromQuery] WorkflowTaskStatus? status = null)
     {
         var query = new GetWorkflowTasksQuery((WorkflowId)workflowId, status.ToDomain());
 
@@ -41,7 +50,7 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("{workflowId:int}/workflow-histories")]
-    public async Task<ActionResult<List<WorkflowHistoryResponse>>> GetWorkflowHistory(int workflowId)
+    public async Task<ActionResult<IEnumerable<WorkflowHistoryResponse>>> GetWorkflowHistory(int workflowId)
     {
         var query = new GetWorkflowHistoryQuery((WorkflowId)workflowId);
         List<WorkflowHistoryDto> items = await mediator.Send(query);
