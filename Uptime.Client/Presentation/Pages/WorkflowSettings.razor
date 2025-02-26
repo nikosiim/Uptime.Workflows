@@ -11,7 +11,7 @@
             <MudProgressCircular Indeterminate="true" Size="Size.Small" />
             break;
         case QueryStatus.Loaded when WorkflowState.Value.WorkflowTemplatesQuery.Result.Succeeded:
-            <SettingsComponent ViewModel="WorkflowState.Value.WorkflowTemplatesQuery.Result.Value" OnTemplateDeleted="@(id => DeleteTemplate(id))" />
+            <SettingsComponent ViewModel="WorkflowState.Value.WorkflowTemplatesQuery.Result.Value" OnTemplateDeleted="@(id => DeleteTemplate(id, LibraryId))" />
             break;
         case QueryStatus.Loaded:
             <MudAlert Severity="Severity.Error" ShowCloseIcon="true" CloseIconClicked="() => CloseError()">@WorkflowState.Value.WorkflowTemplatesQuery.Result.Error</MudAlert>
@@ -42,9 +42,9 @@
         }
     }
 
-    private void DeleteTemplate(int templateId)
+    private void DeleteTemplate(int templateId, int libraryId)
     {
-        Dispatcher.Dispatch(new DeleteWorkflowTemplateAction(templateId));
+        Dispatcher.Dispatch(new DeleteWorkflowTemplateAction(templateId, libraryId));
     }
 
     private void CloseError()

@@ -1,4 +1,4 @@
-﻿@page "/documents"
+﻿@page "/contracts"
 
 @inherits FluxorComponent
 @inject IState<WorkflowState> WorkflowState
@@ -11,7 +11,7 @@
             <MudProgressCircular Indeterminate="true" Size="Size.Small" />
             break;
         case QueryStatus.Loaded when WorkflowState.Value.LibraryDocumentsQuery.Result.Succeeded:
-            <LibraryComponent Name="Documents" ViewModel="WorkflowState.Value.LibraryDocumentsQuery.Result.Value" />
+            <LibraryComponent Name="Contracts" Title="Lepingud" ViewModel="WorkflowState.Value.LibraryDocumentsQuery.Result.Value" />
             break;
         case QueryStatus.Loaded:
             <MudAlert Severity="Severity.Error">@WorkflowState.Value.LibraryDocumentsQuery.Result.Error</MudAlert>

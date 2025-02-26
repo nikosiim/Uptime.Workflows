@@ -16,12 +16,7 @@ public class DocumentsController(IMediator mediator) : ControllerBase
     {
         var query = new GetDocumentWorkflowsQuery((DocumentId)documentId);
         List<DocumentWorkflowDto> workflows = await mediator.Send(query);
-
-        if (workflows.Count == 0)
-        {
-            return NotFound($"No workflow instances found for document ID {documentId}.");
-        }
-
+        
         return Ok(Mapper.MapToDocumentWorkflowsResponse(workflows));
     }
 

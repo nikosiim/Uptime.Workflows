@@ -1,6 +1,6 @@
 ﻿namespace Uptime.Client.Application.DTOs;
 
-public record DocumentWorkflowDto
+public record DocumentWorkflow
 {
     public int Id { get; init; }
     public int TemplateId { get; init; }

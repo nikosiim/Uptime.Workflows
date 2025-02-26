@@ -1,0 +1,69 @@
+﻿@page "/library-workflow/{listId:int}/{documentId:int}"
+
+@inherits FluxorComponent
+@inject IDispatcher Dispatcher
+@inject IActionSubscriber ActionSubscriber
+@inject IState<WorkflowState> WorkflowState
+
+<MudContainer>
+    <MudPaper Elevation="0" Outlined="false" Class="mb-6">
+        @switch (WorkflowState.Value.WorkflowTemplatesQuery.Status)
+        {
+            case QueryStatus.Loading:
+                <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                break;
+            case QueryStatus.Loaded when WorkflowState.Value.WorkflowTemplatesQuery.Result.Succeeded:
+                <LibraryWorkflowTemplates
+                    DocumentId="DocumentId"
+                    Workflows="WorkflowState.Value.DocumentWorkflowsQuery.Result.Value"
+                    WorkflowTemplates="WorkflowState.Value.WorkflowTemplatesQuery.Result.Value" />
+                break;
+            case QueryStatus.Loaded:
+                <MudAlert Severity="Severity.Error">@WorkflowState.Value.WorkflowTemplatesQuery.Result.Error</MudAlert>
+                break;
+        }
+        <MudDivider />
+    </MudPaper>
+
+    <MudPaper Elevation="0" Outlined="false" Class="my-6">
+        @switch (WorkflowState.Value.DocumentWorkflowsQuery.Status)
+        {
+            case QueryStatus.Loading:
+                <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                break;
+            case QueryStatus.Loaded when WorkflowState.Value.DocumentWorkflowsQuery.Result.Succeeded:
+                <LibraryWorkflowOverview Workflows="WorkflowState.Value.DocumentWorkflowsQuery.Result.Value" />
+                break;
+            case QueryStatus.Loaded:
+                <MudAlert Severity="Severity.Error">@WorkflowState.Value.DocumentWorkflowsQuery.Result.Error</MudAlert>
+                break;
+        }
+        <MudDivider />
+    </MudPaper>
+</MudContainer>
+
+@code {
+
+    [Parameter] public int ListId { get; set; }
+    [Parameter] public int DocumentId { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        if (WorkflowState.Value.DocumentWorkflowsQuery.Status == QueryStatus.Uninitialized)
+        {
+            Dispatcher.Dispatch(new LoadDocumentWorkflowsAction(DocumentId));
+        }
+
+        ActionSubscriber.SubscribeToAction<LoadDocumentWorkflowsSuccessAction>(this, OnDocumentWorkflowsLoaded);
+    }
+
+    private void OnDocumentWorkflowsLoaded(LoadDocumentWorkflowsSuccessAction action)
+    {
+        if (WorkflowState.Value.WorkflowTemplatesQuery.Status == QueryStatus.Uninitialized)
+        {
+            Dispatcher.Dispatch(new LoadWorkflowTemplatesAction(DocumentId));
+        }
+    }
+}

@@ -2,6 +2,7 @@
 using Uptime.Client.Application.DTOs;
 using Uptime.Client.StateManagement.Common;
 using Uptime.Shared.Common;
+using Uptime.Shared.Extensions;
 using Uptime.Shared.Models.Libraries;
 using Uptime.Shared.Models.Workflows;
 
@@ -9,6 +10,8 @@ namespace Uptime.Client.StateManagement.Workflow;
 
 public static class WorkflowReducers
 {
+    #region LoadDocumentsAction
+
     [ReducerMethod(typeof(LoadDocumentsAction))]
     public static WorkflowState ReduceLoadDocumentsAction(WorkflowState state) => state with
     {
@@ -53,7 +56,61 @@ public static class WorkflowReducers
         };
     }
 
+    #endregion
 
+    #region LoadDocumentWorkflowsAction
+    
+    [ReducerMethod]
+    public static WorkflowState ReduceLoadDocumentWorkflowsAction(WorkflowState state, LoadDocumentWorkflowsAction action)
+    {
+        return state with
+        {
+            DocumentWorkflowsQuery = state.DocumentWorkflowsQuery with { Status = QueryStatus.Loading }
+        };
+    }
+
+    [ReducerMethod]
+    public static WorkflowState ReduceLoadDocumentWorkflowsSuccessAction(WorkflowState state, LoadDocumentWorkflowsSuccessAction action)
+    {
+        List<DocumentWorkflow> workflows = action.Workflows
+            .Select(workflow => new DocumentWorkflow
+            {
+                Id = workflow.Id,
+                TemplateId = workflow.TemplateId,
+                WorkflowTemplateName = workflow.WorkflowTemplateName,
+                StartDate = workflow.StartDate,
+                EndDate = workflow.EndDate,
+                Outcome = WorkflowResources.Get(workflow.Outcome),
+                IsActive = workflow.IsActive
+            }).ToList();
+
+        return state with
+        {
+            DocumentWorkflowsQuery = new QueryState<Result<List<DocumentWorkflow>>>
+            {
+                Status = QueryStatus.Loaded,
+                Result = Result<List<DocumentWorkflow>>.Success(workflows)
+            }
+        };
+    }
+
+    [ReducerMethod]
+    public static WorkflowState ReduceLoadDocumentWorkflowsFailedAction(WorkflowState state, LoadDocumentWorkflowsFailedAction action)
+    {
+        return state with
+        {
+            DocumentWorkflowsQuery = new QueryState<Result<List<DocumentWorkflow>>>
+            {
+                Status = QueryStatus.Loaded,
+                Result = Result<List<DocumentWorkflow>>.Failure(action.ErrorMessage)
+            }
+        };
+    }
+
+    #endregion
+
+    #region LoadWorkflowDefinitionsAction
+    
     [ReducerMethod(typeof(LoadWorkflowDefinitionsAction))]
     public static WorkflowState ReduceLoadWorkflowDefinitionsAction(WorkflowState state) => state with
     {
@@ -106,16 +163,10 @@ public static class WorkflowReducers
         };
     }
 
-    
-    [ReducerMethod(typeof(ResetWorkflowTemplatesErrorAction))]
-    public static WorkflowState ReduceResetWorkflowTemplatesErrorAction(WorkflowState state) => state with
-    {
-        WorkflowTemplatesQuery = new QueryState<Result<List<WorkflowTemplate>>>
-        {
-            Result = default, Status = QueryStatus.Uninitialized
-        }
-    };
+    #endregion
 
+    #region LoadWorkflowTemplatesAction
+    
     [ReducerMethod]
     public static WorkflowState ReduceLoadWorkflowTemplatesAction(WorkflowState state, LoadWorkflowTemplatesAction action) => state with
     {
@@ -179,4 +230,15 @@ public static class WorkflowReducers
             WorkflowTemplatesQuery = state.WorkflowTemplatesQuery with { Status = QueryStatus.Loading }
         };
     }
+    
+    [ReducerMethod(typeof(ResetWorkflowTemplatesErrorAction))]
+    public static WorkflowState ReduceResetWorkflowTemplatesErrorAction(WorkflowState state) => state with
+    {
+        WorkflowTemplatesQuery = new QueryState<Result<List<WorkflowTemplate>>>
+        {
+            Result = default, Status = QueryStatus.Uninitialized
+        }
+    };
+
+    #endregion
 }

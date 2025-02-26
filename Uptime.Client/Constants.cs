@@ -26,7 +26,7 @@ public static class Constants
 
     public static Dictionary<string, int> Libraries = new(StringComparer.OrdinalIgnoreCase)
     {
-        { "Documents", 1 }, { "Letters", 2 }
+        { "Contracts", 1 }, { "Letters", 2 }
     };
 
     public static class PageRoutes

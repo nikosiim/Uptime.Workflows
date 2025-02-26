@@ -8,6 +8,7 @@ namespace Uptime.Client.StateManagement.Workflow;
 public record WorkflowState
 {
     public required QueryState<Result<List<LibraryDocument>>> LibraryDocumentsQuery { get; init; }
+    public required QueryState<Result<List<DocumentWorkflow>>> DocumentWorkflowsQuery { get; init; }
     public required QueryState<Result<List<WorkflowDefinition>>> WorkflowDefinitionsQuery { get; init; }
     public required QueryState<Result<List<WorkflowTemplate>>> WorkflowTemplatesQuery { get; init; }
 }
@@ -19,6 +20,11 @@ public class WorkflowFeature : Feature<WorkflowState>
     protected override WorkflowState GetInitialState() => new()
     {
         LibraryDocumentsQuery = new QueryState<Result<List<LibraryDocument>>>
+        {
+            Result = default,
+            Status = QueryStatus.Uninitialized
+        },
+        DocumentWorkflowsQuery = new QueryState<Result<List<DocumentWorkflow>>>
         {
             Result = default,
             Status = QueryStatus.Uninitialized

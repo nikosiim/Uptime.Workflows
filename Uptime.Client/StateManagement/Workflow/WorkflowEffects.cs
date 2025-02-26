@@ -1,7 +1,7 @@
 ﻿using Fluxor;
-using System;
 using Uptime.Client.Application.Common;
 using Uptime.Shared.Common;
+using Uptime.Shared.Models.Documents;
 using Uptime.Shared.Models.Libraries;
 using Uptime.Shared.Models.Workflows;
 using Uptime.Shared.Models.WorkflowTemplates;
@@ -23,6 +23,22 @@ public class WorkflowEffects(IApiService apiService)
         else
         {
             dispatcher.Dispatch(new LoadDocumentsFailedAction(result.Error));
+        }
+    }
+
+    [EffectMethod]
+    public async Task HandleLoadDocumentWorkflowsAction(LoadDocumentWorkflowsAction action, IDispatcher dispatcher)
+    {
+        string url = ApiRoutes.Documents.GetWorkflows.Replace("{documentId}", action.DocumentId.ToString());
+        Result<List<DocumentWorkflowsResponse>> result = await apiService.GetJsonAsync<List<DocumentWorkflowsResponse>>(url);
+
+        if (result.Succeeded)
+        {
+            dispatcher.Dispatch(new LoadDocumentWorkflowsSuccessAction(result.Value ?? []));
+        }
+        else
+        {
+            dispatcher.Dispatch(new LoadDocumentWorkflowsFailedAction(result.Error));
         }
     }
 
@@ -65,7 +81,7 @@ public class WorkflowEffects(IApiService apiService)
 
         if (result.Succeeded)
         {
-            dispatcher.Dispatch(new LoadWorkflowTemplatesAction(0)); // Reload templates after deletion
+            dispatcher.Dispatch(new LoadWorkflowTemplatesAction(action.LibraryId));
         }
         else
         {
@@ -90,7 +106,7 @@ public class WorkflowEffects(IApiService apiService)
 
         if (result.Succeeded)
         {
-            dispatcher.Dispatch(new LoadWorkflowTemplatesAction(1));
+            dispatcher.Dispatch(new LoadWorkflowTemplatesAction(action.LibraryId));
         }
         else
         {
@@ -114,7 +130,7 @@ public class WorkflowEffects(IApiService apiService)
 
         if (result.Succeeded)
         {
-            dispatcher.Dispatch(new LoadWorkflowTemplatesAction(1));
+            dispatcher.Dispatch(new LoadWorkflowTemplatesAction(action.LibraryId));
         }
         else
         {

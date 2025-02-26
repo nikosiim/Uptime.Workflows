@@ -52,6 +52,7 @@ public abstract class WorkflowAssocForm<TFormModel> : ComponentBase where TFormM
             {
                 Dispatcher.Dispatch(new UpdateWorkflowTemplateAction(
                     TemplateId.Value,
+                    LibraryId,
                     FormModel.TemplateName,
                     WorkflowDefinition.Name,
                     WorkflowDefinition.Id,
@@ -62,9 +63,9 @@ public abstract class WorkflowAssocForm<TFormModel> : ComponentBase where TFormM
             {
                 Dispatcher.Dispatch(new CreateWorkflowTemplateAction(
                     FormModel.TemplateName,
+                    LibraryId,
                     WorkflowDefinition.Name,
                     WorkflowDefinition.Id,
-                    LibraryId,
                     definitionJson
                 ));
             }

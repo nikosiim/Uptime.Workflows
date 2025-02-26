@@ -9,7 +9,7 @@
 
                 @if (WorkflowState.Value.WorkflowDefinitionsQuery.Result.Succeeded)
                 {
-                    <MudSelect T="string" Label="Workflow Type" @bind-Value="_selectedWorkflowBaseId" Style="min-width: 200px;">
+                    <MudSelect T="string" Label="Valige töövoomall" @bind-Value="_selectedWorkflowBaseId" Style="min-width: 200px;">
                         @foreach (WorkflowDefinition workflow in WorkflowState.Value.WorkflowDefinitionsQuery.Result.Value ?? [])
                         {
                             <MudSelectItem T="string" Value="@workflow.Id">@workflow.DisplayName</MudSelectItem>
@@ -18,7 +18,7 @@
                 }
 
                 <MudButton Variant="Variant.Filled" Disabled="@string.IsNullOrWhiteSpace(_selectedWorkflowBaseId)" OnClick="@(async () => await AssignNewTemplate(_selectedWorkflowBaseId))">
-                    Assign New Template
+                    Lisa töövoog
                 </MudButton>
             </MudStack>
         </MudPaper>
@@ -26,7 +26,7 @@
 
     <HeaderContent>
         <MudTh>Töövoo nimi</MudTh>
-        <MudTh>Guid</MudTh>
+        <MudTh>ID</MudTh>
         <MudTh>Loodud</MudTh>
         <MudTh>Tegevused</MudTh>
     </HeaderContent>
