@@ -1,54 +1,130 @@
 ﻿@page "/workflow-settings/{library}"
 
-@inherits FluxorComponent
-@inject IDispatcher Dispatcher
+@inject ISnackbar Snackbar
+@inject IApiService ApiService
+@inject IDialogService DialogService
 @inject IState<WorkflowState> WorkflowState
 
 <MudContainer>
-    @switch (WorkflowState.Value.WorkflowTemplatesQuery.Status)
-    {
-        case QueryStatus.Loading:
-            <MudProgressCircular Indeterminate="true" Size="Size.Small" />
-            break;
-        case QueryStatus.Loaded when WorkflowState.Value.WorkflowTemplatesQuery.Result.Succeeded:
-            <SettingsComponent ViewModel="WorkflowState.Value.WorkflowTemplatesQuery.Result.Value" OnTemplateDeleted="@(id => DeleteTemplate(id, LibraryId))" />
-            break;
-        case QueryStatus.Loaded:
-            <MudAlert Severity="Severity.Error" ShowCloseIcon="true" CloseIconClicked="() => CloseError()">@WorkflowState.Value.WorkflowTemplatesQuery.Result.Error</MudAlert>
-            break;
-    }
+    <MudTable Items="@_workflowTemplates" Hover="true" Bordered="false" Striped="false" Dense="true" Outlined="true" Loading="@_loading">
+        <ToolBarContent>
+            <MudPaper Class="d-flex justify-space-between flex-grow-1 align-top gap-4" Elevation="0">
+                <MudText Typo="Typo.h5">Töövoo sätted</MudText>
+                <MudStack Row="true">
+
+                    @if (WorkflowState.Value.WorkflowDefinitionsQuery.Result.Succeeded)
+                    {
+                        <MudSelect T="string" Label="Valige töövoomall" @bind-Value="_selectedWorkflowBaseId" Style="min-width: 200px;">
+                            @foreach (WorkflowDefinition workflow in WorkflowState.Value.WorkflowDefinitionsQuery.Result.Value ?? [])
+                            {
+                                <MudSelectItem T="string" Value="@workflow.Id">@workflow.DisplayName</MudSelectItem>
+                            }
+                        </MudSelect>
+                    }
+
+                    <MudButton Variant="Variant.Filled" Disabled="@string.IsNullOrWhiteSpace(_selectedWorkflowBaseId)" 
+                               OnClick="@(async () => await AssignNewTemplate(_selectedWorkflowBaseId))">Lisa töövoog</MudButton>
+                </MudStack>
+            </MudPaper>
+        </ToolBarContent>
+
+        <HeaderContent>
+            <MudTh>Töövoo nimi</MudTh>
+            <MudTh>ID</MudTh>
+            <MudTh>Loodud</MudTh>
+            <MudTh>Tegevused</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Name</MudTd>
+            <MudTd>@context.WorkflowBaseId</MudTd>
+            <MudTd>@context.Created</MudTd>
+            <MudTd>
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" OnClick="() => EditTemplate(context)">Muuda</MudButton>
+                <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Error" OnClick="() => DeleteTemplate(context.Id)">Kustuta</MudButton>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>@_noRecordsContent</NoRecordsContent>
+    </MudTable>
 </MudContainer>
 
 @code {
-    [Parameter]
+    private bool _loading;
+    private string? _selectedWorkflowBaseId;
+    private List<WorkflowTemplate> _workflowTemplates = [];
+    private string _noRecordsContent = "Töövoo malle ei leitud";
+
+    [Parameter] 
     public string Library { get; set; } = null!;
 
-    private int LibraryId
-    {
-        get
-        {
-            Libraries.TryGetValue(Library, out int libraryId);
-            return libraryId;
-        }
-    }
-    
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
-        
-        if (WorkflowState.Value.WorkflowTemplatesQuery.Status == QueryStatus.Uninitialized)
+        await LoadTemplates();
+    }
+
+    private async Task DeleteTemplate(int templateId)
+    {
+        Result<bool> deleteResult = await ApiService.DeleteWorkflowTemplateAsync(templateId);
+
+        if (deleteResult.Succeeded)
         {
-            Dispatcher.Dispatch(new LoadWorkflowTemplatesAction(LibraryId));
+            await LoadTemplates();
+        }
+        else
+        {
+            Snackbar.Add(deleteResult.Error, Severity.Error);
         }
     }
 
-    private void DeleteTemplate(int templateId, int libraryId)
+    private async Task LoadTemplates()
     {
-        Dispatcher.Dispatch(new DeleteWorkflowTemplateAction(templateId, libraryId));
+        _loading = true;
+        
+        Result<List<WorkflowTemplate>> result = await ApiService.GetWorkflowTemplatesAsync(Libraries.GetValueOrDefault(Library, 0));
+        if (result.Succeeded)
+        {
+            _workflowTemplates = result.Value;
+        }
+        else
+        {
+            _noRecordsContent = "Töövoo mallida laadimine ebaõnnestus";
+        }
+
+        _loading = false;
     }
 
-    private void CloseError()
+    private async Task AssignNewTemplate(string? workflowBaseId)
     {
-        Dispatcher.Dispatch(new ResetWorkflowTemplatesErrorAction());
+        if (!string.IsNullOrWhiteSpace(workflowBaseId))
+        {
+            await ShowAssociationDialog(workflowBaseId, new DialogParameters(), "Lisa");
+        }
+    }
+
+    private async Task EditTemplate(WorkflowTemplate template)
+    {
+        var parameters = new DialogParameters { { DialogParams.TemplateId, template.Id } };
+
+        await ShowAssociationDialog(template.WorkflowBaseId, parameters, "Muuda");
+    }
+
+    private async Task ShowAssociationDialog(string workflowBaseId, DialogParameters parameters, string action)
+    {
+        WorkflowDefinition definition = WorkflowState.Value.WorkflowDefinitionsQuery.Result.Value!.First(x => x.Id == workflowBaseId);
+        if (definition.FormsConfiguration?.AssociationDialogType == null)
+        {
+            throw new Exception($"No association dialog defined for workflow {definition.Name}");
+        }
+
+        parameters.Add(DialogParams.WorkflowDefinition, definition);
+        parameters.Add(DialogParams.LibraryId, 1);
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        IDialogReference dialog = await DialogService.ShowAsync(definition.FormsConfiguration!.AssociationDialogType, $"{action} {definition.DisplayName}", parameters, options);
+
+        DialogResult? result = await dialog.Result;
+        if (result is { Canceled: false })
+        {
+            await LoadTemplates();
+        }
     }
 }

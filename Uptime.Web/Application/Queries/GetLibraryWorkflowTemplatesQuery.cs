@@ -4,14 +4,14 @@ using Uptime.Web.Application.DTOs;
 
 namespace Uptime.Web.Application.Queries;
 
-public record GetLibraryWorkflowTemplatesQuery(int LibraryId) : IRequest<List<WorkflowTemplateDto>>;
+public record GetLibraryWorkflowTemplatesQuery(int LibraryId) : IRequest<List<WorkflowTemplate>>;
 
 public class GetLibraryWorkflowTemplatesQueryHandler(IHttpClientFactory httpClientFactory)
-    : IRequestHandler<GetLibraryWorkflowTemplatesQuery, List<WorkflowTemplateDto>>
+    : IRequestHandler<GetLibraryWorkflowTemplatesQuery, List<WorkflowTemplate>>
 {
-    public async Task<List<WorkflowTemplateDto>> Handle(GetLibraryWorkflowTemplatesQuery request, CancellationToken cancellationToken)
+    public async Task<List<WorkflowTemplate>> Handle(GetLibraryWorkflowTemplatesQuery request, CancellationToken cancellationToken)
     {
-        var result = new List<WorkflowTemplateDto>();
+        var result = new List<WorkflowTemplate>();
 
         string url = ApiRoutes.Libraries.GetWorkflowTemplates.Replace("{libraryId}", request.LibraryId.ToString());
 
@@ -25,7 +25,7 @@ public class GetLibraryWorkflowTemplatesQueryHandler(IHttpClientFactory httpClie
 
             foreach (LibraryWorkflowTemplateResponse template in workflowTemplates)
             {
-                result.Add(new WorkflowTemplateDto
+                result.Add(new WorkflowTemplate
                 {
                     Id = template.Id,
                     WorkflowBaseId = template.WorkflowBaseId,

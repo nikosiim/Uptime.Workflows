@@ -4,12 +4,12 @@ using Uptime.Web.Application.DTOs;
 
 namespace Uptime.Web.Application.Queries;
 
-public record GetWorkflowTemplateQuery(int TemplateId) : IRequest<WorkflowTemplateDto>;
+public record GetWorkflowTemplateQuery(int TemplateId) : IRequest<WorkflowTemplate>;
 
 public class GetWorkflowTemplateQueryHandler(IHttpClientFactory httpClientFactory) 
-    : IRequestHandler<GetWorkflowTemplateQuery, WorkflowTemplateDto>
+    : IRequestHandler<GetWorkflowTemplateQuery, WorkflowTemplate>
 {
-    public async Task<WorkflowTemplateDto> Handle(GetWorkflowTemplateQuery request, CancellationToken cancellationToken)
+    public async Task<WorkflowTemplate> Handle(GetWorkflowTemplateQuery request, CancellationToken cancellationToken)
     {
         string url = ApiRoutes.WorkflowTemplates.GetTemplate.Replace("{templateId}", request.TemplateId.ToString());
 
@@ -21,7 +21,7 @@ public class GetWorkflowTemplateQueryHandler(IHttpClientFactory httpClientFactor
         WorkflowTemplateResponse template = await response.Content.ReadFromJsonAsync<WorkflowTemplateResponse>(cancellationToken: cancellationToken)
                                             ?? throw new HttpRequestException($"Failed to fetch the template. Status code: {response.StatusCode}");
 
-        return new WorkflowTemplateDto
+        return new WorkflowTemplate
         {
             Id = template.Id,
             Name = template.Name,

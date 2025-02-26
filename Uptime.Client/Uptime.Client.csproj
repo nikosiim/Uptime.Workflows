@@ -7,8 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Application\Common\ApiFetcher.cs" />
     <Compile Remove="StateManagement\Common\IState.cs" />
     <Compile Remove="StateManagement\Common\StateBase.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="Presentation\Components\LibraryWorkflowOverview.razor" />
+    <Content Remove="Presentation\Components\SettingsComponent.razor" />
   </ItemGroup>
 
   <ItemGroup>

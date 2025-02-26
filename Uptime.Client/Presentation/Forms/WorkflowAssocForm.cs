@@ -4,7 +4,6 @@ using System.Text.Json;
 using Fluxor;
 using Uptime.Client.Application.Common;
 using Uptime.Client.Application.DTOs;
-using Uptime.Client.StateManagement.Workflow;
 using Uptime.Shared.Common;
 
 namespace Uptime.Client.Presentation.Forms;
@@ -13,6 +12,7 @@ public abstract class WorkflowAssocForm<TFormModel> : ComponentBase where TFormM
 {
     [Inject] public IDispatcher Dispatcher { get; set; } = null!; 
     [Inject] public IApiService ApiService { get; set; } = null!; 
+    [Inject] public ISnackbar Snackbar { get; set; } = null!; 
 
     [Parameter] public int LibraryId { get; set; }
     [Parameter] public int? TemplateId { get; set; }
@@ -50,24 +50,36 @@ public abstract class WorkflowAssocForm<TFormModel> : ComponentBase where TFormM
 
             if (TemplateId.HasValue)
             {
-                Dispatcher.Dispatch(new UpdateWorkflowTemplateAction(
+                Result<bool> result = await ApiService.UpdateWorkflowTemplateAsync(
                     TemplateId.Value,
                     LibraryId,
                     FormModel.TemplateName,
                     WorkflowDefinition.Name,
                     WorkflowDefinition.Id,
                     definitionJson
-                    ));
+                    );
+
+                if (!result.Succeeded)
+                {
+                    Snackbar.Add(result.Error, Severity.Error);
+                    return;
+                }
             }
             else
             {
-                Dispatcher.Dispatch(new CreateWorkflowTemplateAction(
+                Result<int> result = await ApiService.CreateWorkflowTemplateAsync(
                     FormModel.TemplateName,
                     LibraryId,
                     WorkflowDefinition.Name,
                     WorkflowDefinition.Id,
                     definitionJson
-                ));
+                );
+
+                if (!result.Succeeded)
+                {
+                    Snackbar.Add(result.Error, Severity.Error);
+                    return;
+                }
             }
 
             MudDialog.Close(DialogResult.Ok(true));

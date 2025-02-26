@@ -3,10 +3,10 @@
 <MudPaper Elevation="0" MinHeight="250px">
     <MudText Typo="Typo.h5" Class="my-6">Töövoo käivitamine</MudText>
 
-    @if (AvailableTemplates.Count > 0)
+    @if (WorkflowTemplates != null)
     {
         <MudGrid>
-            @foreach (WorkflowTemplate template in AvailableTemplates)
+            @foreach (WorkflowTemplate template in WorkflowTemplates)
             {
                 <MudItem xs="12" sm="6" md="3">
                     <MudPaper Class="pa-3" Elevation="2" Style="min-width: fit-content;">
@@ -14,18 +14,12 @@
                             <MudAvatar Size="Size.Small" Color="Color.Primary">
                                 <MudIcon Icon="@Icons.Material.Filled.Work" Size="Size.Small" />
                             </MudAvatar>
-
                             <MudLink Href="@(GetInitiationFormUrl(template, DocumentId))" Style=" white-space: nowrap;">@template.Name</MudLink>
-
                         </MudStack>
                     </MudPaper>
                 </MudItem>
             }
         </MudGrid>
-    }
-    else
-    {
-        <MudText>No workflows available for this list.</MudText>
     }
 </MudPaper>
 
@@ -34,19 +28,7 @@
     public int DocumentId { get; set; }
 
     [Parameter, EditorRequired]
-    public List<DocumentWorkflow>? Workflows { get; set; }
-
-    [Parameter, EditorRequired]
     public List<WorkflowTemplate>? WorkflowTemplates { get; set; }
-
-    private List<WorkflowTemplate> AvailableTemplates
-    {
-        get
-        {
-            List<DocumentWorkflow> activeWorkflows = Workflows?.Where(w => w.IsActive).ToList() ?? [];
-            return WorkflowTemplates?.Where(t => activeWorkflows.All(w => w.TemplateId != t.Id)).ToList() ?? [];
-        }
-    }
 
     private string GetInitiationFormUrl(WorkflowTemplate template, int documentId)
     {

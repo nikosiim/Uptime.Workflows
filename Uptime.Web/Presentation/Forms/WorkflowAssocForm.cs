@@ -27,7 +27,7 @@ public abstract class WorkflowAssocForm<TFormModel> : ComponentBase where TFormM
     {
         if (TemplateId.HasValue)
         {
-            WorkflowTemplateDto template = await Mediator.Send(new GetWorkflowTemplateQuery(TemplateId.Value));
+            WorkflowTemplate template = await Mediator.Send(new GetWorkflowTemplateQuery(TemplateId.Value));
 
             FormModel = !string.IsNullOrWhiteSpace(template.AssociationDataJson)
                 ? JsonSerializer.Deserialize<TFormModel>(template.AssociationDataJson)!

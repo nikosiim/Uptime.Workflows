@@ -1,69 +1,93 @@
 ﻿@page "/library-workflow/{listId:int}/{documentId:int}"
 
-@inherits FluxorComponent
-@inject IDispatcher Dispatcher
-@inject IActionSubscriber ActionSubscriber
-@inject IState<WorkflowState> WorkflowState
+@inject ISnackbar Snackbar
+@inject IApiService ApiService
 
 <MudContainer>
     <MudPaper Elevation="0" Outlined="false" Class="mb-6">
-        @switch (WorkflowState.Value.WorkflowTemplatesQuery.Status)
-        {
-            case QueryStatus.Loading:
-                <MudProgressCircular Indeterminate="true" Size="Size.Small" />
-                break;
-            case QueryStatus.Loaded when WorkflowState.Value.WorkflowTemplatesQuery.Result.Succeeded:
-                <LibraryWorkflowTemplates
-                    DocumentId="DocumentId"
-                    Workflows="WorkflowState.Value.DocumentWorkflowsQuery.Result.Value"
-                    WorkflowTemplates="WorkflowState.Value.WorkflowTemplatesQuery.Result.Value" />
-                break;
-            case QueryStatus.Loaded:
-                <MudAlert Severity="Severity.Error">@WorkflowState.Value.WorkflowTemplatesQuery.Result.Error</MudAlert>
-                break;
-        }
+        <LibraryWorkflowTemplates DocumentId="DocumentId" WorkflowTemplates="_availableTemplates" />
         <MudDivider />
     </MudPaper>
 
     <MudPaper Elevation="0" Outlined="false" Class="my-6">
-        @switch (WorkflowState.Value.DocumentWorkflowsQuery.Status)
-        {
-            case QueryStatus.Loading:
-                <MudProgressCircular Indeterminate="true" Size="Size.Small" />
-                break;
-            case QueryStatus.Loaded when WorkflowState.Value.DocumentWorkflowsQuery.Result.Succeeded:
-                <LibraryWorkflowOverview Workflows="WorkflowState.Value.DocumentWorkflowsQuery.Result.Value" />
-                break;
-            case QueryStatus.Loaded:
-                <MudAlert Severity="Severity.Error">@WorkflowState.Value.DocumentWorkflowsQuery.Result.Error</MudAlert>
-                break;
-        }
+        <MudText Typo="Typo.h5" Class="my-4">Töövood</MudText>
+
+        <MudPaper Elevation="0" Outlined="true" Class="pa-4 my-6">
+            <MudText Typo="Typo.subtitle1" Class="mt-4 mb-4">Töötavad töövood</MudText>
+            <MudTable Items="ActiveInstances" Bordered="false" Dense="true" Outlined="true" Loading="@_loading">
+                <HeaderContent>
+                    <MudTh>Nimi</MudTh>
+                    <MudTh>Käivitatud</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd><MudLink Href="@($"/workflow/{context.Id}")">@context.WorkflowTemplateName</MudLink></MudTd>
+                    <MudTd>@context.StartDate.ToLocalTime()</MudTd>
+                </RowTemplate>
+                <NoRecordsContent>No active workflows for this document.</NoRecordsContent>
+            </MudTable>
+        </MudPaper>
+
+        <MudPaper Elevation="0" Outlined="true" Class="pa-4 my-6">
+            <MudText Typo="Typo.subtitle1" Class="mt-4 mb-4">Lõpule viidud töövood</MudText>
+            <MudTable Items="CompletedInstances" Bordered="false" Dense="true" Outlined="true" Loading="@_loading">
+                <HeaderContent>
+                    <MudTh>Nimi</MudTh>
+                    <MudTh>Käivitatud</MudTh>
+                    <MudTh>Lõpule viidud</MudTh>
+                    <MudTh>Olek</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd><MudLink Href="@($"/workflow/{context.Id}")">@context.WorkflowTemplateName</MudLink></MudTd>
+                    <MudTd>@context.StartDate.ToLocalTime()</MudTd>
+                    <MudTd>@context.EndDate?.ToLocalTime()</MudTd>
+                    <MudTd>@context.Outcome</MudTd>
+                </RowTemplate>
+                <NoRecordsContent>No completed or canceled workflows for this document.</NoRecordsContent>
+            </MudTable>
+        </MudPaper>
         <MudDivider />
     </MudPaper>
 </MudContainer>
 
 @code {
+    private bool _loading;
+    private List<DocumentWorkflow> _workflows = [];
+    private List<WorkflowTemplate>? _availableTemplates = [];
+
+    private List<DocumentWorkflow> ActiveInstances => _workflows.Where(w => w.IsActive).ToList();
+    private List<DocumentWorkflow> CompletedInstances => _workflows.Where(w => !w.IsActive).ToList();
 
     [Parameter] public int ListId { get; set; }
     [Parameter] public int DocumentId { get; set; }
-    
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
-        if (WorkflowState.Value.DocumentWorkflowsQuery.Status == QueryStatus.Uninitialized)
+        _loading = true;
+        
+        Result<List<DocumentWorkflow>> result = await ApiService.GetDocumentWorkflowsAsync(DocumentId);
+        if (result.Succeeded)
         {
-            Dispatcher.Dispatch(new LoadDocumentWorkflowsAction(DocumentId));
+            _workflows = result.Value;
+
+            await LoadWorkflowTemplates();
+        }
+        else
+        {
+            Snackbar.Add(result.Error, Severity.Error);
         }
 
-        ActionSubscriber.SubscribeToAction<LoadDocumentWorkflowsSuccessAction>(this, OnDocumentWorkflowsLoaded);
+        _loading = false;
     }
 
-    private void OnDocumentWorkflowsLoaded(LoadDocumentWorkflowsSuccessAction action)
+    private async Task LoadWorkflowTemplates()
     {
-        if (WorkflowState.Value.WorkflowTemplatesQuery.Status == QueryStatus.Uninitialized)
+        Result<List<WorkflowTemplate>> result = await ApiService.GetWorkflowTemplatesAsync(ListId);
+        if (result.Succeeded)
         {
-            Dispatcher.Dispatch(new LoadWorkflowTemplatesAction(DocumentId));
+            List<DocumentWorkflow> activeWorkflows = _workflows.Where(w => w.IsActive).ToList();
+            _availableTemplates = result.Value?.Where(t => activeWorkflows.All(w => w.TemplateId != t.Id)).ToList() ?? [];
         }
     }
 }

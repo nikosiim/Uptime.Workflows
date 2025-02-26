@@ -1,6 +1,7 @@
 ﻿@inject NavigationManager Navigation
+@inject IApiService ApiService
 
-<MudTable Items="@ViewModel" Hover="true" Bordered="true" Striped="true">
+<MudTable Items="@_documents" Hover="true" Bordered="true" Striped="true" Loading="@_loading">
     <ToolBarContent>
         <MudText Typo="Typo.h6">@Title</MudText>
         <MudSpacer />
@@ -18,17 +19,39 @@
             <MudButton Size="Size.Small" Variant="Variant.Filled" IconColor="Color.Error" StartIcon="@Icons.Custom.Uncategorized.Radioactive" OnClick="() => NavigateToWorkflows(context)">Töövood</MudButton>
         </MudTd>
     </RowTemplate>
+    <NoRecordsContent>@_noRecordsContent</NoRecordsContent>
 </MudTable>
 
 @code {
+    private bool _loading;
+    private string _noRecordsContent = "Dokumente ei leitud";
+    private List<LibraryDocument> _documents = [];
+
     [Parameter]
     public string Title { get; set; } = null!;
 
     [Parameter, EditorRequired]
     public string Name { get; set; } = null!;
 
-    [Parameter, EditorRequired]
-    public List<LibraryDocument> ViewModel { get; set; } = null!;
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        _loading = true;
+        
+        Result<List<LibraryDocument>> result = await ApiService.GetLibraryDocumentsAsync(1);
+
+        if (result.Succeeded)
+        {
+            _documents = result.Value;
+        }
+        else
+        {
+            _noRecordsContent = result.Error;
+        }
+
+        _loading = false;
+    }
     
     private void NavigateToWorkflowSettings()
     {

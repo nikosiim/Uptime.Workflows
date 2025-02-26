@@ -13,7 +13,7 @@ public class AlterTaskCommandHandler(IHttpClientFactory httpClientFactory) : IRe
 {
     public async Task<bool> Handle(AlterTaskCommand request, CancellationToken cancellationToken)
     {
-        var payload = new { request.WorkflowId, Input = request.Input };
+        var payload = new { request.WorkflowId, request.Input };
 
         HttpClient httpClient = httpClientFactory.CreateClient(ApiRoutes.WorkflowApiClient);
 

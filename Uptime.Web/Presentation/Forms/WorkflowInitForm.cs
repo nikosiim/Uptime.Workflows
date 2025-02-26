@@ -21,7 +21,7 @@ public class WorkflowInitForm<TFormModel> : ComponentBase where TFormModel : IWo
 
     protected override async Task OnInitializedAsync()
     {
-        WorkflowTemplateDto template = await Mediator.Send(new GetWorkflowTemplateQuery(TemplateId));
+        WorkflowTemplate template = await Mediator.Send(new GetWorkflowTemplateQuery(TemplateId));
 
         FormModel = !string.IsNullOrWhiteSpace(template.AssociationDataJson)
             ? JsonSerializer.Deserialize<TFormModel>(template.AssociationDataJson)!

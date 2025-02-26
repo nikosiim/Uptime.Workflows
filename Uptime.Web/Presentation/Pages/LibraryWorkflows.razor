@@ -37,7 +37,7 @@ else
         try
         {
             List<DocumentWorkflowDto> workflows = await Mediator.Send(new GetDocumentWorkflowsQuery(DocumentId));
-            List<WorkflowTemplateDto> templates = await Mediator.Send(new GetLibraryWorkflowTemplatesQuery(ListId));
+            List<WorkflowTemplate> templates = await Mediator.Send(new GetLibraryWorkflowTemplatesQuery(ListId));
 
             PopulateViewModels(workflows, templates);
         }
@@ -49,7 +49,7 @@ else
         _loading = false;
     }
 
-    private void PopulateViewModels(List<DocumentWorkflowDto> workflows, List<WorkflowTemplateDto> templates)
+    private void PopulateViewModels(List<DocumentWorkflowDto> workflows, List<WorkflowTemplate> templates)
     {
         _workflowsViewModel = new WorkflowsViewModel
         {
