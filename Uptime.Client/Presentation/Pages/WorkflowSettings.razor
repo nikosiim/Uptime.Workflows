@@ -61,7 +61,7 @@
 
     private async Task DeleteTemplate(int templateId)
     {
-        var result = await Mediator.Send(new DeleteWorkflowTemplateCommand(templateId));
+        Result<bool> result = await Mediator.Send(new DeleteWorkflowTemplateCommand(templateId));
         if (result.Succeeded)
         {
             await LoadTemplates();

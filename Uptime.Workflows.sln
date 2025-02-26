@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Uptime.Shared", "Uptime.Sha
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Uptime.WorkflowAPI", "Uptime.WorkflowAPI\Uptime.WorkflowAPI.csproj", "{A54AB85B-2FE1-4187-9C08-15B8C5ED96C2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Uptime.Web", "Uptime.Web\Uptime.Web.csproj", "{B6BC47AD-C966-466E-AE4C-04956902E7AB}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Assets", "Assets", "{08C8025D-F282-488C-989F-DCDFBE21B2D6}"
 	ProjectSection(SolutionItems) = preProject
 		ReadMe.txt = ReadMe.txt
@@ -40,10 +38,6 @@ Global
 		{A54AB85B-2FE1-4187-9C08-15B8C5ED96C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A54AB85B-2FE1-4187-9C08-15B8C5ED96C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A54AB85B-2FE1-4187-9C08-15B8C5ED96C2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B6BC47AD-C966-466E-AE4C-04956902E7AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B6BC47AD-C966-466E-AE4C-04956902E7AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B6BC47AD-C966-466E-AE4C-04956902E7AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B6BC47AD-C966-466E-AE4C-04956902E7AB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F05D2EF8-A466-4112-80B3-4C0785658735}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F05D2EF8-A466-4112-80B3-4C0785658735}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F05D2EF8-A466-4112-80B3-4C0785658735}.Release|Any CPU.ActiveCfg = Release|Any CPU

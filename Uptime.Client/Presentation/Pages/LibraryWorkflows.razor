@@ -83,7 +83,7 @@
 
     private async Task LoadWorkflowTemplates()
     {
-        var result = await Mediator.Send(new GetLibraryWorkflowTemplatesQuery(ListId));
+        Result<List<WorkflowTemplate>> result = await Mediator.Send(new GetLibraryWorkflowTemplatesQuery(ListId));
         if (result.Succeeded)
         {
             List<DocumentWorkflow> activeWorkflows = _workflows.Where(w => w.IsActive).ToList();
