@@ -67,9 +67,17 @@
             storage.SetValueAsList(GlobalConstants.TaskStorageKeys.TaskSigners, [FormModel.Signer]);
         }
 
-        Result<bool> result = await ApiService.StartWorkflowAsync(FormModel.Originator, DocumentId, TemplateId, storage);
+        var command = new StartWorkflowCommand
+        {
+            WorkflowTemplateId = TemplateId,
+            DocumentId = DocumentId,
+            Originator = "System",
+            Storage = storage
+        };
 
-        Snackbar.Add(result.Succeeded ? "Workflow started successfully!" : $"Failed to start workflow: {result.Error}");
+        Result<bool> result = await Mediator.Send(command);
+
+        Snackbar.Add(result.Succeeded ? "Töövoo käivitamine õnnestus" : "Töövoo käivitamine ebaõnnestus");
 
         _isDisabled = false;
 

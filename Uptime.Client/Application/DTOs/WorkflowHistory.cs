@@ -3,7 +3,7 @@ using Uptime.Shared.Extensions;
 
 namespace Uptime.Client.Application.DTOs;
 
-public class WorkflowHistoryDto
+public class WorkflowHistory
 {
     public int Id { get; set; }
     public string? User { get; set; }

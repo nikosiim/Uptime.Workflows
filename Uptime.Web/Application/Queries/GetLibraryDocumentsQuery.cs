@@ -4,14 +4,14 @@ using Uptime.Web.Application.DTOs;
 
 namespace Uptime.Web.Application.Queries;
 
-public record GetLibraryDocumentsQuery(string LibraryName) : IRequest<List<LibraryDocumentDto>>;
+public record GetLibraryDocumentsQuery(string LibraryName) : IRequest<List<LibraryDocument>>;
 
 public class GetDocumentsQueryHandler(IHttpClientFactory httpClientFactory) 
-    : IRequestHandler<GetLibraryDocumentsQuery, List<LibraryDocumentDto>>
+    : IRequestHandler<GetLibraryDocumentsQuery, List<LibraryDocument>>
 {
-    public async Task<List<LibraryDocumentDto>> Handle(GetLibraryDocumentsQuery request, CancellationToken cancellationToken)
+    public async Task<List<LibraryDocument>> Handle(GetLibraryDocumentsQuery request, CancellationToken cancellationToken)
     {
-        var result = new List<LibraryDocumentDto>();
+        var result = new List<LibraryDocument>();
 
         Constants.Libraries.TryGetValue(request.LibraryName, out int libraryId);
 
@@ -26,7 +26,7 @@ public class GetDocumentsQueryHandler(IHttpClientFactory httpClientFactory)
 
         foreach (LibraryDocumentResponse document in documents)
         {
-            result.Add(new LibraryDocumentDto
+            result.Add(new LibraryDocument
             {
                 Id = document.Id,
                 Title = document.Title,

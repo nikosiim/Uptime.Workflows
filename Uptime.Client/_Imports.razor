@@ -7,17 +7,21 @@
 @using Microsoft.AspNetCore.Components.WebAssembly.Http
 @using Microsoft.JSInterop
 @using Uptime.Client
+@using Uptime.Client.Application.Commands
 @using Uptime.Client.Application.Common
 @using Uptime.Client.Application.DTOs
+@using Uptime.Client.Application.Queries
 @using Uptime.Client.Presentation.Components
 @using Uptime.Client.Presentation.Layout
 @using Uptime.Client.StateManagement.Common
 @using Uptime.Client.StateManagement.Workflow
 @using Uptime.Shared
 @using Uptime.Shared.Common
+@using Uptime.Shared.Enums
 @using Uptime.Shared.Extensions
 @using Fluxor.Blazor.Web.Components
-@using Fluxor;
+@using Fluxor
+@using MediatR
 @using MudBlazor
 
 @using static Uptime.Client.Constants

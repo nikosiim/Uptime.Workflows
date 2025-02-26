@@ -1,7 +1,7 @@
 ﻿@page "/workflow-settings/{library}"
 
 @inject ISnackbar Snackbar
-@inject IApiService ApiService
+@inject IMediator Mediator
 @inject IDialogService DialogService
 @inject IState<WorkflowState> WorkflowState
 
@@ -11,7 +11,6 @@
             <MudPaper Class="d-flex justify-space-between flex-grow-1 align-top gap-4" Elevation="0">
                 <MudText Typo="Typo.h5">Töövoo sätted</MudText>
                 <MudStack Row="true">
-
                     @if (WorkflowState.Value.WorkflowDefinitionsQuery.Result.Succeeded)
                     {
                         <MudSelect T="string" Label="Valige töövoomall" @bind-Value="_selectedWorkflowBaseId" Style="min-width: 200px;">
@@ -21,9 +20,8 @@
                             }
                         </MudSelect>
                     }
-
                     <MudButton Variant="Variant.Filled" Disabled="@string.IsNullOrWhiteSpace(_selectedWorkflowBaseId)" 
-                               OnClick="@(async () => await AssignNewTemplate(_selectedWorkflowBaseId))">Lisa töövoog</MudButton>
+                    OnClick="@(async () => await AssignNewTemplate(_selectedWorkflowBaseId))">Lisa töövoog</MudButton>
                 </MudStack>
             </MudPaper>
         </ToolBarContent>
@@ -43,7 +41,7 @@
                 <MudButton Size="Size.Small" Variant="Variant.Filled" Color="Color.Error" OnClick="() => DeleteTemplate(context.Id)">Kustuta</MudButton>
             </MudTd>
         </RowTemplate>
-        <NoRecordsContent>@_noRecordsContent</NoRecordsContent>
+        <NoRecordsContent>@_contentMessage</NoRecordsContent>
     </MudTable>
 </MudContainer>
 
@@ -51,7 +49,7 @@
     private bool _loading;
     private string? _selectedWorkflowBaseId;
     private List<WorkflowTemplate> _workflowTemplates = [];
-    private string _noRecordsContent = "Töövoo malle ei leitud";
+    private string _contentMessage = "Töövoo malle ei leitud";
 
     [Parameter] 
     public string Library { get; set; } = null!;
@@ -63,30 +61,29 @@
 
     private async Task DeleteTemplate(int templateId)
     {
-        Result<bool> deleteResult = await ApiService.DeleteWorkflowTemplateAsync(templateId);
-
-        if (deleteResult.Succeeded)
+        var result = await Mediator.Send(new DeleteWorkflowTemplateCommand(templateId));
+        if (result.Succeeded)
         {
             await LoadTemplates();
         }
         else
         {
-            Snackbar.Add(deleteResult.Error, Severity.Error);
+            Snackbar.Add("Töövoo malli kustutamine ebaõnnestus", Severity.Error);
         }
     }
 
     private async Task LoadTemplates()
     {
         _loading = true;
-        
-        Result<List<WorkflowTemplate>> result = await ApiService.GetWorkflowTemplatesAsync(Libraries.GetValueOrDefault(Library, 0));
+
+        Result<List<WorkflowTemplate>> result = await Mediator.Send(new GetLibraryWorkflowTemplatesQuery(Libraries.GetValueOrDefault(Library, 0)));
         if (result.Succeeded)
         {
             _workflowTemplates = result.Value;
         }
         else
         {
-            _noRecordsContent = "Töövoo mallida laadimine ebaõnnestus";
+            _contentMessage = "Töövoo mallida laadimine ebaõnnestus";
         }
 
         _loading = false;

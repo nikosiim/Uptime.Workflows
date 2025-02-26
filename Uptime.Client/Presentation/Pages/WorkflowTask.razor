@@ -1,0 +1,140 @@
+﻿@page "/workflow-task/{taskId:int}"
+
+@inject IMediator Mediator
+@inject IDialogService DialogService
+@inject NavigationManager Navigation
+
+<MudContainer>
+    <MudText Typo="Typo.h5" Class="my-4">Tööülesande täitmine</MudText>
+
+    @if (_task != null)
+    {
+        <MudPaper Elevation="1" Outlined="true" Class="pa-4 my-5">
+            <div class="d-table" style="width:100%;">
+                <div class="d-table-row">
+                    <div class="d-table-cell py-2">
+                        <MudText><b>Dokument</b></MudText>
+                    </div>
+                    <div class="d-table-cell">
+                        <MudText>@_task.Document</MudText>
+                    </div>
+                </div>
+                <div class="d-table-row">
+                    <div class="d-table-cell py-2">
+                        <MudText><b>Määratud</b></MudText>
+                    </div>
+                    <div class="d-table-cell">
+                        <MudText>@_task.AssignedTo</MudText>
+                    </div>
+                </div>
+                <div class="d-table-row">
+                    <div class="d-table-cell py-2">
+                        <MudText><b>Ülesande andja</b></MudText>
+                    </div>
+                    <div class="d-table-cell">
+                        <MudText>@_task.AssignedBy</MudText>
+                    </div>
+                </div>
+                <div class="d-table-row">
+                    <div class="d-table-cell py-2">
+                        <MudText><b>Tähtaeg</b></MudText>
+                    </div>
+                    <div class="d-table-cell">
+                        <MudText>@_task.DueDate?.ToLocalTime().ToString("d")</MudText>
+                    </div>
+                </div>
+                <div class="d-table-row">
+                    <div class="d-table-cell py-2">
+                        <MudText><b>Ülesanne</b></MudText>
+                    </div>
+                    <div class="d-table-cell">
+                        <MudText>@_task.Description</MudText>
+                    </div>
+                </div>
+            </div>
+        </MudPaper>
+
+        <MudPaper Elevation="0" Style="margin-bottom: 35px;">
+            <MudStack Row="true" Spacing="3">
+
+                @if (_task.InternalStatus == WorkflowTaskStatus.NotStarted)
+                {
+                    <MudButton Size="Size.Medium" Variant="Variant.Filled" OnClick="@(() => OpenDialogAsync(_task, WorkflowEventType.TaskCompleted))">Kinnita</MudButton>
+                    <MudButton Size="Size.Medium" Variant="Variant.Filled" OnClick="@(() => OpenDialogAsync(_task, WorkflowEventType.TaskDelegated))">Suuna ümber</MudButton>
+                    <MudButton Size="Size.Medium" Variant="Variant.Filled" OnClick="@(() => OpenDialogAsync(_task, WorkflowEventType.TaskRejected))">Lükka tagasi</MudButton>
+                }
+
+                <MudButton Size="Size.Medium" Variant="Variant.Filled" OnClick="@(() => OnCancelled(_task.WorkflowId))">Loobu</MudButton>
+            </MudStack>
+        </MudPaper>
+
+        <MudPaper Elevation="0" Outlined="true" Class="mb-4">
+            <MudExpansionPanels Outlined="true" Elevation="0">
+                <MudExpansionPanel HideIcon="true">
+                    <TitleContent>
+                        <div class="d-flex">
+                            <MudText Class="mt-1">Töövoo ajalugu</MudText>
+                            <MudBadge Content="3" Color="Color.Primary" Overlap="true" Class="d-flex ml-auto">
+                                <MudIcon Icon="@Icons.Material.Filled.History" Color="Color.Default" />
+                            </MudBadge>
+                        </div>
+                    </TitleContent>
+                    <ChildContent>
+                        <WorkflowPageHistory ShowTitle="false" WorkflowId="_task.WorkflowId" />
+                    </ChildContent>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+        </MudPaper>
+
+        <MudPaper Elevation="0" Outlined="true">
+            <MudExpansionPanels Outlined="true" Elevation="0">
+                <MudExpansionPanel Text="Seotud töövood" MaxHeight="1000">
+
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    private WorkflowTaskDetails? _task;
+
+    [Parameter] public int TaskId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        Result<WorkflowTaskDetails> result = await Mediator.Send(new GetWorkflowTaskQuery(TaskId));
+        if (result.Succeeded)
+        {
+            _task = result.Value;
+        }
+    }
+
+    private void OnCancelled(int workflowId)
+    {
+        Navigation.NavigateTo($"/{PageRoutes.Workflow}/{workflowId}");
+    }
+
+    private async Task OpenDialogAsync(WorkflowTaskDetails task, WorkflowEventType eventType)
+    {
+        var parameters = new DialogParameters
+        {
+            { DialogParams.EventType, eventType },
+            { DialogParams.TaskId, task.Id },
+            { DialogParams.WorkflowId, task.WorkflowId },
+            { DialogParams.Document, task.Document },
+            { DialogParams.AssignedTo, task.AssignedTo }
+        };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        IDialogReference dialog = await DialogService.ShowAsync(typeof(TaskCompletionDialog), "Tööülesande lõpetamine", parameters, options);
+
+        DialogResult? result = await dialog.Result;
+        if (result is { Canceled: false })
+        {
+            OnCancelled(task.WorkflowId);
+        }
+    }
+}

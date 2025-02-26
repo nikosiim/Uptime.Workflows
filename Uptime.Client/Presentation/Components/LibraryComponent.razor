@@ -1,5 +1,5 @@
 ﻿@inject NavigationManager Navigation
-@inject IApiService ApiService
+@inject IMediator Mediator
 
 <MudTable Items="@_documents" Hover="true" Bordered="true" Striped="true" Loading="@_loading">
     <ToolBarContent>
@@ -19,12 +19,12 @@
             <MudButton Size="Size.Small" Variant="Variant.Filled" IconColor="Color.Error" StartIcon="@Icons.Custom.Uncategorized.Radioactive" OnClick="() => NavigateToWorkflows(context)">Töövood</MudButton>
         </MudTd>
     </RowTemplate>
-    <NoRecordsContent>@_noRecordsContent</NoRecordsContent>
+    <NoRecordsContent>@_contentMessage</NoRecordsContent>
 </MudTable>
 
 @code {
     private bool _loading;
-    private string _noRecordsContent = "Dokumente ei leitud";
+    private string _contentMessage = "Dokumente ei leitud";
     private List<LibraryDocument> _documents = [];
 
     [Parameter]
@@ -39,15 +39,14 @@
 
         _loading = true;
         
-        Result<List<LibraryDocument>> result = await ApiService.GetLibraryDocumentsAsync(1);
-
+        Result<List<LibraryDocument>> result = await Mediator.Send(new GetLibraryDocumentsQuery(Name));
         if (result.Succeeded)
         {
             _documents = result.Value;
         }
         else
         {
-            _noRecordsContent = result.Error;
+            _contentMessage = "Dokumentide laadimine ebaõnnestus";
         }
 
         _loading = false;

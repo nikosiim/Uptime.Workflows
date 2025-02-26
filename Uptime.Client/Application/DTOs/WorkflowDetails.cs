@@ -1,6 +1,6 @@
 ﻿namespace Uptime.Client.Application.DTOs;
 
-public record WorkflowDetailsDto
+public record WorkflowDetails
 {
     public string? Outcome { get; init; }
     public string? Originator { get; init; }

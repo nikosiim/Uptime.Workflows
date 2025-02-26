@@ -1,7 +1,7 @@
 ﻿@page "/library-workflow/{listId:int}/{documentId:int}"
 
 @inject ISnackbar Snackbar
-@inject IApiService ApiService
+@inject IMediator Mediator
 
 <MudContainer>
     <MudPaper Elevation="0" Outlined="false" Class="mb-6">
@@ -23,7 +23,7 @@
                     <MudTd><MudLink Href="@($"/workflow/{context.Id}")">@context.WorkflowTemplateName</MudLink></MudTd>
                     <MudTd>@context.StartDate.ToLocalTime()</MudTd>
                 </RowTemplate>
-                <NoRecordsContent>No active workflows for this document.</NoRecordsContent>
+                <NoRecordsContent>Dokumendil puuduvad aktiivsed töövood</NoRecordsContent>
             </MudTable>
         </MudPaper>
 
@@ -42,7 +42,7 @@
                     <MudTd>@context.EndDate?.ToLocalTime()</MudTd>
                     <MudTd>@context.Outcome</MudTd>
                 </RowTemplate>
-                <NoRecordsContent>No completed or canceled workflows for this document.</NoRecordsContent>
+                <NoRecordsContent>Dokumendil puuduvad lõppenud töövood</NoRecordsContent>
             </MudTable>
         </MudPaper>
         <MudDivider />
@@ -65,8 +65,8 @@
         await base.OnInitializedAsync();
 
         _loading = true;
-        
-        Result<List<DocumentWorkflow>> result = await ApiService.GetDocumentWorkflowsAsync(DocumentId);
+
+        Result<List<DocumentWorkflow>> result = await Mediator.Send(new GetDocumentWorkflowsQuery(DocumentId));
         if (result.Succeeded)
         {
             _workflows = result.Value;
@@ -75,7 +75,7 @@
         }
         else
         {
-            Snackbar.Add(result.Error, Severity.Error);
+            Snackbar.Add("Dokumendiga seotud töövoogude laadimine ebaõnnestus", Severity.Error);
         }
 
         _loading = false;
@@ -83,11 +83,11 @@
 
     private async Task LoadWorkflowTemplates()
     {
-        Result<List<WorkflowTemplate>> result = await ApiService.GetWorkflowTemplatesAsync(ListId);
+        var result = await Mediator.Send(new GetLibraryWorkflowTemplatesQuery(ListId));
         if (result.Succeeded)
         {
             List<DocumentWorkflow> activeWorkflows = _workflows.Where(w => w.IsActive).ToList();
-            _availableTemplates = result.Value?.Where(t => activeWorkflows.All(w => w.TemplateId != t.Id)).ToList() ?? [];
+            _availableTemplates = result.Value.Where(t => activeWorkflows.All(w => w.TemplateId != t.Id)).ToList() ?? [];
         }
     }
 }

@@ -1,16 +1,16 @@
-﻿using System.Text.Json;
+﻿using MediatR;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using System.Text.Json;
 using Uptime.Client.Application.Common;
-using Uptime.Client.Application.DTOs;
-using Uptime.Shared.Common;
+using Uptime.Client.Application.Queries;
 
 namespace Uptime.Client.Presentation.Forms;
 
 public class WorkflowInitForm<TFormModel> : ComponentBase where TFormModel : IWorkflowFormModel, new()
 {
     [Inject] protected NavigationManager Navigation { get; set; } = null!;
-    [Inject] public IApiService ApiService { get; set; } = null!; 
+    [Inject] public IMediator Mediator { get; set; } = null!; 
     [Inject] public ISnackbar Snackbar { get; set; } = null!; 
     [Parameter] public int DocumentId { get; set; }
     [Parameter] public int TemplateId { get; set; }
@@ -20,14 +20,16 @@ public class WorkflowInitForm<TFormModel> : ComponentBase where TFormModel : IWo
 
     protected override async Task OnInitializedAsync()
     {
-        Result<WorkflowTemplate> result = await ApiService.GetWorkflowTemplateAsync(TemplateId);
+        var result = await Mediator.Send(new GetWorkflowTemplateQuery(TemplateId));
         if (result.Succeeded)
         {
-            WorkflowTemplate? template = result.Value;
-
-            FormModel = !string.IsNullOrWhiteSpace(template.AssociationDataJson)
-                ? JsonSerializer.Deserialize<TFormModel>(template.AssociationDataJson)!
+            FormModel = !string.IsNullOrWhiteSpace(result.Value.AssociationDataJson)
+                ? JsonSerializer.Deserialize<TFormModel>(result.Value.AssociationDataJson)!
                 : new TFormModel();
+        }
+        else
+        {
+            Snackbar.Add("Töövoo malli laadimine ebaõnnestus", Severity.Error);
         }
     }
 

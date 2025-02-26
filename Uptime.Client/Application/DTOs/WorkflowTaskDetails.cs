@@ -4,7 +4,7 @@ using Uptime.Shared.Extensions;
 
 namespace Uptime.Client.Application.DTOs;
 
-public record WorkflowTaskDto
+public record WorkflowTaskDetails
 {
     public int Id { get; init; }
     public string? AssignedTo { get; init; }

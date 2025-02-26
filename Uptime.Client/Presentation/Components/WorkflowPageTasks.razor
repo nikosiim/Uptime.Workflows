@@ -1,0 +1,59 @@
+﻿@inject IMediator Mediator
+
+<div class="mb-4">
+    <MudText Typo="Typo.h5">Tööülesanded</MudText>
+
+    @if (_tasksViewModel?.Count > 0)
+    {
+        <MudText Typo="Typo.subtitle1">See töövoog on loonud järgmised tööülesanded.</MudText>
+    }
+    else
+    {
+        <MudText Typo="Typo.subtitle1">Selles vaates pole üksusi, mida kuvada.</MudText>
+    }
+</div>
+
+<MudTable Items="@_tasksViewModel" Dense="true" Outlined="true" Loading="@_loading">
+    <HeaderContent>
+        <MudTh>Määratud kasutajale</MudTh>
+        <MudTh>Pealkiri</MudTh>
+        <MudTh>Tähtaeg</MudTh>
+        <MudTh>Olek</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="task">
+        <MudTd>@task.AssignedTo</MudTd>
+        <MudTd><MudLink Href="@($"/workflow-task/{task.Id}")">@task.Title</MudLink></MudTd>
+        <MudTd>@task.DueDate?.ToLocalTime().ToString("d")</MudTd>
+        <MudTd>@task.Status</MudTd>
+    </RowTemplate>
+    <NoRecordsContent>@_contentMessage</NoRecordsContent>
+</MudTable>
+
+
+@code {
+    private bool _loading;
+    private List<WorkflowTaskDetails>? _tasksViewModel;
+    private string _contentMessage = "Tööülesanded puuduvad";
+
+    [Parameter, EditorRequired] 
+    public int WorkflowId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        _loading = true;
+
+        Result<List<WorkflowTaskDetails>> result = await Mediator.Send(new GetWorkflowTasksQuery(WorkflowId));
+        if (result.Succeeded)
+        {
+            _tasksViewModel = result.Value;
+        }
+        else
+        {
+            _contentMessage = "Tööülesannete laadimine ebaõnnestus";
+        }
+
+        _loading = false;
+    }
+}

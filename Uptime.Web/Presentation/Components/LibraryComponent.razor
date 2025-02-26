@@ -1,39 +1,33 @@
 ﻿@inject IMediator Mediator
 @inject NavigationManager Navigation
 
-@if (_loading)
-{
-    <MudProgressCircular Indeterminate="true" Size="Size.Small" />
-}
-else
-{
-    <MudTable Items="@_documents" Hover="true" Bordered="true" Striped="true">
-        <ToolBarContent>
-            <MudText Typo="Typo.h6">Documents</MudText>
-            <MudSpacer />
-            <MudButton Variant="Variant.Filled" OnClick="@NavigateToWorkflowSettings">Workflow Settings</MudButton>
-        </ToolBarContent>
-        <HeaderContent>
-            <MudTh>Title</MudTh>
-            <MudTh>Description</MudTh>
-            <MudTh>Actions</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd>@context.Title</MudTd>
-            <MudTd>@context.Description</MudTd>
-            <MudTd>
-                <MudButton Size="Size.Small" Variant="Variant.Filled" OnClick="() => NavigateToWorkflows(context)">Workflows</MudButton>
-            </MudTd>
-        </RowTemplate>
-    </MudTable>
-}
+<MudTable Items="@_documents" Hover="true" Bordered="true" Striped="true" Loading="_loading">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Documents</MudText>
+        <MudSpacer />
+        <MudButton Variant="Variant.Filled" OnClick="@NavigateToWorkflowSettings">Töövoo seaded</MudButton>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Pealkiri</MudTh>
+        <MudTh>Kirjeldus</MudTh>
+        <MudTh>Tegevused</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.Title</MudTd>
+        <MudTd>@context.Description</MudTd>
+        <MudTd>
+            <MudButton Size="Size.Small" Variant="Variant.Filled" OnClick="() => NavigateToWorkflows(context)">Workflows</MudButton>
+        </MudTd>
+    </RowTemplate>
+    <NoRecordsContent>Dokumente ei leitud</NoRecordsContent>
+</MudTable>
 
 @code {
+    private bool _loading;
+    private List<LibraryDocument> _documents = [];
+
     [Parameter, EditorRequired]
     public string Name { get; set; } = null!;
-
-    private List<LibraryDocumentDto> _documents = [];
-    private bool _loading;
 
     protected override async Task OnInitializedAsync()
     {
@@ -49,7 +43,7 @@ else
         Navigation.NavigateTo($"/{PageRoutes.WorkflowSettings}/{Name.ToLower()}");
     }
 
-    private void NavigateToWorkflows(LibraryDocumentDto document)
+    private void NavigateToWorkflows(LibraryDocument document)
     {
         Navigation.NavigateTo($"/{PageRoutes.LibraryWorkflows}/{document.LibraryId}/{document.Id}");
     }

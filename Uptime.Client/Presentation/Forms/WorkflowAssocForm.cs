@@ -2,8 +2,11 @@
 using MudBlazor;
 using System.Text.Json;
 using Fluxor;
+using MediatR;
+using Uptime.Client.Application.Commands;
 using Uptime.Client.Application.Common;
 using Uptime.Client.Application.DTOs;
+using Uptime.Client.Application.Queries;
 using Uptime.Shared.Common;
 
 namespace Uptime.Client.Presentation.Forms;
@@ -11,7 +14,7 @@ namespace Uptime.Client.Presentation.Forms;
 public abstract class WorkflowAssocForm<TFormModel> : ComponentBase where TFormModel : IWorkflowFormModel, new()
 {
     [Inject] public IDispatcher Dispatcher { get; set; } = null!; 
-    [Inject] public IApiService ApiService { get; set; } = null!; 
+    [Inject] public IMediator Mediator { get; set; } = null!; 
     [Inject] public ISnackbar Snackbar { get; set; } = null!; 
 
     [Parameter] public int LibraryId { get; set; }
@@ -28,14 +31,16 @@ public abstract class WorkflowAssocForm<TFormModel> : ComponentBase where TFormM
     {
         if (TemplateId.HasValue)
         {
-            Result<WorkflowTemplate> result = await ApiService.GetWorkflowTemplateAsync(TemplateId.Value);
+            Result<WorkflowTemplate> result = await Mediator.Send(new GetWorkflowTemplateQuery(TemplateId.Value));
             if (result.Succeeded)
             {
-                WorkflowTemplate? template = result.Value;
-
-                FormModel = !string.IsNullOrWhiteSpace(template.AssociationDataJson)
-                    ? JsonSerializer.Deserialize<TFormModel>(template.AssociationDataJson)!
+                FormModel = !string.IsNullOrWhiteSpace(result.Value.AssociationDataJson)
+                    ? JsonSerializer.Deserialize<TFormModel>(result.Value.AssociationDataJson)!
                     : new TFormModel();
+            }
+            else
+            {
+                Snackbar.Add("Töövoo malli laadimine ebaõnnestus", Severity.Error);
             }
         }
     }
@@ -50,39 +55,30 @@ public abstract class WorkflowAssocForm<TFormModel> : ComponentBase where TFormM
 
             if (TemplateId.HasValue)
             {
-                Result<bool> result = await ApiService.UpdateWorkflowTemplateAsync(
-                    TemplateId.Value,
-                    LibraryId,
-                    FormModel.TemplateName,
-                    WorkflowDefinition.Name,
-                    WorkflowDefinition.Id,
-                    definitionJson
-                    );
-
-                if (!result.Succeeded)
+                Result<bool> result = await Mediator.Send(new UpdateWorkflowTemplateCommand
                 {
-                    Snackbar.Add(result.Error, Severity.Error);
-                    return;
-                }
+                    TemplateId = TemplateId.Value,
+                    TemplateName = FormModel.TemplateName,
+                    WorkflowName = WorkflowDefinition.Name,
+                    WorkflowBaseId = WorkflowDefinition.Id,
+                    AssociationDataJson = definitionJson
+                });
+
+                MudDialog.Close(DialogResult.Ok(result.Succeeded));
             }
             else
             {
-                Result<int> result = await ApiService.CreateWorkflowTemplateAsync(
-                    FormModel.TemplateName,
-                    LibraryId,
-                    WorkflowDefinition.Name,
-                    WorkflowDefinition.Id,
-                    definitionJson
-                );
-
-                if (!result.Succeeded)
+                Result<int> result = await Mediator.Send(new CreateWorkflowTemplateCommand
                 {
-                    Snackbar.Add(result.Error, Severity.Error);
-                    return;
-                }
-            }
+                    LibraryId = LibraryId,
+                    TemplateName = FormModel.TemplateName,
+                    WorkflowName = WorkflowDefinition.Name,
+                    WorkflowBaseId = WorkflowDefinition.Id,
+                    AssociationDataJson = definitionJson
+                });
 
-            MudDialog.Close(DialogResult.Ok(true));
+                MudDialog.Close(DialogResult.Ok(result.Succeeded));
+            }
         }
     }
 
