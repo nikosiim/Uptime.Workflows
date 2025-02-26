@@ -3,4 +3,5 @@
 public interface IWorkflowFormModel
 {
     string TemplateName { get; set; }
+    string Originator { get; set; }
 }

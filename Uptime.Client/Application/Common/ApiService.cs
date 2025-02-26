@@ -9,6 +9,21 @@ public class ApiService(IHttpClientFactory httpClientFactory, CancellationTokenS
 {
     private readonly HttpClient _httpClient = httpClientFactory.CreateClient(ApiRoutes.WorkflowApiClient);
 
+    #region Business-Specific API Methods
+
+    public async Task<Result<bool>> StartWorkflowAsync(string originator, int documentId, int workflowTemplateId, Dictionary<string, string?> storage)
+    {
+        var payload = new
+        {
+            Originator = originator,
+            DocumentId = documentId,
+            WorkflowTemplateId = workflowTemplateId,
+            Storage = storage
+        };
+
+        return await PostWithoutResponseAsync(ApiRoutes.Workflows.StartWorkflow, payload);
+    }
+
     public async Task<Result<WorkflowTemplate>> GetWorkflowTemplateAsync(int templateId)
     {
         string url = ApiRoutes.WorkflowTemplates.GetTemplate.Replace("{templateId}", templateId.ToString());
@@ -30,8 +45,10 @@ public class ApiService(IHttpClientFactory httpClientFactory, CancellationTokenS
             WorkflowBaseId = template.WorkflowBaseId
         });
     }
+    
+    #endregion
 
-    #region Generic methods
+    #region Generic API Methods
 
     public async Task<Result<T>> GetJsonAsync<T>(string url)
     {
@@ -61,6 +78,36 @@ public class ApiService(IHttpClientFactory httpClientFactory, CancellationTokenS
         catch (Exception ex)
         {
             return Result<T>.Failure($"Unexpected error: {ex.Message}");
+        }
+    }
+
+    public async Task<Result<bool>> PostWithoutResponseAsync<T>(string url, T payload)
+    {
+        CancellationToken linkedToken = GetLinkedCancellationToken();
+
+        try
+        {
+            using HttpResponseMessage response = await _httpClient.PostAsJsonAsync(url, payload, linkedToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string errorMessage = await response.Content.ReadAsStringAsync(linkedToken);
+                return Result<bool>.Failure($"Error {response.StatusCode}: {errorMessage}");
+            }
+
+            return Result<bool>.Success(true);
+        }
+        catch (OperationCanceledException)
+        {
+            return Result<bool>.Cancelled();
+        }
+        catch (HttpRequestException ex)
+        {
+            return Result<bool>.Failure($"Request failed: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            return Result<bool>.Failure($"Unexpected error: {ex.Message}");
         }
     }
 

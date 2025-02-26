@@ -1,6 +1,4 @@
-﻿@inherits FluxorComponent
-@inject IDispatcher Dispatcher
-@inject IState<WorkflowState> WorkflowState
+﻿@inject IState<WorkflowState> WorkflowState
 
 <MudPaper Elevation="0" MinHeight="250px">
     <MudText Typo="Typo.h5" Class="my-6">Töövoo käivitamine</MudText>
@@ -17,15 +15,8 @@
                                 <MudIcon Icon="@Icons.Material.Filled.Work" Size="Size.Small" />
                             </MudAvatar>
 
-                            @if (WorkflowState.Value.WorkflowDefinitionsQuery.Result.Succeeded)
-                            {
-                                <MudLink Href="@(GetInitiationFormUrl(template, DocumentId))" Style=" white-space: nowrap;">@template.Name</MudLink>
-                            }
-                            else
-                            {
-                                <MudLink Href="#" Style=" white-space: nowrap;">@template.Name</MudLink>
-                            }
-                         
+                            <MudLink Href="@(GetInitiationFormUrl(template, DocumentId))" Style=" white-space: nowrap;">@template.Name</MudLink>
+
                         </MudStack>
                     </MudPaper>
                 </MudItem>
@@ -57,25 +48,16 @@
         }
     }
 
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-
-        if (WorkflowState.Value.WorkflowDefinitionsQuery.Status == QueryStatus.Uninitialized)
-        {
-            Dispatcher.Dispatch(new LoadWorkflowDefinitionsAction());
-        }
-    }
-
     private string GetInitiationFormUrl(WorkflowTemplate template, int documentId)
     {
-        WorkflowDefinition definition = WorkflowState.Value.WorkflowDefinitionsQuery.Result.Value!.First(x => x.Id == template.WorkflowBaseId);
+        WorkflowDefinition? definition = WorkflowState.Value.WorkflowDefinitionsQuery.Result.Value?.First(x => x.Id == template.WorkflowBaseId);
 
-        if (!string.IsNullOrWhiteSpace(definition.FormsConfiguration?.InitiationPage))
+        if (!string.IsNullOrWhiteSpace(definition?.FormsConfiguration?.InitiationPage))
         { 
             return $"/{definition.FormsConfiguration!.InitiationPage}/{template.Id}/{documentId}";
         }
 
-        throw new ArgumentException("FormsConfiguration");
+        Console.WriteLine(@"Workflow definition forms configuration missing");
+        return "";
     }
 }
