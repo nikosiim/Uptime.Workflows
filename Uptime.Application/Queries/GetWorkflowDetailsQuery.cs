@@ -6,15 +6,15 @@ using Uptime.Domain.Common;
 
 namespace Uptime.Application.Queries;
 
-public record GetWorkflowQuery(WorkflowId WorkflowId) : IRequest<WorkflowDto?>;
+public record GetWorkflowDetailsQuery(WorkflowId WorkflowId) : IRequest<WorkflowDetailsDto?>;
 
-public class GetWorkflowQueryHandler(IWorkflowDbContext dbContext) : IRequestHandler<GetWorkflowQuery, WorkflowDto?>
+public class GetWorkflowDetailsQueryHandler(IWorkflowDbContext dbContext) : IRequestHandler<GetWorkflowDetailsQuery, WorkflowDetailsDto?>
 {
-    public async Task<WorkflowDto?> Handle(GetWorkflowQuery request, CancellationToken cancellationToken)
+    public async Task<WorkflowDetailsDto?> Handle(GetWorkflowDetailsQuery request, CancellationToken cancellationToken)
     {
         return await dbContext.Workflows.AsNoTracking()
             .Where(x => x.Id == request.WorkflowId.Value)
-            .Select(w => new WorkflowDto
+            .Select(w => new WorkflowDetailsDto
             {
                 IsActive = w.IsActive,
                 Outcome =  w.Outcome,

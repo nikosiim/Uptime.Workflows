@@ -6,23 +6,23 @@ using Uptime.Shared.Models.Workflows;
 
 namespace Uptime.Client.Application.Queries;
 
-public record GetWorkflowHistoryQuery(int WorkflowId) : IRequest<Result<List<WorkflowHistory>>>;
+public record GetWorkflowHistoryQuery(int WorkflowId) : IRequest<Result<List<WorkflowHistoryData>>>;
 
 public class GetWorkflowHistoryQueryHandler(IApiService apiService) 
-    : IRequestHandler<GetWorkflowHistoryQuery, Result<List<WorkflowHistory>>>
+    : IRequestHandler<GetWorkflowHistoryQuery, Result<List<WorkflowHistoryData>>>
 {
-    public async Task<Result<List<WorkflowHistory>>> Handle(GetWorkflowHistoryQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<WorkflowHistoryData>>> Handle(GetWorkflowHistoryQuery request, CancellationToken cancellationToken)
     {
         string url = ApiRoutes.Workflows.GetHistories.Replace("{workflowId}", request.WorkflowId.ToString());
         Result<List<WorkflowHistoryResponse>> result = await apiService.ReadFromJsonAsync<List<WorkflowHistoryResponse>>(url, cancellationToken);
 
         if (!result.Succeeded)
         {
-            return Result<List<WorkflowHistory>>.Failure(result.Error);
+            return Result<List<WorkflowHistoryData>>.Failure(result.Error);
         }
 
-        List<WorkflowHistory> histories = result.Value?.Select(entry
-            => new WorkflowHistory
+        List<WorkflowHistoryData> histories = result.Value?.Select(entry
+            => new WorkflowHistoryData
             {
                 Id = entry.Id,
                 WorkflowId = entry.WorkflowId,
@@ -33,6 +33,6 @@ public class GetWorkflowHistoryQueryHandler(IApiService apiService)
                 Event = entry.Event
             }).ToList() ?? [];
 
-        return Result<List<WorkflowHistory>>.Success(histories);
+        return Result<List<WorkflowHistoryData>>.Success(histories);
     }
 }

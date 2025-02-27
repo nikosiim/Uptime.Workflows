@@ -9,6 +9,8 @@ namespace Uptime.Client.StateManagement.Workflow;
 
 public static class WorkflowReducers
 {
+    #region WorkflowDefinitions
+    
     [ReducerMethod(typeof(LoadWorkflowDefinitionsAction))]
     public static WorkflowState ReduceLoadWorkflowDefinitionsAction(WorkflowState state) => state with
     {
@@ -60,7 +62,10 @@ public static class WorkflowReducers
             }
         };
     }
-
+    
+    #endregion
+    
+    #region WorkflowTasks
 
     [ReducerMethod(typeof(LoadWorkflowTasksAction))]
     public static WorkflowState ReduceLoadWorkflowTasksAction(WorkflowState state) => state with
@@ -109,4 +114,108 @@ public static class WorkflowReducers
             }
         };
     }
+
+    #endregion
+
+    #region WorkflowHistory
+
+    [ReducerMethod(typeof(LoadWorkflowHistoryAction))]
+    public static WorkflowState ReduceLoadWorkflowHistoryAction(WorkflowState state) => state with
+    {
+        WorkflowHistoryQuery = new QueryState<Result<List<WorkflowHistoryData>>>
+        {
+            Result = default, Status = QueryStatus.Loading
+        }
+    };
+
+    [ReducerMethod]
+    public static WorkflowState ReduceLoadWorkflowHistoryFailedAction(WorkflowState state, LoadWorkflowHistoryFailedAction action)
+        => state with
+        {
+            WorkflowHistoryQuery = new QueryState<Result<List<WorkflowHistoryData>>>
+            {
+                Status = QueryStatus.Loaded,
+                Result = Result<List<WorkflowHistoryData>>.Failure(action.ErrorMessage)
+            }
+        };
+
+    [ReducerMethod]
+    public static WorkflowState ReduceLoadWorkflowHistorySuccessAction(WorkflowState state, LoadWorkflowHistorySuccessAction action)
+    {
+        List<WorkflowHistoryResponse> response = action.Response;
+
+        List<WorkflowHistoryData> result = response.Select(entry
+            => new WorkflowHistoryData
+            {
+                Id = entry.Id,
+                WorkflowId = entry.WorkflowId,
+                Description = entry.Description,
+                Occurred = entry.Occurred.ToLocalTime(),
+                Comment = entry.Comment,
+                User = entry.User,
+                Event = entry.Event
+            }).ToList();
+
+        return state with
+        {
+            WorkflowHistoryQuery = new QueryState<Result<List<WorkflowHistoryData>>>
+            {
+                Status = QueryStatus.Loaded,
+                Result = Result<List<WorkflowHistoryData>>.Success(result)
+            }
+        };
+    }
+
+    #endregion
+
+    #region WorkflowDetails
+
+    [ReducerMethod(typeof(LoadWorkflowDetailsAction))]
+    public static WorkflowState ReduceLoadWorkflowDetailsAction(WorkflowState state) => state with
+    {
+        WorkflowDetailsQuery = new QueryState<Result<WorkflowDetails>>
+        {
+            Result = default, Status = QueryStatus.Loading
+        }
+    };
+
+    [ReducerMethod]
+    public static WorkflowState ReduceLoadWorkflowDetailsFailedAction(WorkflowState state, LoadWorkflowDetailsFailedAction action)
+        => state with
+        {
+            WorkflowDetailsQuery = new QueryState<Result<WorkflowDetails>>
+            {
+                Status = QueryStatus.Loaded,
+                Result = Result<WorkflowDetails>.Failure(action.ErrorMessage)
+            }
+        };
+
+    [ReducerMethod]
+    public static WorkflowState ReduceLoadWorkflowDetailsSuccessAction(WorkflowState state, LoadWorkflowDetailsSuccessAction action)
+    {
+        WorkflowDetailsResponse response = action.Response;
+        
+        var result = new WorkflowDetails
+        {
+            Id = action.WorkflowId,
+            DocumentId = response.DocumentId,
+            Document = response.Document,
+            Originator = response.Originator,
+            StartDate = response.StartDate,
+            EndDate = response.EndDate,
+            Outcome = WorkflowResources.Get(response.Outcome),
+            IsActive = response.IsActive
+        };
+
+        return state with
+        {
+            WorkflowDetailsQuery = new QueryState<Result<WorkflowDetails>>
+            {
+                Status = QueryStatus.Loaded,
+                Result = Result<WorkflowDetails>.Success(result)
+            }
+        };
+    }
+
+    #endregion
 }

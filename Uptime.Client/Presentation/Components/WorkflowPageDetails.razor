@@ -1,11 +1,13 @@
-﻿
+﻿@inherits FluxorComponent
+@inject IState<WorkflowState> WorkflowState
+
 <div class="mb-4">
     <MudText Typo="Typo.h5">Töövoo teave</MudText>
 </div>
 
-@if (ViewModel != null)
+@if (WorkflowDetails != null)
 {
-    <MudGrid Style="width:75%">
+    <MudGrid Style="width:100%">
         <MudItem xs="12" md="6">
             <MudStack Row="true">
                 <MudStack>
@@ -14,9 +16,9 @@
                     <MudText><b>Lõpetatud: </b></MudText>
                 </MudStack>
                 <MudStack>
-                    <MudText>@ViewModel.Originator</MudText>
-                    <MudText>@ViewModel.StartDate</MudText>
-                    <MudText>@ViewModel.EndDate</MudText>
+                    <MudText>@WorkflowDetails.Originator</MudText>
+                    <MudText>@WorkflowDetails.StartDate</MudText>
+                    <MudText>@WorkflowDetails.EndDate</MudText>
                 </MudStack>
             </MudStack>
         </MudItem>
@@ -28,16 +30,19 @@
                     <MudText><b>Olek: </b></MudText>
                 </MudStack>
                 <MudStack>
-                    <MudText>@ViewModel.Document</MudText>
-                    <MudLink Href="#">Üürileping A155G</MudLink>
-                    <MudText>@ViewModel.Outcome</MudText>
+                    <MudText>@WorkflowDetails.Document</MudText>
+                    <MudLink>@WorkflowDetails.Document</MudLink>
+                    <MudText>@WorkflowDetails.Outcome</MudText>
                 </MudStack>
             </MudStack>
         </MudItem>
     </MudGrid>
 }
 
-@code {
-    [Parameter, EditorRequired]
-    public WorkflowDetails? ViewModel { get; set; }
+@code
+{
+    private WorkflowDetails? WorkflowDetails 
+        => WorkflowState.Value.WorkflowDetailsQuery.Result.Succeeded 
+            ? WorkflowState.Value.WorkflowDetailsQuery.Result.Value 
+            : null;
 }

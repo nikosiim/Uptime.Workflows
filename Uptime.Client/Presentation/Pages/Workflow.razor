@@ -1,35 +1,41 @@
 ﻿@page "/workflow/{workflowId:int}"
 
-@inject IMediator Mediator
+@inject IDispatcher Dispatcher
 
 <MudContainer>
     <MudPaper Elevation="1" Outlined="true" Class="pa-4 mb-6">
-        <WorkflowPageDetails ViewModel="_detailsViewModel" />
+        <WorkflowPageDetails />
     </MudPaper>
     <MudPaper Elevation="2" Outlined="true" Class="pa-4 my-6">
-        <WorkflowPageActions ViewModel="_detailsViewModel" />
+        <WorkflowPageActions WorkflowCanceled="HandleWorkflowCanceled" />
     </MudPaper>
     <MudPaper Elevation="1" Outlined="true" Class="pa-4 my-6">
-        <WorkflowPageTasks WorkflowId="WorkflowId" />
+        <WorkflowPageTasks />
     </MudPaper>
     <MudPaper Elevation="1" Outlined="true" Class="pa-4 my-6">
-        <WorkflowPageHistory WorkflowId="WorkflowId" />
+        <WorkflowPageHistory />
     </MudPaper>
 </MudContainer>
 
 @code {
-    private WorkflowDetails? _detailsViewModel;
-
     [Parameter] public int WorkflowId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
-        Result<WorkflowDetails> detailsResult = await Mediator.Send(new GetWorkflowDetailsQuery(WorkflowId));
-        if (detailsResult.Succeeded)
-        {
-            _detailsViewModel = detailsResult.Value;
-        }
+        LoadWorkflowDetails();
+    }
+
+    private void HandleWorkflowCanceled()
+    {
+        LoadWorkflowDetails();
+    }
+
+    private void LoadWorkflowDetails()
+    {
+        Dispatcher.Dispatch(new LoadWorkflowDetailsAction(WorkflowId));
+        Dispatcher.Dispatch(new LoadWorkflowTasksAction(WorkflowId));
+        Dispatcher.Dispatch(new LoadWorkflowHistoryAction(WorkflowId));
     }
 }

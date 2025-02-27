@@ -1,4 +1,5 @@
-﻿@inject IMediator Mediator
+﻿@inherits FluxorComponent
+@inject IState<WorkflowState> WorkflowState
 
 @if (ShowTitle)
 {
@@ -8,7 +9,9 @@
     </div>
 }
 
-<MudTable Items="@_historyItems" Dense="true" Outlined="true" Loading="@_loading">
+<MudTable Dense="true" Outlined="true" 
+          Items="@(WorkflowState.Value.WorkflowHistoryQuery.Result.Value ?? [])"
+          Loading="@(WorkflowState.Value.WorkflowHistoryQuery.Status == QueryStatus.Loading)">
     <HeaderContent>
         <MudTh>Toimumise aeg</MudTh>
         <MudTh>Sündmuse tüüp</MudTh>
@@ -23,34 +26,13 @@
         <MudTd>@entry.Description</MudTd>
         <MudTd>@entry.Comment</MudTd>
     </RowTemplate>
-    <NoRecordsContent>@_contentMessage</NoRecordsContent>
+    <NoRecordsContent>
+        @(WorkflowState.Value.WorkflowHistoryQuery is { Status: QueryStatus.Loaded, Result.Succeeded: false }
+            ? "Töövoo ajaloo laadimine ebaõnnestus"
+            : "Töövoo ajalugu puudub")
+    </NoRecordsContent>
 </MudTable>
 
 @code {
-    private bool _loading;
-    private string _contentMessage = "Töövoo ajalugu puudub";
-
     [Parameter] public bool ShowTitle { get; set; } = true;
-    [Parameter, EditorRequired] public int WorkflowId { get; set; }
-
-    private List<WorkflowHistory> _historyItems = [];
-
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-
-        _loading = true;
-
-        Result<List<WorkflowHistory>> result = await Mediator.Send(new GetWorkflowHistoryQuery(WorkflowId));
-        if (result.Succeeded)
-        {
-            _historyItems = result.Value;
-        }
-        else
-        {
-            _contentMessage = "Töövoo ajaloo päring ebaõnnestus";
-        }
-
-        _loading = false;
-    }
 }

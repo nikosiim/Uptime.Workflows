@@ -23,17 +23,17 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("{workflowId:int}")]
-    public async Task<ActionResult<WorkflowResponse>> GetWorkflow(int workflowId)
+    public async Task<ActionResult<WorkflowDetailsResponse>> GetWorkflow(int workflowId)
     {
-        var query = new GetWorkflowQuery((WorkflowId)workflowId);
-        WorkflowDto? workflow = await mediator.Send(query);
+        var query = new GetWorkflowDetailsQuery((WorkflowId)workflowId);
+        WorkflowDetailsDto? workflow = await mediator.Send(query);
         
         if (workflow == null)
         {
             return NotFound($"No workflow found for ID {workflowId}.");
         }
 
-        return Ok(Mapper.MapToWorkflowResponse(workflow));
+        return Ok(Mapper.MapToWorkflowDetailsResponse(workflow));
     }
 
     [HttpGet("{workflowId:int}/workflow-tasks")]

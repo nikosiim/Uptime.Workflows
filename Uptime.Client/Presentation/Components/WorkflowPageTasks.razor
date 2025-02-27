@@ -1,6 +1,5 @@
 ﻿@inherits FluxorComponent
 @inject IState<WorkflowState> WorkflowState
-@inject IDispatcher Dispatcher
 
 <div class="mb-4">
     <MudText Typo="Typo.h5">Tööülesanded</MudText>
@@ -32,14 +31,3 @@
             : "Tööülesanded puuduvad")
     </NoRecordsContent>
 </MudTable>
-
-@code {
-    [Parameter, EditorRequired] 
-    public int WorkflowId { get; set; }
-
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        Dispatcher.Dispatch(new LoadWorkflowTasksAction(WorkflowId));
-    }
-}

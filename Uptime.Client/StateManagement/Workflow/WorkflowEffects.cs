@@ -38,4 +38,36 @@ public class WorkflowEffects(IApiService apiService)
             dispatcher.Dispatch(new LoadWorkflowTasksFailedAction(result.Error));
         }
     }
+    
+    [EffectMethod]
+    public async Task HandleLoadWorkflowHistoryAction(LoadWorkflowHistoryAction action, IDispatcher dispatcher)
+    {
+        string url = ApiRoutes.Workflows.GetHistories.Replace("{workflowId}", action.WorkflowId.ToString());
+        Result<List<WorkflowHistoryResponse>> result = await apiService.ReadFromJsonAsync<List<WorkflowHistoryResponse>>(url, CancellationToken.None);
+        
+        if (result.Succeeded)
+        {
+            dispatcher.Dispatch(new LoadWorkflowHistorySuccessAction(result.Value ?? []));
+        }
+        else
+        {
+            dispatcher.Dispatch(new LoadWorkflowHistoryFailedAction(result.Error));
+        }
+    }
+    
+    [EffectMethod]
+    public async Task HandleLoadWorkflowDetailsAction(LoadWorkflowDetailsAction action, IDispatcher dispatcher)
+    {
+        string url = ApiRoutes.Workflows.GetWorkflow.Replace("{workflowId}", action.WorkflowId.ToString());
+        Result<WorkflowDetailsResponse> result = await apiService.ReadFromJsonAsync<WorkflowDetailsResponse>(url, CancellationToken.None);
+        
+        if (result.Succeeded)
+        {
+            dispatcher.Dispatch(new LoadWorkflowDetailsSuccessAction(result.Value, action.WorkflowId));
+        }
+        else
+        {
+            dispatcher.Dispatch(new LoadWorkflowDetailsFailedAction(result.Error));
+        }
+    }
 }

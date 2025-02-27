@@ -15,14 +15,14 @@ public class GetWorkflowDetailsQueryHandler(IApiService apiService)
     public async Task<Result<WorkflowDetails>> Handle(GetWorkflowDetailsQuery request, CancellationToken cancellationToken)
     {
         string url = ApiRoutes.Workflows.GetWorkflow.Replace("{workflowId}", request.WorkflowId.ToString());
-        Result<WorkflowResponse> result = await apiService.ReadFromJsonAsync<WorkflowResponse>(url, cancellationToken);
+        Result<WorkflowDetailsResponse> result = await apiService.ReadFromJsonAsync<WorkflowDetailsResponse>(url, cancellationToken);
 
         if (!result.Succeeded)
         {
             return Result<WorkflowDetails>.Failure(result.Error);
         }
 
-        WorkflowResponse details = result.Value!;
+        WorkflowDetailsResponse details = result.Value!;
 
         var template = new WorkflowDetails
         {

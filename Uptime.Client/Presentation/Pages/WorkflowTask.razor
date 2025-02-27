@@ -1,6 +1,7 @@
 ﻿@page "/workflow-task/{taskId:int}"
 
 @inject IMediator Mediator
+@inject IDispatcher Dispatcher
 @inject IDialogService DialogService
 @inject NavigationManager Navigation
 @inject IState<WorkflowState> WorkflowState
@@ -101,7 +102,7 @@
                         </div>
                     </TitleContent>
                     <ChildContent>
-                        <WorkflowPageHistory ShowTitle="false" WorkflowId="_task.WorkflowId" />
+                        <WorkflowPageHistory ShowTitle="false" />
                     </ChildContent>
                 </MudExpansionPanel>
             </MudExpansionPanels>
@@ -125,6 +126,11 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+
+        if (_task != null)
+        {
+            Dispatcher.Dispatch(new LoadWorkflowHistoryAction(_task.WorkflowId));
+        }
 
         Result<WorkflowTaskDetails> result = await Mediator.Send(new GetWorkflowTaskQuery(TaskId));
         if (result.Succeeded)

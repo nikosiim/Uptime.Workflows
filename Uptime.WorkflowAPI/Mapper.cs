@@ -91,9 +91,9 @@ public static class Mapper
 
     #region Workflows
     
-    public static WorkflowResponse MapToWorkflowResponse(WorkflowDto source)
+    public static WorkflowDetailsResponse MapToWorkflowDetailsResponse(WorkflowDetailsDto source)
     {
-        return new WorkflowResponse
+        return new WorkflowDetailsResponse
         {
             IsActive = source.IsActive,
             Outcome = source.Outcome,

@@ -9,6 +9,8 @@ public record WorkflowState
 {
     public required QueryState<Result<List<WorkflowDefinition>>> WorkflowDefinitionsQuery { get; init; }
 
+    #region No QueryStatus.Uninitialized
+
     /// <summary>
     /// This property holds the task data for a specific workflow. 
     /// When switching between workflow task pages, this property is overwritten with new workflow tasks.
@@ -23,6 +25,10 @@ public record WorkflowState
     /// - This ensures tasks are available even if they are needed elsewhere in the application.
     /// </summary>
     public required QueryState<Result<List<WorkflowTaskData>>> WorkflowTasksQuery { get; init; }
+    public required QueryState<Result<List<WorkflowHistoryData>>> WorkflowHistoryQuery { get; init; }
+    public required QueryState<Result<WorkflowDetails>> WorkflowDetailsQuery { get; init; }
+    
+    #endregion
 }
 
 public class WorkflowFeature : Feature<WorkflowState>
@@ -37,6 +43,16 @@ public class WorkflowFeature : Feature<WorkflowState>
             Status = QueryStatus.Uninitialized
         },
         WorkflowTasksQuery = new QueryState<Result<List<WorkflowTaskData>>>
+        {
+            Result = default,
+            Status = QueryStatus.Uninitialized
+        },
+        WorkflowHistoryQuery = new QueryState<Result<List<WorkflowHistoryData>>>
+        {
+            Result = default,
+            Status = QueryStatus.Uninitialized
+        },
+        WorkflowDetailsQuery = new QueryState<Result<WorkflowDetails>>
         {
             Result = default,
             Status = QueryStatus.Uninitialized
