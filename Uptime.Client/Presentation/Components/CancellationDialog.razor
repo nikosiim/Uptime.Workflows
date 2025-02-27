@@ -23,7 +23,7 @@
 
     protected async Task OnSaveClick()
     {
-        var command = new CancelWorkflowCommand(WorkflowId, "System", _comment);
+        var command = new CancelWorkflowCommand(WorkflowId, "System", $"Töövoog tühistatud kommentaariga: {_comment}");
 
         Result<bool> result = await Mediator.Send(command);
         if (result.Succeeded)

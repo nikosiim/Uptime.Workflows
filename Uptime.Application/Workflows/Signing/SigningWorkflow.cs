@@ -25,13 +25,12 @@ public class SigningWorkflow(
     {
         Machine.Configure(BaseState.NotStarted)
             .Permit(WorkflowTrigger.Start, ExtendedState.Signing);
-
         Machine.Configure(ExtendedState.Signing)
             .OnEntryAsync(() => StartSigningTask(cancellationToken))
             .OnExit(OnSigningTaskCompleted) 
             .Permit(WorkflowTrigger.TaskCompleted, BaseState.Completed)
-            .Permit(WorkflowTrigger.TaskRejected, BaseState.Completed);
-
+            .Permit(WorkflowTrigger.TaskRejected, BaseState.Completed)
+            .Permit(WorkflowTrigger.Cancel, BaseState.Cancelled);
         Machine.Configure(BaseState.Completed);
     }
 

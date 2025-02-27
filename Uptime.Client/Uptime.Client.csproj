@@ -8,6 +8,9 @@
 
   <ItemGroup>
     <Compile Remove="Application\Common\ApiFetcher.cs" />
+    <Compile Remove="Application\Queries\GetWorkflowDetailsQuery.cs" />
+    <Compile Remove="Application\Queries\GetWorkflowHistoryQuery.cs" />
+    <Compile Remove="Application\Queries\GetWorkflowTasksQuery.cs" />
     <Compile Remove="StateManagement\Common\IState.cs" />
     <Compile Remove="StateManagement\Common\StateBase.cs" />
   </ItemGroup>
