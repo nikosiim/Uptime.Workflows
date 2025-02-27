@@ -16,6 +16,8 @@ public record WorkflowTaskDetails
     public string? Document { get; init; }
     public int WorkflowId { get; init; }
     public string? Status { get; init; }
+    public string? PhaseId { get; init; }
+    public required string WorkflowBaseId { get; init; }
     public WorkflowTaskStatus InternalStatus { get; init; }
 
     public string? Title => StorageJson.GetValue(GlobalConstants.TaskStorageKeys.TaskTitle);

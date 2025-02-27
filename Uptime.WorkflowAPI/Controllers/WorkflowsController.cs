@@ -19,7 +19,7 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
         var query = new GetWorkflowDefinitionQuery();
         List<WorkflowDefinition> definitions = await mediator.Send(query);
 
-        return Ok(definitions);
+        return Ok(Mapper.MapToWorkflowDefinitionResponse(definitions));
     }
 
     [HttpGet("{workflowId:int}")]

@@ -13,7 +13,7 @@ public class GetWorkflowTemplateQueryHandler(IWorkflowDbContext context)
 {
     public async Task<WorkflowTemplateDto?> Handle(GetWorkflowTemplateQuery request, CancellationToken cancellationToken)
     {
-        WorkflowTemplateDto? workflowTemplate = await context.WorkflowTemplates
+        WorkflowTemplateDto? workflowTemplate = await context.WorkflowTemplates.AsNoTracking()
             .Where(wt => wt.Id == request.TemplateId.Value)
             .Select(wt => new WorkflowTemplateDto
             {

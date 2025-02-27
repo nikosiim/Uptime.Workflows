@@ -5,6 +5,7 @@ namespace Uptime.Domain.Entities;
 public class Workflow : BaseEntity
 {
     public bool IsActive { get; set; }
+    public bool IsDeleted { get; set; }
     [StringLength(64)]
     public string? Outcome { get; set; }
     [StringLength(32)]

@@ -1,5 +1,6 @@
 ﻿using Uptime.Domain.Common;
 using Uptime.Domain.Interfaces;
+using Uptime.Shared.Choices;
 
 namespace Uptime.Application.Workflows.Signing;
 
@@ -17,7 +18,7 @@ public sealed class SigningWorkflowDefinition : IWorkflowDefinition
             Id = Id,
             Name = Name,
             DisplayName = DisplayName,
-            Actions = []
+            Actions = [ButtonAction.Signing]
         };
     }
 

@@ -108,6 +108,7 @@ public class WorkflowRepository(IWorkflowDbContextFactory factory) : IWorkflowRe
             DueDate = request.DueDate,
             Status = status.ToString(),
             InternalStatus = status,
+            PhaseId = request.PhaseId,
             StorageJson = JsonSerializer.Serialize(request.Storage)
         };
 

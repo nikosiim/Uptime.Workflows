@@ -47,7 +47,7 @@ public class AlterTaskCommandHandler(IWorkflowDbContext dbContext, IWorkflowFact
             return BaseState.Invalid.Value;
         }
         
-        var taskContext = new WorkflowTaskContext((WorkflowId)workflowTask.WorkflowId)
+        var taskContext = new WorkflowTaskContext((WorkflowId)workflowTask.WorkflowId, workflowTask.PhaseId)
         {
             TaskId = request.TaskId,
             TaskGuid = workflowTask.TaskGuid,

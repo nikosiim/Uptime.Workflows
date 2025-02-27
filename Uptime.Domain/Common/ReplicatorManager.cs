@@ -14,20 +14,20 @@ public class ReplicatorManager(WorkflowId workflowId, IReplicatorActivityProvide
     {
         _replicators.Clear();
         
-        foreach ((string phase, ReplicatorState state) in replicatorStates)
+        foreach ((string phaseId, ReplicatorState state) in replicatorStates)
         {
-            Console.WriteLine($"Initializing replicator for phase '{phase}', Task Count: {state.Items.Count}");
+            Console.WriteLine($"Initializing replicator for phase '{phaseId}', Task Count: {state.Items.Count}");
 
             var replicator = new Replicator
             {
                 Type = state.Type,
                 Items = state.Items.Where(item => item.Status == ReplicatorItemStatus.NotStarted || item.Status == ReplicatorItemStatus.InProgress).ToList(),
-                ChildActivity = data => activityProvider.CreateActivity(phase, data, new WorkflowTaskContext(workflowId)),
-                OnChildInitialized = (data, activity) => activityProvider.OnChildInitialized(phase, data, activity),
+                ChildActivity = data => activityProvider.CreateActivity(phaseId, data, new WorkflowTaskContext(workflowId, phaseId)),
+                OnChildInitialized = (data, activity) => activityProvider.OnChildInitialized(phaseId, data, activity),
                 OnAllTasksCompleted = async () => await workflowMachine.TriggerTransitionAsync(WorkflowTrigger.AllTasksCompleted, cancellationToken)
             };
 
-            _replicators[phase] = replicator;
+            _replicators[phaseId] = replicator;
         }
     }
 

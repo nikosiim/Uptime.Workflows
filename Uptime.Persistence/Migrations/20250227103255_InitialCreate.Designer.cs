@@ -12,7 +12,7 @@ using Uptime.Persistence;
 namespace Uptime.Persistence.Migrations
 {
     [DbContext(typeof(WorkflowDbContext))]
-    [Migration("20250220183635_InitialCreate")]
+    [Migration("20250227103255_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -44,6 +44,9 @@ namespace Uptime.Persistence.Migrations
                         .HasMaxLength(512)
                         .HasColumnType("nvarchar(512)");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<int>("LibraryId")
                         .HasColumnType("int");
 
@@ -63,37 +66,41 @@ namespace Uptime.Persistence.Migrations
                         {
                             Id = 1,
                             Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "Emma Carter",
-                            Description = "First document",
+                            CreatedBy = "Lauri Saar",
+                            Description = "Sofia Kuperštein",
+                            IsDeleted = false,
                             LibraryId = 1,
-                            Title = "QuickGuide"
+                            Title = "Teabenõue"
                         },
                         new
                         {
                             Id = 2,
                             Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "Sophia Patel",
-                            Description = "Second document",
+                            CreatedBy = "Riin Koppel",
+                            Description = "Vello Lauri",
+                            IsDeleted = false,
                             LibraryId = 1,
-                            Title = "PlanDraft"
+                            Title = "LISA_13.01.2025_7-4.2_277-3"
                         },
                         new
                         {
                             Id = 3,
                             Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "Liam Rodriguez",
-                            Description = "Third document",
+                            CreatedBy = "Jana Pärn",
+                            Description = "SK_25.02.2025_9-11_25_59-4",
+                            IsDeleted = false,
                             LibraryId = 2,
-                            Title = "Notes2025"
+                            Title = "Pöördumine"
                         },
                         new
                         {
                             Id = 4,
                             Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "Isabella Nguyen",
-                            Description = "Fourth document",
+                            CreatedBy = "Markus Lepik",
+                            Description = "AS GoTravel",
+                            IsDeleted = false,
                             LibraryId = 1,
-                            Title = "TaskList"
+                            Title = "LEPING_AS GoTravel_18.12.2024_7-4.2_281"
                         },
                         new
                         {
@@ -101,6 +108,7 @@ namespace Uptime.Persistence.Migrations
                             Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
                             CreatedBy = "Emma Carter",
                             Description = "Fifth document",
+                            IsDeleted = false,
                             LibraryId = 2,
                             Title = "IdeaLog"
                         },
@@ -108,17 +116,19 @@ namespace Uptime.Persistence.Migrations
                         {
                             Id = 6,
                             Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "Liam Rodriguez",
-                            Description = "Sixth document",
+                            CreatedBy = "Marta Laine",
+                            Description = "Rethinkers OÜ",
+                            IsDeleted = false,
                             LibraryId = 1,
-                            Title = "MiniReport"
+                            Title = "LEPING_14.02.2025_7-4.2_293"
                         },
                         new
                         {
                             Id = 7,
                             Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "User7",
-                            Description = "Seventh document",
+                            CreatedBy = "Klient Kaks",
+                            Description = "Rethinkers OÜ",
+                            IsDeleted = false,
                             LibraryId = 2,
                             Title = "FastSummary"
                         },
@@ -126,28 +136,31 @@ namespace Uptime.Persistence.Migrations
                         {
                             Id = 8,
                             Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "Isabella Nguyen",
-                            Description = "Eighth document",
+                            CreatedBy = "Viljar Laine",
+                            Description = "PZU Kindlustus",
+                            IsDeleted = false,
                             LibraryId = 1,
-                            Title = "BriefMemo"
+                            Title = "2024 inventuuri lõppakt"
                         },
                         new
                         {
                             Id = 9,
                             Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "Noah Kim",
-                            Description = "Ninth document",
+                            CreatedBy = "Signe Kask",
+                            Description = "Riigi IKT Keskus",
+                            IsDeleted = false,
                             LibraryId = 2,
-                            Title = "Snapshot"
+                            Title = "Intervjuu tervisekassaga"
                         },
                         new
                         {
                             Id = 10,
                             Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "Sophia Patel",
-                            Description = "Tenth document",
+                            CreatedBy = "Anton Rebane",
+                            Description = "Kaitseministeerium",
+                            IsDeleted = false,
                             LibraryId = 2,
-                            Title = "OutlineDoc"
+                            Title = "Juurdepääsupiirangu muutumine"
                         });
                 });
 
@@ -161,6 +174,9 @@ namespace Uptime.Persistence.Migrations
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -176,13 +192,15 @@ namespace Uptime.Persistence.Migrations
                         {
                             Id = 1,
                             Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            Name = "Contracts"
+                            IsDeleted = false,
+                            Name = "Lepingud"
                         },
                         new
                         {
                             Id = 2,
                             Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            Name = "Letters"
+                            IsDeleted = false,
+                            Name = "Kirjavahetus"
                         });
                 });
 
@@ -201,6 +219,9 @@ namespace Uptime.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<string>("Originator")
@@ -254,6 +275,9 @@ namespace Uptime.Persistence.Migrations
                     b.Property<int>("Event")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("Occurred")
                         .HasColumnType("datetime2");
 
@@ -302,6 +326,13 @@ namespace Uptime.Persistence.Migrations
                     b.Property<int>("InternalStatus")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PhaseId")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -337,6 +368,9 @@ namespace Uptime.Persistence.Migrations
 
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<int>("LibraryId")
                         .HasColumnType("int");

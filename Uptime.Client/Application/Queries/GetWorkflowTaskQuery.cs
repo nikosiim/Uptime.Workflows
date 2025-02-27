@@ -36,7 +36,9 @@ public class GetWorkflowTaskQueryHandler(IApiService apiService)
             InternalStatus = task.InternalStatus,
             StorageJson = task.StorageJson,
             Document = task.Document,
-            WorkflowId = task.WorkflowId
+            WorkflowId = task.WorkflowId,
+            PhaseId = task.PhaseId,
+            WorkflowBaseId = task.WorkflowBaseId
         };
     
         return Result<WorkflowTaskDetails>.Success(template);

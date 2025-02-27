@@ -9,16 +9,16 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
     public void Configure(EntityTypeBuilder<Document> builder)
     {
         builder.HasData(
-            new Document { Id = 1, Title = "QuickGuide", Description = "First document", CreatedBy = "Emma Carter", LibraryId = 1, Created = new DateTime(2015, 5, 15, 13, 45, 0) },
-            new Document { Id = 2, Title = "PlanDraft", Description = "Second document", CreatedBy = "Sophia Patel", LibraryId = 1, Created = new DateTime(2015, 5, 15, 13, 45, 0) },
-            new Document { Id = 3, Title = "Notes2025", Description = "Third document", CreatedBy = "Liam Rodriguez", LibraryId = 2, Created = new DateTime(2015, 5, 15, 13, 45, 0) },
-            new Document { Id = 4, Title = "TaskList", Description = "Fourth document", CreatedBy = "Isabella Nguyen", LibraryId = 1, Created = new DateTime(2015, 5, 15, 13, 45, 0) },
+            new Document { Id = 1, Title = "Teabenõue", Description = "Sofia Kuperštein", CreatedBy = "Lauri Saar", LibraryId = 1, Created = new DateTime(2015, 5, 15, 13, 45, 0) },
+            new Document { Id = 2, Title = "LISA_13.01.2025_7-4.2_277-3", Description = "Vello Lauri", CreatedBy = "Riin Koppel", LibraryId = 1, Created = new DateTime(2015, 5, 15, 13, 45, 0) },
+            new Document { Id = 3, Title = "Pöördumine", Description = "SK_25.02.2025_9-11_25_59-4", CreatedBy = "Jana Pärn", LibraryId = 2, Created = new DateTime(2015, 5, 15, 13, 45, 0) },
+            new Document { Id = 4, Title = "LEPING_AS GoTravel_18.12.2024_7-4.2_281", Description = "AS GoTravel", CreatedBy = "Markus Lepik", LibraryId = 1, Created = new DateTime(2015, 5, 15, 13, 45, 0) },
             new Document { Id = 5, Title = "IdeaLog", Description = "Fifth document", CreatedBy = "Emma Carter", LibraryId = 2, Created = new DateTime(2015, 5, 15, 13, 45, 0) },
-            new Document { Id = 6, Title = "MiniReport", Description = "Sixth document", CreatedBy = "Liam Rodriguez", LibraryId = 1, Created = new DateTime(2015, 5, 15, 13, 45, 0) },
-            new Document { Id = 7, Title = "FastSummary", Description = "Seventh document", CreatedBy = "User7", LibraryId = 2, Created = new DateTime(2015, 5, 15, 13, 45, 0) },
-            new Document { Id = 8, Title = "BriefMemo", Description = "Eighth document", CreatedBy = "Isabella Nguyen", LibraryId = 1, Created = new DateTime(2015, 5, 15, 13, 45, 0) },
-            new Document { Id = 9, Title = "Snapshot", Description = "Ninth document", CreatedBy = "Noah Kim", LibraryId = 2, Created = new DateTime(2015, 5, 15, 13, 45, 0) },
-            new Document { Id = 10, Title = "OutlineDoc", Description = "Tenth document", CreatedBy = "Sophia Patel", LibraryId = 2, Created = new DateTime(2015, 5, 15, 13, 45, 0) }
+            new Document { Id = 6, Title = "LEPING_14.02.2025_7-4.2_293", Description = "Rethinkers OÜ", CreatedBy = "Marta Laine", LibraryId = 1, Created = new DateTime(2015, 5, 15, 13, 45, 0) },
+            new Document { Id = 7, Title = "FastSummary", Description = "Rethinkers OÜ", CreatedBy = "Klient Kaks", LibraryId = 2, Created = new DateTime(2015, 5, 15, 13, 45, 0) },
+            new Document { Id = 8, Title = "2024 inventuuri lõppakt", Description = "PZU Kindlustus", CreatedBy = "Viljar Laine", LibraryId = 1, Created = new DateTime(2015, 5, 15, 13, 45, 0) },
+            new Document { Id = 9, Title = "Intervjuu tervisekassaga", Description = "Riigi IKT Keskus", CreatedBy = "Signe Kask", LibraryId = 2, Created = new DateTime(2015, 5, 15, 13, 45, 0) },
+            new Document { Id = 10, Title = "Juurdepääsupiirangu muutumine", Description = "Kaitseministeerium", CreatedBy = "Anton Rebane", LibraryId = 2, Created = new DateTime(2015, 5, 15, 13, 45, 0) }
         );
     }
 }

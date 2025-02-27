@@ -12,8 +12,8 @@ public class GetLibraryWorkflowTemplatesQueryHandler(IWorkflowDbContext dbContex
 {
     public async Task<List<LibraryWorkflowTemplateDto>> Handle(GetLibraryWorkflowTemplatesQuery request, CancellationToken cancellationToken)
     {
-        return await dbContext.WorkflowTemplates
-            .Where(w => w.LibraryId == request.ListId.Value)
+        return await dbContext.WorkflowTemplates.AsNoTracking()
+            .Where(w => w.LibraryId == request.ListId.Value && !w.IsDeleted)
             .Select(w => new LibraryWorkflowTemplateDto
             {
                 Id = w.Id,

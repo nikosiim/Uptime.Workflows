@@ -12,7 +12,7 @@ public class GetWorkflowQueryHandler(IWorkflowDbContext dbContext) : IRequestHan
 {
     public async Task<WorkflowDto?> Handle(GetWorkflowQuery request, CancellationToken cancellationToken)
     {
-        return await dbContext.Workflows
+        return await dbContext.Workflows.AsNoTracking()
             .Where(x => x.Id == request.WorkflowId.Value)
             .Select(w => new WorkflowDto
             {

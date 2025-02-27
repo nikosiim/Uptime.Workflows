@@ -13,8 +13,8 @@ public class GetDocumentWorkflowsQueryHandler(IWorkflowDbContext dbContext)
 {
     public async Task<List<DocumentWorkflowDto>> Handle(GetDocumentWorkflowsQuery request, CancellationToken cancellationToken)
     {
-        return await dbContext.Workflows
-            .Where(w => w.DocumentId == request.DocumentId.Value)
+        return await dbContext.Workflows.AsNoTracking()
+            .Where(w => w.DocumentId == request.DocumentId.Value && !w.IsDeleted)
             .Select(w => new DocumentWorkflowDto
             {
                 Id = w.Id,

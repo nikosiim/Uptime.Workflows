@@ -14,7 +14,7 @@ public class GetWorkflowTasksQueryHandler(IWorkflowDbContext dbContext)
 {
     public async Task<List<WorkflowTaskDto>> Handle(GetWorkflowTasksQuery request, CancellationToken cancellationToken)
     {
-        return await dbContext.WorkflowTasks
+        return await dbContext.WorkflowTasks.AsNoTracking()
             .Where(task => task.WorkflowId == request.WorkflowId.Value && (request.Status == null || task.InternalStatus == request.Status))
             .Select(task => new WorkflowTaskDto
             {

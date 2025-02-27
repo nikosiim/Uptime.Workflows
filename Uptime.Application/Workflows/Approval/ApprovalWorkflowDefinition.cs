@@ -1,6 +1,7 @@
 ﻿using Uptime.Application.Common;
 using Uptime.Domain.Common;
 using Uptime.Domain.Interfaces;
+using Uptime.Shared.Choices;
 
 namespace Uptime.Application.Workflows.Approval;
 
@@ -31,14 +32,14 @@ public sealed class ApprovalWorkflowDefinition : IWorkflowDefinition
                 PhaseId = ReplicatorPhases.Approval,
                 SupportsSequential = true,
                 SupportsParallel = true,
-                Actions = ["Approval", "Rejection", "Forward", "Cancellation"]
+                Actions = [ButtonAction.Approval, ButtonAction.Rejection, ButtonAction.Delegation, ButtonAction.Cancellation]
             },
             new PhaseActivity
             {
                 PhaseId = ReplicatorPhases.Signing,
                 SupportsSequential = true,
                 SupportsParallel = false,
-                Actions = ["Signing"]
+                Actions = [ButtonAction.Signing]
             }
         ],
         PhaseConfigurations = new Dictionary<string, ReplicatorPhaseConfiguration>

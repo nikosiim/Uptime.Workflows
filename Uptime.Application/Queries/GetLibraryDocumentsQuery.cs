@@ -13,7 +13,7 @@ public class GetLibraryDocumentsQueryHandler(IWorkflowDbContext context)
 {
     public async Task<List<LibraryDocumentDto>> Handle(GetLibraryDocumentsQuery request, CancellationToken cancellationToken)
     {
-        return await context.Documents
+        return await context.Documents.AsNoTracking()
             .Where(d => d.Library.Id == request.LibraryId.Value)
             .Select(wt => new LibraryDocumentDto
             {

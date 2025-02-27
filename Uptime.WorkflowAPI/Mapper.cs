@@ -158,7 +158,7 @@ public static class Mapper
 
     #region WorkflowTasks
 
-    public static WorkflowTaskResponse MapToWorkflowTaskResponse(WorkflowTaskDto source)
+    public static WorkflowTaskResponse MapToWorkflowTaskResponse(WorkflowTaskDetailsDto source)
     {
         return new WorkflowTaskResponse
         {
@@ -167,11 +167,13 @@ public static class Mapper
             AssignedBy = source.AssignedBy,
             InternalStatus = source.InternalStatus.ToShared(),
             Description = source.Description,
-            DueDate = source.DueDate ?? DateTime.UtcNow, // Default to current UTC time if null
+            DueDate = source.DueDate,
             EndDate = source.EndDate,
             StorageJson = source.StorageJson,
             Document = source.Document,
-            WorkflowId = source.WorkflowId
+            WorkflowId = source.WorkflowId,
+            PhaseId = source.PhaseId,
+            WorkflowBaseId = source.WorkflowBaseId
         };
     }
 

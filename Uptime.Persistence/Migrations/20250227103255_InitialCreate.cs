@@ -20,7 +20,8 @@ namespace Uptime.Persistence.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    Created = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Created = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -37,6 +38,7 @@ namespace Uptime.Persistence.Migrations
                     Description = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: true),
                     CreatedBy = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
                     Created = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     LibraryId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -62,7 +64,8 @@ namespace Uptime.Persistence.Migrations
                     AssociationDataJson = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: true),
                     Created = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Modified = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    LibraryId = table.Column<int>(type: "int", nullable: false)
+                    LibraryId = table.Column<int>(type: "int", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -82,6 +85,7 @@ namespace Uptime.Persistence.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     Outcome = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
                     Phase = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
                     Originator = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
@@ -119,6 +123,7 @@ namespace Uptime.Persistence.Migrations
                     Occurred = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: true),
                     Comment = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     WorkflowId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -147,6 +152,8 @@ namespace Uptime.Persistence.Migrations
                     DueDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     StorageJson = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: true),
+                    PhaseId = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     WorkflowId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -162,28 +169,28 @@ namespace Uptime.Persistence.Migrations
 
             migrationBuilder.InsertData(
                 table: "Libraries",
-                columns: new[] { "Id", "Created", "Name" },
+                columns: new[] { "Id", "Created", "IsDeleted", "Name" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Contracts" },
-                    { 2, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Letters" }
+                    { 1, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), false, "Lepingud" },
+                    { 2, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), false, "Kirjavahetus" }
                 });
 
             migrationBuilder.InsertData(
                 table: "Documents",
-                columns: new[] { "Id", "Created", "CreatedBy", "Description", "LibraryId", "Title" },
+                columns: new[] { "Id", "Created", "CreatedBy", "Description", "IsDeleted", "LibraryId", "Title" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Emma Carter", "First document", 1, "QuickGuide" },
-                    { 2, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Sophia Patel", "Second document", 1, "PlanDraft" },
-                    { 3, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Liam Rodriguez", "Third document", 2, "Notes2025" },
-                    { 4, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Isabella Nguyen", "Fourth document", 1, "TaskList" },
-                    { 5, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Emma Carter", "Fifth document", 2, "IdeaLog" },
-                    { 6, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Liam Rodriguez", "Sixth document", 1, "MiniReport" },
-                    { 7, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "User7", "Seventh document", 2, "FastSummary" },
-                    { 8, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Isabella Nguyen", "Eighth document", 1, "BriefMemo" },
-                    { 9, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Noah Kim", "Ninth document", 2, "Snapshot" },
-                    { 10, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Sophia Patel", "Tenth document", 2, "OutlineDoc" }
+                    { 1, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Lauri Saar", "Sofia Kuperštein", false, 1, "Teabenõue" },
+                    { 2, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Riin Koppel", "Vello Lauri", false, 1, "LISA_13.01.2025_7-4.2_277-3" },
+                    { 3, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Jana Pärn", "SK_25.02.2025_9-11_25_59-4", false, 2, "Pöördumine" },
+                    { 4, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Markus Lepik", "AS GoTravel", false, 1, "LEPING_AS GoTravel_18.12.2024_7-4.2_281" },
+                    { 5, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Emma Carter", "Fifth document", false, 2, "IdeaLog" },
+                    { 6, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Marta Laine", "Rethinkers OÜ", false, 1, "LEPING_14.02.2025_7-4.2_293" },
+                    { 7, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Klient Kaks", "Rethinkers OÜ", false, 2, "FastSummary" },
+                    { 8, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Viljar Laine", "PZU Kindlustus", false, 1, "2024 inventuuri lõppakt" },
+                    { 9, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Signe Kask", "Riigi IKT Keskus", false, 2, "Intervjuu tervisekassaga" },
+                    { 10, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Anton Rebane", "Kaitseministeerium", false, 2, "Juurdepääsupiirangu muutumine" }
                 });
 
             migrationBuilder.CreateIndex(

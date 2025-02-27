@@ -8,6 +8,7 @@ public interface IWorkflowTask
     TaskId TaskId { get; }
     Guid TaskGuid { get; }
     WorkflowId WorkflowId { get; }
+    string? PhaseId { get; }
     string AssignedTo { get; }
     string AssignedBy { get; }
     string? TaskDescription { get; }

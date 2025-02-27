@@ -6,15 +6,16 @@ using Uptime.Domain.Common;
 
 namespace Uptime.Application.Queries;
 
-public record GetWorkflowTaskQuery(TaskId TaskId) : IRequest<WorkflowTaskDto?>;
+public record GetWorkflowTaskQuery(TaskId TaskId) : IRequest<WorkflowTaskDetailsDto?>;
 
-public class GetWorkflowTaskQueryHandler(IWorkflowDbContext dbContext) : IRequestHandler<GetWorkflowTaskQuery, WorkflowTaskDto?>
+public class GetWorkflowTaskQueryHandler(IWorkflowDbContext dbContext) : IRequestHandler<GetWorkflowTaskQuery, WorkflowTaskDetailsDto?>
 {
-    public async Task<WorkflowTaskDto?> Handle(GetWorkflowTaskQuery request, CancellationToken cancellationToken)
+    public Task<WorkflowTaskDetailsDto?> Handle(GetWorkflowTaskQuery request, CancellationToken cancellationToken)
     {
-        return await dbContext.WorkflowTasks
+        return dbContext.WorkflowTasks
+            .AsNoTracking()
             .Where(task => task.Id == request.TaskId.Value)
-            .Select(task => new WorkflowTaskDto
+            .Select(task => new WorkflowTaskDetailsDto
             {
                 Id = task.Id,
                 TaskGuid = task.TaskGuid,
@@ -27,8 +28,11 @@ public class GetWorkflowTaskQueryHandler(IWorkflowDbContext dbContext) : IReques
                 EndDate = task.EndDate,
                 StorageJson = task.StorageJson,
                 Document = task.Workflow.Document.Title,
-                WorkflowId = task.WorkflowId
+                WorkflowId = task.WorkflowId,
+                PhaseId = task.PhaseId,
+                WorkflowBaseId = task.Workflow.WorkflowTemplate.WorkflowBaseId
             })
             .FirstOrDefaultAsync(cancellationToken);
     }
+
 }

@@ -14,6 +14,7 @@ public class WorkflowHistory : BaseEntity
 
     [StringLength(2048)]
     public string? Comment { get; set; }
+    public bool IsDeleted { get; set; }
     public int WorkflowId { get; set; }
     public virtual Workflow Workflow { get; set; } = null!;
 }

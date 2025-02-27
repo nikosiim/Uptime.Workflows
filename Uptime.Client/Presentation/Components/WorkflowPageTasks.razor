@@ -32,7 +32,7 @@
 
 @code {
     private bool _loading;
-    private List<WorkflowTaskDetails>? _tasksViewModel;
+    private List<WorkflowTaskData>? _tasksViewModel;
     private string _contentMessage = "Tööülesanded puuduvad";
 
     [Parameter, EditorRequired] 
@@ -44,7 +44,7 @@
 
         _loading = true;
 
-        Result<List<WorkflowTaskDetails>> result = await Mediator.Send(new GetWorkflowTasksQuery(WorkflowId));
+        Result<List<WorkflowTaskData>> result = await Mediator.Send(new GetWorkflowTasksQuery(WorkflowId));
         if (result.Succeeded)
         {
             _tasksViewModel = result.Value;

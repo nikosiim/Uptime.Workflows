@@ -3,6 +3,7 @@
 @inject IMediator Mediator
 @inject IDialogService DialogService
 @inject NavigationManager Navigation
+@inject IState<WorkflowState> WorkflowState
 
 <MudContainer>
     <MudText Typo="Typo.h5" Class="my-4">Tööülesande täitmine</MudText>
@@ -59,9 +60,29 @@
 
                 @if (_task.InternalStatus == WorkflowTaskStatus.NotStarted)
                 {
-                    <MudButton Size="Size.Medium" Variant="Variant.Filled" OnClick="@(() => OpenDialogAsync(_task, WorkflowEventType.TaskCompleted))">Kinnita</MudButton>
-                    <MudButton Size="Size.Medium" Variant="Variant.Filled" OnClick="@(() => OpenDialogAsync(_task, WorkflowEventType.TaskDelegated))">Suuna ümber</MudButton>
-                    <MudButton Size="Size.Medium" Variant="Variant.Filled" OnClick="@(() => OpenDialogAsync(_task, WorkflowEventType.TaskRejected))">Lükka tagasi</MudButton>
+                    if (IsButtonVisible(_task, ButtonAction.Signing))
+                    {
+                        <MudButton Size="Size.Medium" Variant="Variant.Filled" 
+                                   OnClick="@(() => OpenDialogAsync(_task, WorkflowEventType.TaskCompleted))">Allkirjasta</MudButton>
+                    }
+
+                    if (IsButtonVisible(_task, ButtonAction.Approval))
+                    {
+                        <MudButton Size="Size.Medium" Variant="Variant.Filled" 
+                                   OnClick="@(() => OpenDialogAsync(_task, WorkflowEventType.TaskCompleted))">Kinnita</MudButton>
+                    }
+
+                    if (IsButtonVisible(_task, ButtonAction.Delegation))
+                    {
+                        <MudButton Size="Size.Medium" Variant="Variant.Filled" 
+                                   OnClick="@(() => OpenDialogAsync(_task, WorkflowEventType.TaskDelegated))">Suuna ümber</MudButton>
+                    }
+
+                    if (IsButtonVisible(_task, ButtonAction.Rejection))
+                    {
+                        <MudButton Size="Size.Medium" Variant="Variant.Filled" 
+                                   OnClick="@(() => OpenDialogAsync(_task, WorkflowEventType.TaskRejected))">Lükka tagasi</MudButton>
+                    }
                 }
 
                 <MudButton Size="Size.Medium" Variant="Variant.Filled" OnClick="@(() => OnCancelled(_task.WorkflowId))">Loobu</MudButton>
@@ -115,6 +136,11 @@
     private void OnCancelled(int workflowId)
     {
         Navigation.NavigateTo($"/{PageRoutes.Workflow}/{workflowId}");
+    }
+
+    private bool IsButtonVisible(WorkflowTaskDetails task, string buttonName)
+    {
+        return WorkflowState.Value.IsTaskButtonVisible(task, buttonName);
     }
 
     private async Task OpenDialogAsync(WorkflowTaskDetails task, WorkflowEventType eventType)

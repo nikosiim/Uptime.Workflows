@@ -12,7 +12,7 @@ public class GetWorkflowHistoryQueryHandler(IWorkflowDbContext dbContext) : IReq
 {
     public async Task<List<WorkflowHistoryDto>> Handle(GetWorkflowHistoryQuery request, CancellationToken cancellationToken)
     {
-        return await dbContext.WorkflowHistories
+        return await dbContext.WorkflowHistories.AsNoTracking()
             .Where(x => x.WorkflowId == request.WorkflowId.Value)
             .Select(history => new WorkflowHistoryDto
             {

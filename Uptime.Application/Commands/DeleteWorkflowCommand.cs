@@ -9,7 +9,7 @@ namespace Uptime.Application.Commands;
 
 public record DeleteWorkflowCommand(WorkflowId WorkflowId) : IRequest;
 
-public class DeleteWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory, ILogger<DeleteWorkflowCommand> logger)
+public class DeleteWorkflowCommandHandler(IWorkflowDbContext dbContext, ILogger<DeleteWorkflowCommand> logger)
     : IRequestHandler<DeleteWorkflowCommand>
 {
     public async Task Handle(DeleteWorkflowCommand request, CancellationToken cancellationToken)
@@ -20,7 +20,7 @@ public class DeleteWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflo
 
         if (workflow != null)
         {
-            dbContext.Workflows.Remove(workflow);
+            workflow.IsDeleted = true;
             await dbContext.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Workflow with ID {WorkflowId} deleted.", request.WorkflowId);

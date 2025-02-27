@@ -19,6 +19,9 @@ public class WorkflowTask : BaseEntity
     public DateTime? EndDate { get; set; }
     [StringLength(4096)]
     public string? StorageJson { get; set; }
+    [StringLength(32)]
+    public string? PhaseId { get; set; }
+    public bool IsDeleted { get; set; }
     public int WorkflowId { get; set; }
     public virtual Workflow Workflow { get; set; } = null!;
 }

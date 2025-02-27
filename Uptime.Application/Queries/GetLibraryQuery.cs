@@ -12,8 +12,8 @@ public class GetLibraryQueryHandler(IWorkflowDbContext context) : IRequestHandle
 {
     public async Task<LibraryDto?> Handle(GetLibraryQuery request, CancellationToken cancellationToken)
     {
-        return await context.Libraries
-            .Where(l => l.Id == request.LibraryId.Value)
+        return await context.Libraries.AsNoTracking()
+            .Where(l => l.Id == request.LibraryId.Value && !l.IsDeleted)
             .Select(l => new LibraryDto(l.Id, l.Name))
             .FirstOrDefaultAsync(cancellationToken);
     }

@@ -15,7 +15,7 @@ public class WorkflowTasksController(IMediator mediator) : ControllerBase
     [HttpGet("")]
     public async Task<ActionResult<WorkflowTaskResponse>> GetTask(int taskId)
     {
-        WorkflowTaskDto? task = await mediator.Send(new GetWorkflowTaskQuery((TaskId)taskId));
+        WorkflowTaskDetailsDto? task = await mediator.Send(new GetWorkflowTaskQuery((TaskId)taskId));
         if (task == null)
         {
             return NotFound($"No task found with ID {taskId}.");

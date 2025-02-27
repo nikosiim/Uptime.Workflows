@@ -14,7 +14,7 @@ public class GetDocumentWorkflowTasksQueryHandler(IWorkflowDbContext dbContext)
 {
     public async Task<List<DocumentWorkflowTaskDto>> Handle(GetDocumentWorkflowTasksQuery request, CancellationToken cancellationToken)
     {
-        return await dbContext.Workflows
+        return await dbContext.Workflows.AsNoTracking()
             .Where(wi => wi.DocumentId == request.DocumentId.Value)
             .SelectMany(wi => wi.WorkflowTasks ?? new List<WorkflowTask>())
             .Select(task => new DocumentWorkflowTaskDto

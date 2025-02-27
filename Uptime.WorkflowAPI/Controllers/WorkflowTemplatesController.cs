@@ -53,12 +53,7 @@ public class WorkflowTemplatesController(IMediator mediator) : ControllerBase
     public async Task<ActionResult> DeleteWorkflowTemplate(int templateId)
     {
         var command = new DeleteWorkflowTemplateCommand((WorkflowTemplateId)templateId);
-        bool result = await mediator.Send(command);
-
-        if (!result)
-        {
-            return NotFound($"Workflow template with ID '{templateId}' was not found.");
-        }
+        await mediator.Send(command);
 
         return NoContent();
     }

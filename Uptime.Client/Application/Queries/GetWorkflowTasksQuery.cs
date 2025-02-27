@@ -8,12 +8,12 @@ using Uptime.Shared.Models.Workflows;
 
 namespace Uptime.Client.Application.Queries;
 
-public record GetWorkflowTasksQuery(int WorkflowId, WorkflowTaskStatus? Status = null) : IRequest<Result<List<WorkflowTaskDetails>>>;
+public record GetWorkflowTasksQuery(int WorkflowId, WorkflowTaskStatus? Status = null) : IRequest<Result<List<WorkflowTaskData>>>;
 
 public class GetWorkflowTasksQueryHandler(IApiService apiService) 
-    : IRequestHandler<GetWorkflowTasksQuery, Result<List<WorkflowTaskDetails>>>
+    : IRequestHandler<GetWorkflowTasksQuery, Result<List<WorkflowTaskData>>>
 {
-    public async Task<Result<List<WorkflowTaskDetails>>> Handle(GetWorkflowTasksQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<WorkflowTaskData>>> Handle(GetWorkflowTasksQuery request, CancellationToken cancellationToken)
     {
         string url = ApiRoutes.Workflows.GetTasks.Replace("{workflowId}", request.WorkflowId.ToString());
 
@@ -26,10 +26,10 @@ public class GetWorkflowTasksQueryHandler(IApiService apiService)
 
         if (!result.Succeeded)
         {
-            return Result<List<WorkflowTaskDetails>>.Failure(result.Error);
+            return Result<List<WorkflowTaskData>>.Failure(result.Error);
         }
 
-        List<WorkflowTaskDetails> workflowTasks = result.Value?.Select(task => new WorkflowTaskDetails
+        List<WorkflowTaskData> workflowTasks = result.Value?.Select(task => new WorkflowTaskData
         {
             Id = task.Id,
             AssignedTo = task.AssignedTo,
@@ -42,6 +42,6 @@ public class GetWorkflowTasksQueryHandler(IApiService apiService)
             WorkflowId = request.WorkflowId
         }).ToList() ?? [];
 
-        return Result<List<WorkflowTaskDetails>>.Success(workflowTasks);
+        return Result<List<WorkflowTaskData>>.Success(workflowTasks);
     }
 }
