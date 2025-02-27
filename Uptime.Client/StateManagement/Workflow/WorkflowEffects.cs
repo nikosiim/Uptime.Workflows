@@ -22,4 +22,20 @@ public class WorkflowEffects(IApiService apiService)
             dispatcher.Dispatch(new LoadWorkflowDefinitionsFailedAction(result.Error));
         }
     }
+
+    [EffectMethod]
+    public async Task HandleLoadLibraryDocumentsAction(LoadWorkflowTasksAction action, IDispatcher dispatcher)
+    {
+        string url = ApiRoutes.Workflows.GetTasks.Replace("{workflowId}", action.WorkflowId.ToString());
+        Result<List<WorkflowTasksResponse>> result = await apiService.ReadFromJsonAsync<List<WorkflowTasksResponse>>(url, CancellationToken.None);
+
+        if (result.Succeeded)
+        {
+            dispatcher.Dispatch(new LoadWorkflowTasksSuccessAction(result.Value ?? [], action.WorkflowId));
+        }
+        else
+        {
+            dispatcher.Dispatch(new LoadWorkflowTasksFailedAction(result.Error));
+        }
+    }
 }

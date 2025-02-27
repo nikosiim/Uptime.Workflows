@@ -1,4 +1,5 @@
 ﻿@inject IDialogService DialogService
+@inject IDispatcher Dispatcher
 
 @if (ViewModel != null && ViewModel.IsActive)
 {
@@ -24,10 +25,7 @@
 {
     [Parameter, EditorRequired] 
     public WorkflowDetails? ViewModel { get; set; }
-
-    [Parameter] 
-    public EventCallback OnWorkflowCanceled { get; set; }
-
+    
     private async Task OnCancelClick(int workflowId)
     {
         var parameters = new DialogParameters
@@ -41,7 +39,7 @@
         DialogResult? dialogResult = await dialogReference.Result;
         if (dialogResult?.Canceled == false)
         {
-            await OnWorkflowCanceled.InvokeAsync();
+            Dispatcher.Dispatch(new LoadWorkflowTasksAction(workflowId));
         }
     }
 }

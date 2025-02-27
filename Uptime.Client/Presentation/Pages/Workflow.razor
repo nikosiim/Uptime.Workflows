@@ -7,7 +7,7 @@
         <WorkflowPageDetails ViewModel="_detailsViewModel" />
     </MudPaper>
     <MudPaper Elevation="2" Outlined="true" Class="pa-4 my-6">
-        <WorkflowPageActions ViewModel="_detailsViewModel" OnWorkflowCanceled="HandleWorkflowCanceled" />
+        <WorkflowPageActions ViewModel="_detailsViewModel" />
     </MudPaper>
     <MudPaper Elevation="1" Outlined="true" Class="pa-4 my-6">
         <WorkflowPageTasks WorkflowId="WorkflowId" />
@@ -25,16 +25,7 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        await LoadWorkflowDetails();
-    }
 
-    private async Task HandleWorkflowCanceled()
-    {
-        await LoadWorkflowDetails();
-    }
-
-    private async Task LoadWorkflowDetails()
-    {
         Result<WorkflowDetails> detailsResult = await Mediator.Send(new GetWorkflowDetailsQuery(WorkflowId));
         if (detailsResult.Succeeded)
         {

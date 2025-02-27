@@ -1,19 +1,19 @@
-﻿@inject IMediator Mediator
+﻿@inherits FluxorComponent
+@inject IState<WorkflowState> WorkflowState
+@inject IDispatcher Dispatcher
 
 <div class="mb-4">
     <MudText Typo="Typo.h5">Tööülesanded</MudText>
-
-    @if (_tasksViewModel?.Count > 0)
-    {
-        <MudText Typo="Typo.subtitle1">See töövoog on loonud järgmised tööülesanded.</MudText>
-    }
-    else
-    {
-        <MudText Typo="Typo.subtitle1">Selles vaates pole üksusi, mida kuvada.</MudText>
-    }
+    <MudText Typo="Typo.subtitle1">
+        @(WorkflowState.Value.WorkflowTasksQuery.Result.Value?.Count > 0 
+            ? "See töövoog on loonud järgmised tööülesanded." 
+            : "Selles vaates pole üksusi, mida kuvada.")
+    </MudText>
 </div>
 
-<MudTable Items="@_tasksViewModel" Dense="true" Outlined="true" Loading="@_loading">
+<MudTable Dense="true" Outlined="true" 
+          Items="@(WorkflowState.Value.WorkflowTasksQuery.Result.Value ?? [])"
+          Loading="@(WorkflowState.Value.WorkflowTasksQuery.Status == QueryStatus.Loading)">
     <HeaderContent>
         <MudTh>Määratud kasutajale</MudTh>
         <MudTh>Pealkiri</MudTh>
@@ -26,34 +26,20 @@
         <MudTd>@task.DueDate?.ToLocalTime().ToString("d")</MudTd>
         <MudTd>@task.Status</MudTd>
     </RowTemplate>
-    <NoRecordsContent>@_contentMessage</NoRecordsContent>
+    <NoRecordsContent>
+        @(WorkflowState.Value.WorkflowTasksQuery is { Status: QueryStatus.Loaded, Result.Succeeded: false }
+            ? "Tööülesannete laadimine ebaõnnestus"
+            : "Tööülesanded puuduvad")
+    </NoRecordsContent>
 </MudTable>
 
-
 @code {
-    private bool _loading;
-    private List<WorkflowTaskData>? _tasksViewModel;
-    private string _contentMessage = "Tööülesanded puuduvad";
-
     [Parameter, EditorRequired] 
     public int WorkflowId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-
-        _loading = true;
-
-        Result<List<WorkflowTaskData>> result = await Mediator.Send(new GetWorkflowTasksQuery(WorkflowId));
-        if (result.Succeeded)
-        {
-            _tasksViewModel = result.Value;
-        }
-        else
-        {
-            _contentMessage = "Tööülesannete laadimine ebaõnnestus";
-        }
-
-        _loading = false;
+        Dispatcher.Dispatch(new LoadWorkflowTasksAction(WorkflowId));
     }
 }

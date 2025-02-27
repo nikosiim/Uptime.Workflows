@@ -4,5 +4,5 @@ public enum QueryStatus
 {
     Uninitialized,
     Loading,
-    Loaded,
+    Loaded
 }
