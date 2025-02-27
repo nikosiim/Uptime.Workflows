@@ -1,28 +1,47 @@
-﻿@inject IMediator Mediator
+﻿@inject IDialogService DialogService
 
-<MudStack Spacing="4">
-    
-    <MudStack Spacing="0">
-        <MudLink Href="#">Töövoo muutmine</MudLink>
-        <MudText Typo="Typo.subtitle2">Käimasoleva töövoo muutmine</MudText>
+@if (ViewModel != null && ViewModel.IsActive)
+{
+    <MudStack Spacing="4">
+        <MudStack Spacing="0">
+            <MudLink>Töövoo muutmine</MudLink>
+            <MudText Typo="Typo.subtitle2">Käimasoleva töövoo muutmine</MudText>
+        </MudStack>
+
+        <MudStack Spacing="0">
+            <MudLink OnClick="@(() => OnCancelClick(ViewModel.Id))">Katkesta töövoog</MudLink>
+            <MudText Typo="Typo.subtitle2">Töövoo katkestamisel aktiivsed ülesanded katkestatakse ja uusi ülesandeid ei lisada.</MudText>
+        </MudStack>
+
+        <MudStack Spacing="0">
+            <MudLink>Kustuta töövoog</MudLink>
+            <MudText Typo="Typo.subtitle2">Töövoo kustutamisel aktiivsed ülesanded katkestatakse ja uusi ülesandeid ei lisada.</MudText>
+        </MudStack>
     </MudStack>
-
-    <MudStack Spacing="0">
-        <MudLink Href="#">Katkesta töövoog</MudLink>
-        <MudText Typo="Typo.subtitle2">Töövoo katkestamisel aktiivsed ülesanded katkestatakse ja uusi ülesandeid ei lisada.</MudText>
-    </MudStack>
-
-    <MudStack Spacing="0">
-        <MudLink OnClick="OnDeleteClick">Kustuta töövoog</MudLink>
-        <MudText Typo="Typo.subtitle2">Töövoo kustutamisel aktiivsed ülesanded katkestatakse ja uusi ülesandeid ei lisada.</MudText>
-    </MudStack>
-
-</MudStack>
+}
 
 @code
 {
-    private void OnDeleteClick()
-    {
+    [Parameter, EditorRequired] 
+    public WorkflowDetails? ViewModel { get; set; }
 
+    [Parameter] 
+    public EventCallback OnWorkflowCanceled { get; set; }
+
+    private async Task OnCancelClick(int workflowId)
+    {
+        var parameters = new DialogParameters
+        {
+            { DialogParams.WorkflowId, workflowId }
+        };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        IDialogReference dialogReference = await DialogService.ShowAsync<CancellationDialog>("Töövoo katkestamine", parameters, options);
+
+        DialogResult? dialogResult = await dialogReference.Result;
+        if (dialogResult?.Canceled == false)
+        {
+            await OnWorkflowCanceled.InvokeAsync();
+        }
     }
 }

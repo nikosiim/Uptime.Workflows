@@ -26,6 +26,7 @@ public class GetWorkflowDetailsQueryHandler(IApiService apiService)
 
         var template = new WorkflowDetails
         {
+            Id = request.WorkflowId,
             DocumentId = details.DocumentId,
             Document = details.Document,
             Originator = details.Originator,

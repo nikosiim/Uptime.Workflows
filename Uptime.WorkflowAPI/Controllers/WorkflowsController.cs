@@ -71,9 +71,9 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("{workflowId:int}/cancel-workflow")]
-    public async Task<ActionResult> CancelWorkflow(int workflowId)
+    public async Task<ActionResult> CancelWorkflow(int workflowId, [FromBody] CancelWorkflowRequest request)
     {
-        var cmd = new CancelWorkflowCommand((WorkflowId)workflowId);
+        var cmd = new CancelWorkflowCommand((WorkflowId)workflowId, request.Executor, request.Comment);
         await mediator.Send(cmd);
 
         return NoContent();

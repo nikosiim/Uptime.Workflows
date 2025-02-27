@@ -9,7 +9,7 @@ using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application.Commands;
 
-public record CancelWorkflowCommand(WorkflowId WorkflowId) : IRequest;
+public record CancelWorkflowCommand(WorkflowId WorkflowId, string Executor, string Comment) : IRequest;
 
 public class CancelWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory, ILogger<CancelWorkflowCommand> logger)
     : IRequestHandler<CancelWorkflowCommand>
@@ -52,7 +52,7 @@ public class CancelWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflo
             throw new InvalidOperationException($"Workflow {request.WorkflowId} could not be rehydrated.");
         }
 
-        await machine.CancelWorkflowAsync(CancellationToken.None);
+        await machine.CancelWorkflowAsync(request.Executor, request.Comment, CancellationToken.None);
         logger.LogInformation("Successfully cancelled workflow {WorkflowId}.", request.WorkflowId);
     }
 }

@@ -1,0 +1,45 @@
+﻿<MudDialog>
+    <TitleContent>@MudDialog.Title</TitleContent>
+    <DialogContent>
+        <MudTextField T="string" Label="Kommentaar" Variant="Variant.Outlined" @bind-Value="_comment" Lines="5" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" OnClick="OnSaveClick">Katkesta töövoog</MudButton>
+        <MudButton Variant="Variant.Outlined" OnClick="OnCancelClick">Loobu</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private string? _comment;
+
+    [Parameter] 
+    public int WorkflowId { get; set; }
+
+    [Inject] public IMediator Mediator { get; set; } = null!;
+    [Inject] public ISnackbar Snackbar { get; set; } = null!;
+
+    [CascadingParameter] 
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    protected async Task OnSaveClick()
+    {
+        var command = new CancelWorkflowCommand(WorkflowId, "System", _comment);
+
+        Result<bool> result = await Mediator.Send(command);
+        if (result.Succeeded)
+        {
+            Snackbar.Add("Töövoog on katkestatud");
+        }
+        else
+        {
+            Snackbar.Add("Töövoo katkestamine ebaõnnestus", Severity.Error);
+        }
+
+        MudDialog.Close();
+    }
+
+    protected void OnCancelClick()
+    {
+        MudDialog.Cancel();
+    }
+}

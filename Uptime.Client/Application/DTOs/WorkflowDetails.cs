@@ -2,6 +2,7 @@
 
 public record WorkflowDetails
 {
+    public int Id { get; init; }
     public string? Outcome { get; init; }
     public string? Originator { get; init; }
     public DateTime StartDate { get; init; }

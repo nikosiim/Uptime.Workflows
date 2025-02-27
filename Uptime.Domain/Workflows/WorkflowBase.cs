@@ -56,13 +56,21 @@ public abstract class WorkflowBase<TContext>(
         return Machine.CurrentState;
     }
 
-    public async Task CancelWorkflowAsync(CancellationToken cancellationToken)
+    public async Task CancelWorkflowAsync(string executor, string comment, CancellationToken cancellationToken)
     {
         if (Machine.CurrentState.IsFinal())
         {
             logger.LogInformation("Workflow {WorkflowId} is already in final state '{State}'; no cancellation needed.", WorkflowId, CurrentState);
             return;
         }
+        
+        await repository.AddWorkflowHistoryAsync(
+            WorkflowId,
+            WorkflowEventType.WorkflowComment,
+            executor,
+            description: comment,
+            cancellationToken:cancellationToken
+        );
 
         await CancelAllTasksAsync(cancellationToken);
 

@@ -158,7 +158,7 @@
         IDialogReference dialog = await DialogService.ShowAsync(typeof(TaskCompletionDialog), "Tööülesande lõpetamine", parameters, options);
 
         DialogResult? result = await dialog.Result;
-        if (result is { Canceled: false })
+        if (result?.Canceled == false)
         {
             OnCancelled(task.WorkflowId);
         }
