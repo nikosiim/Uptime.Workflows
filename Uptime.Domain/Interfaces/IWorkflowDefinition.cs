@@ -9,6 +9,7 @@ namespace Uptime.Domain.Interfaces;
 public interface IWorkflowDefinition
 {
     string Id { get; }
+    Type Type { get; }
     string Name { get; }
     string DisplayName { get; }
     WorkflowDefinition GetDefinition();

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using Microsoft.Extensions.Logging;
 using Uptime.Application.Common;
 using Uptime.Application.Interfaces;
 using Uptime.Application.Workflows.Approval;
@@ -26,5 +27,13 @@ public static class ApplicationServiceRegistration
 
         services.AddSingleton<IWorkflowDefinition, ApprovalWorkflowDefinition>();
         services.AddSingleton<IWorkflowDefinition, SigningWorkflowDefinition>();
+
+        services.AddScoped<IWorkflowFactory>(sp =>
+        {
+            IEnumerable<IWorkflowMachine> workflows = sp.GetServices<IWorkflowMachine>();
+            IEnumerable<IWorkflowDefinition> definitions = sp.GetServices<IWorkflowDefinition>();
+            var logger = sp.GetRequiredService<ILogger<WorkflowFactory>>();
+            return new WorkflowFactory(workflows, definitions, logger);
+        });
     }
 }

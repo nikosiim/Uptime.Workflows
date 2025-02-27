@@ -6,7 +6,8 @@ namespace Uptime.Application.Workflows.Approval;
 
 public sealed class ApprovalWorkflowDefinition : IWorkflowDefinition
 {
-    public string Name => "ApprovalWorkflow";
+    public Type Type => typeof(ApprovalWorkflow);
+    public string Name => Type.Name;
     public string DisplayName => "Kinnitamise töövoog";
     public string Id => "16778969-6d4c-4367-9106-1b0ae4a4594f";
 
