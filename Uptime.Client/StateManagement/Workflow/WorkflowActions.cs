@@ -2,6 +2,8 @@
 
 namespace Uptime.Client.StateManagement.Workflow;
 
+public record SetCurrentUserAction(string UserName);
+
 public record LoadWorkflowDefinitionsAction;
 public record LoadWorkflowDefinitionsFailedAction(string ErrorMessage);
 public record LoadWorkflowDefinitionsSuccessAction(List<WorkflowDefinitionResponse> Response);

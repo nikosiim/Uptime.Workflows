@@ -1,0 +1,47 @@
+﻿@inherits FluxorComponent
+@inject IState<WorkflowState> WorkflowState
+@inject IDispatcher Dispatcher
+
+@if (!string.IsNullOrEmpty(WorkflowState.Value.CurrentUser))
+{
+    <MudText Typo="Typo.body1" Class="px-2">@WorkflowState.Value.CurrentUser</MudText>
+    <MudLink OnClick="OpenUserSelectionDialog">(LogOut)</MudLink>
+}
+
+<MudDialog Visible="@ShowUserSelectionDialog" Options="_dialogOptions">
+    <DialogContent>
+        <MudSelect T="string" Label="Select a User" Variant="Variant.Outlined" Placeholder="Choose user" @bind-Value="_selectedUser">
+            @foreach (string user in AvailableUsers)
+            {
+                <MudSelectItem T="string" Value="@user">@user</MudSelectItem>
+            }
+        </MudSelect>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="ConfirmUserSelection">Salvesta</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private bool _forceShowDialog = false;
+    private string _selectedUser = "John Doe";
+    private bool ShowUserSelectionDialog => WorkflowState.Value.CurrentUser == null || _forceShowDialog;
+
+    private readonly DialogOptions _dialogOptions = new()
+    {
+        FullWidth = true,
+        Position = DialogPosition.TopCenter,
+        MaxWidth = MaxWidth.Medium
+    };
+    
+    private void OpenUserSelectionDialog()
+    {
+        _forceShowDialog = true;
+    }
+
+    private void ConfirmUserSelection()
+    {
+        Dispatcher.Dispatch(new SetCurrentUserAction(_selectedUser));
+        _forceShowDialog = false;
+    }
+}

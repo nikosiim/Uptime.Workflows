@@ -7,6 +7,7 @@ namespace Uptime.Client.StateManagement.Workflow;
 
 public record WorkflowState
 {
+    public required string? CurrentUser { get; init; }
     public required QueryState<Result<List<WorkflowDefinition>>> WorkflowDefinitionsQuery { get; init; }
 
     #region No QueryStatus.Uninitialized
@@ -37,25 +38,22 @@ public class WorkflowFeature : Feature<WorkflowState>
 
     protected override WorkflowState GetInitialState() => new()
     {
+        CurrentUser = null,
         WorkflowDefinitionsQuery = new QueryState<Result<List<WorkflowDefinition>>>
         {
-            Result = default,
-            Status = QueryStatus.Uninitialized
+            Result = default, Status = QueryStatus.Uninitialized
         },
         WorkflowTasksQuery = new QueryState<Result<List<WorkflowTaskData>>>
         {
-            Result = default,
-            Status = QueryStatus.Uninitialized
+            Result = default, Status = QueryStatus.Uninitialized
         },
         WorkflowHistoryQuery = new QueryState<Result<List<WorkflowHistoryData>>>
         {
-            Result = default,
-            Status = QueryStatus.Uninitialized
+            Result = default, Status = QueryStatus.Uninitialized
         },
         WorkflowDetailsQuery = new QueryState<Result<WorkflowDetails>>
         {
-            Result = default,
-            Status = QueryStatus.Uninitialized
+            Result = default, Status = QueryStatus.Uninitialized
         }
     };
 }

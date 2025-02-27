@@ -9,6 +9,12 @@ namespace Uptime.Client.StateManagement.Workflow;
 
 public static class WorkflowReducers
 {
+    [ReducerMethod]
+    public static WorkflowState ReduceSetCurrentUserAction(WorkflowState state, SetCurrentUserAction action)
+    {
+        return state with { CurrentUser = action.UserName };
+    }
+
     #region WorkflowDefinitions
     
     [ReducerMethod(typeof(LoadWorkflowDefinitionsAction))]
