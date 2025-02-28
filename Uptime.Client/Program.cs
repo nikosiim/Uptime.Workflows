@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 using System.Reflection;
 using Uptime.Client;
-using Uptime.Client.Application.Common;
+using Uptime.Client.Application.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -24,6 +24,7 @@ builder.Services.AddHttpClient<IApiService, ApiService>(ApiRoutes.WorkflowApiCli
 });
 
 builder.Services.AddScoped<IApiService, ApiService>();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<CancellationTokenSource>();
 
 await builder.Build().RunAsync();

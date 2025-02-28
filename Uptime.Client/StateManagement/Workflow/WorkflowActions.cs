@@ -1,8 +1,9 @@
-﻿using Uptime.Shared.Models.Workflows;
+﻿using Uptime.Client.Application.Services;
+using Uptime.Shared.Models.Workflows;
 
 namespace Uptime.Client.StateManagement.Workflow;
 
-public record SetCurrentUserAction(string UserName);
+public record SetCurrentUserAction(User CurrentUser);
 
 public record LoadWorkflowDefinitionsAction;
 public record LoadWorkflowDefinitionsFailedAction(string ErrorMessage);

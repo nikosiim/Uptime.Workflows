@@ -1,4 +1,5 @@
 ﻿@inherits WorkflowAssocForm<ApprovalFormModel>
+@inject IUserService UserService
 
 <MudDialog>
     <TitleContent>@MudDialog.Title</TitleContent>
@@ -7,9 +8,9 @@
             <MudTextField T="string" Label="Töövoo kordumatu nimi" Variant="Variant.Outlined" @bind-Value="FormModel.TemplateName" Required="true" />
             <MudSelect T="string" Label="Kinnitajad" Variant="Variant.Outlined" Placeholder="Vali kinnitajad"
                        @bind-SelectedValues="FormModel.AssignedTo" MultiSelection="true">
-                @foreach (string user in AvailableUsers)
+                @foreach (User user in UserService.GetUsers()) 
                 {
-                    <MudSelectItem T="string" Value="@user">@user</MudSelectItem>
+                    <MudSelectItem T="string" Value="@user.Name">@user.Name</MudSelectItem>
                 }
             </MudSelect>
             <MudTextField T="string" Label="Ülesanne" Variant="Variant.Outlined" @bind-Value="FormModel.TaskDescription" Lines="4" />

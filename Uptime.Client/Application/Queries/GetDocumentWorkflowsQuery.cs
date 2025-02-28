@@ -1,6 +1,6 @@
 ﻿using MediatR;
-using Uptime.Client.Application.Common;
 using Uptime.Client.Application.DTOs;
+using Uptime.Client.Application.Services;
 using Uptime.Shared.Common;
 using Uptime.Shared.Extensions;
 using Uptime.Shared.Models.Documents;

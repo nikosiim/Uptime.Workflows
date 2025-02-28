@@ -1,5 +1,5 @@
 ﻿using Fluxor;
-using Uptime.Client.Application.Common;
+using Uptime.Client.Application.Services;
 using Uptime.Shared.Common;
 using Uptime.Shared.Models.Workflows;
 
@@ -11,7 +11,7 @@ public class WorkflowEffects(IApiService apiService)
     public async Task HandleLoadWorkflowDefinitionsAction(IDispatcher dispatcher)
     {
         Result<List<WorkflowDefinitionResponse>> result = 
-            await apiService.ReadFromJsonAsync<List<WorkflowDefinitionResponse>>(ApiRoutes.Workflows.Base, CancellationToken.None);
+            await apiService.ReadFromJsonAsync<List<WorkflowDefinitionResponse>>(ApiRoutes.Workflows.Base);
 
         if (result.Succeeded)
         {
@@ -27,7 +27,7 @@ public class WorkflowEffects(IApiService apiService)
     public async Task HandleLoadLibraryDocumentsAction(LoadWorkflowTasksAction action, IDispatcher dispatcher)
     {
         string url = ApiRoutes.Workflows.GetTasks.Replace("{workflowId}", action.WorkflowId.ToString());
-        Result<List<WorkflowTasksResponse>> result = await apiService.ReadFromJsonAsync<List<WorkflowTasksResponse>>(url, CancellationToken.None);
+        Result<List<WorkflowTasksResponse>> result = await apiService.ReadFromJsonAsync<List<WorkflowTasksResponse>>(url);
 
         if (result.Succeeded)
         {
@@ -43,7 +43,7 @@ public class WorkflowEffects(IApiService apiService)
     public async Task HandleLoadWorkflowHistoryAction(LoadWorkflowHistoryAction action, IDispatcher dispatcher)
     {
         string url = ApiRoutes.Workflows.GetHistories.Replace("{workflowId}", action.WorkflowId.ToString());
-        Result<List<WorkflowHistoryResponse>> result = await apiService.ReadFromJsonAsync<List<WorkflowHistoryResponse>>(url, CancellationToken.None);
+        Result<List<WorkflowHistoryResponse>> result = await apiService.ReadFromJsonAsync<List<WorkflowHistoryResponse>>(url);
         
         if (result.Succeeded)
         {
@@ -59,7 +59,7 @@ public class WorkflowEffects(IApiService apiService)
     public async Task HandleLoadWorkflowDetailsAction(LoadWorkflowDetailsAction action, IDispatcher dispatcher)
     {
         string url = ApiRoutes.Workflows.GetWorkflow.Replace("{workflowId}", action.WorkflowId.ToString());
-        Result<WorkflowDetailsResponse> result = await apiService.ReadFromJsonAsync<WorkflowDetailsResponse>(url, CancellationToken.None);
+        Result<WorkflowDetailsResponse> result = await apiService.ReadFromJsonAsync<WorkflowDetailsResponse>(url);
         
         if (result.Succeeded)
         {

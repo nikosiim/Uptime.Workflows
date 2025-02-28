@@ -1,6 +1,7 @@
 ﻿@page "/approval-initiation/{templateId:int}/{documentId:int}"
 @inherits WorkflowInitForm<ApprovalInitFormModel>
 @inject IState<WorkflowState> WorkflowState
+@inject IUserService UserService
 
 <MudPaper Class="pa-4" Elevation="0" Style="max-width:800px;">
     <MudPaper Class="pa-4 mb-4" Elevation="0">
@@ -16,18 +17,18 @@
         </MudPaper>
         <MudSelect T="string" Label="Kinnitajad" Variant="Variant.Outlined" Placeholder="Vali kinnitajad"
         @bind-SelectedValues="FormModel.AssignedTo" MultiSelection="true">
-            @foreach (string user in AvailableUsers)
+            @foreach (User user in UserService.GetUsers())
             {
-                <MudSelectItem T="string" Value="@user">@user</MudSelectItem>
+                <MudSelectItem T="string" Value="@user.Name">@user</MudSelectItem>
             }
         </MudSelect>
         <MudTextField T="string" Label="Ülesanne" Variant="Variant.Outlined" @bind-Value="FormModel.TaskDescription" Lines="4"/>
-        <MudDatePicker Label="Ülesande täitmise aeg" Variant="Variant.Outlined" @bind-Date="FormModel.DueDate" DateFormat="dd.MM.yyyy"/>
+        <MudDatePicker Label="Ülesande täitmise aeg" Variant="Variant.Outlined" @bind-Date="FormModel.DueDate" DateFormat="dd.MM.yyyy" />
         <MudSelect T="string" Label="Allkirjastaja" Variant="Variant.Outlined" Placeholder="Vali allkirjastaja"
-        @bind-Value="FormModel.Signer" MultiSelection="false">
-            @foreach (string user in AvailableUsers)
+                   @bind-Value="FormModel.Signer" MultiSelection="false">
+            @foreach (User user in UserService.GetUsers())
             {
-                <MudSelectItem T="string" Value="@user">@user</MudSelectItem>
+                <MudSelectItem T="string" Value="@user.Name">@user</MudSelectItem>
             }
         </MudSelect>
     </MudForm>
@@ -62,7 +63,7 @@
             storage.SetValueAsList(GlobalConstants.TaskStorageKeys.TaskSigners, [FormModel.Signer]);
         }
 
-        string originator = WorkflowState.Value.CurrentUser ?? "System";
+        string originator = User.GetNameOrSystemAccount(WorkflowState.Value.CurrentUser);
 
         var command = new StartWorkflowCommand
         {
@@ -73,11 +74,13 @@
         };
 
         Result<bool> result = await Mediator.Send(command);
-
-        Snackbar.Add(result.Succeeded ? "Töövoo käivitamine õnnestus" : "Töövoo käivitamine ebaõnnestus");
+        if (!result.Succeeded)
+        {
+            Snackbar.Add("Töövoo käivitamine ebaõnnestus");
+        }
 
         _isDisabled = false;
 
-        Navigation.NavigateTo("/contracts");
+        Navigation.NavigateTo($"/library-workflow/1/{DocumentId}");
     }
 }

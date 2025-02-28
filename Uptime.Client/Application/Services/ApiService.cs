@@ -1,25 +1,27 @@
 ﻿using System.Net.Http.Json;
 using Uptime.Shared.Common;
 
-namespace Uptime.Client.Application.Common;
+namespace Uptime.Client.Application.Services;
 
-public class ApiService(IHttpClientFactory httpClientFactory) : IApiService
+public class ApiService(IHttpClientFactory httpClientFactory, CancellationTokenSource globalCancellationTokenSource) : IApiService
 {
     private readonly HttpClient _httpClient = httpClientFactory.CreateClient(ApiRoutes.WorkflowApiClient);
    
-    public async Task<Result<T>> ReadFromJsonAsync<T>(string url, CancellationToken token)
+    public async Task<Result<T>> ReadFromJsonAsync<T>(string url, CancellationToken? token = null)
     {
+        CancellationToken linkedToken = GetLinkedCancellationToken(token);
+
         try
         {
-            using HttpResponseMessage response = await _httpClient.GetAsync(url, token);
+            using HttpResponseMessage response = await _httpClient.GetAsync(url, linkedToken);
 
             if (!response.IsSuccessStatusCode)
             {
-                string errorMessage = await response.Content.ReadAsStringAsync(token);
+                string errorMessage = await response.Content.ReadAsStringAsync(linkedToken);
                 return Result<T>.Failure($"Error {response.StatusCode}: {errorMessage}");
             }
 
-            var data = await response.Content.ReadFromJsonAsync<T>(token);
+            var data = await response.Content.ReadFromJsonAsync<T>(linkedToken);
             return Result<T>.Success(data);
         }
         catch (OperationCanceledException)
@@ -153,5 +155,10 @@ public class ApiService(IHttpClientFactory httpClientFactory) : IApiService
         {
             return Result<bool>.Failure($"Unexpected error: {ex.Message}");
         }
+    }
+
+    public CancellationToken GetLinkedCancellationToken(CancellationToken? requestToken = null)
+    {
+        return CancellationTokenSource.CreateLinkedTokenSource(globalCancellationTokenSource.Token, requestToken ?? CancellationToken.None).Token;
     }
 }

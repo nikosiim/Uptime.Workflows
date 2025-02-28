@@ -1,19 +1,30 @@
 ﻿@inherits FluxorComponent
 @inject IState<WorkflowState> WorkflowState
+@inject IUserService UserService
 @inject IDispatcher Dispatcher
 
-@if (!string.IsNullOrEmpty(WorkflowState.Value.CurrentUser))
+@if (WorkflowState.Value.CurrentUser != null)
 {
-    <MudText Typo="Typo.body1" Class="px-2">@WorkflowState.Value.CurrentUser</MudText>
-    <MudLink OnClick="OpenUserSelectionDialog">(LogOut)</MudLink>
+    <MudText Typo="Typo.body1" Class="px-2" Color="@(WorkflowState.Value.CurrentUser.IsAdmin ? Color.Warning : Color.Default)">
+        @WorkflowState.Value.CurrentUser.Name
+    </MudText>
+    <MudIconButton Icon="@Icons.Material.Filled.Logout" OnClick="OpenUserSelectionDialog" />
 }
 
 <MudDialog Visible="@ShowUserSelectionDialog" Options="_dialogOptions">
     <DialogContent>
-        <MudSelect T="string" Label="Select a User" Variant="Variant.Outlined" Placeholder="Choose user" @bind-Value="_selectedUser">
-            @foreach (string user in AvailableUsers)
+        <MudSelect T="User" Label="Kes sa oled?" Variant="Variant.Outlined" Placeholder="Vali kasutaja" @bind-Value="_selectedUser">
+            @foreach (User user in UserService.GetUsers())
             {
-                <MudSelectItem T="string" Value="@user">@user</MudSelectItem>
+                <MudSelectItem T="User" Value="@user">
+                    <MudContainer Class="d-flex align-center">
+                        <MudText>@user.Name</MudText>
+                        @if (user.IsAdmin)
+                        {
+                            <MudText Typo="Typo.caption" Class="ml-1">(Administrator)</MudText>
+                        }
+                    </MudContainer>
+                </MudSelectItem>
             }
         </MudSelect>
     </DialogContent>
@@ -24,7 +35,7 @@
 
 @code {
     private bool _forceShowDialog = false;
-    private string _selectedUser = "John Doe";
+    private User _selectedUser = User.Default;
     private bool ShowUserSelectionDialog => WorkflowState.Value.CurrentUser == null || _forceShowDialog;
 
     private readonly DialogOptions _dialogOptions = new()

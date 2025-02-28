@@ -1,4 +1,5 @@
 ﻿@inherits WorkflowAssocForm<SigningFormModel>
+@inject IUserService UserService
 
 <MudDialog>
     <TitleContent>@MudDialog.Title</TitleContent>
@@ -6,9 +7,9 @@
         <MudForm @ref="Form">
             <MudTextField T="string" Label="Töövoo kordumatu nimi" Variant="Variant.Outlined" @bind-Value="FormModel.TemplateName" Required="true" />
             <MudSelect T="string" Label="Allkirjastaja" Variant="Variant.Outlined" Placeholder="Vali allkirjastaja" @bind-Value="FormModel.Signer" MultiSelection="false">
-                @foreach (string user in AvailableUsers)
+                @foreach (User user in UserService.GetUsers())
                 {
-                    <MudSelectItem T="string" Value="@user">@user</MudSelectItem>
+                    <MudSelectItem T="string" Value="@user.Name">@user</MudSelectItem>
                 }
             </MudSelect>
 

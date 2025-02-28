@@ -1,5 +1,6 @@
 ﻿using Fluxor;
 using Uptime.Client.Application.DTOs;
+using Uptime.Client.Application.Services;
 using Uptime.Client.StateManagement.Common;
 using Uptime.Shared.Common;
 
@@ -7,7 +8,7 @@ namespace Uptime.Client.StateManagement.Workflow;
 
 public record WorkflowState
 {
-    public required string? CurrentUser { get; init; }
+    public required User? CurrentUser { get; init; }
     public required QueryState<Result<List<WorkflowDefinition>>> WorkflowDefinitionsQuery { get; init; }
 
     #region No QueryStatus.Uninitialized

@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using Uptime.Client.Application.Common;
+using Uptime.Client.Application.Services;
 using Uptime.Shared.Common;
 
 namespace Uptime.Client.Application.Commands;

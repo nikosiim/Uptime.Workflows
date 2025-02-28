@@ -38,7 +38,7 @@
         storage.SetValue(GlobalConstants.TaskStorageKeys.TaskDueDays, FormModel.DueDays.ToString());
         storage.SetValueAsList(GlobalConstants.TaskStorageKeys.TaskSigners, [FormModel.Signer!]);
 
-        string originator = WorkflowState.Value.CurrentUser ?? "System";
+        string originator = User.GetNameOrSystemAccount(WorkflowState.Value.CurrentUser);
 
         var command = new StartWorkflowCommand
         {
@@ -49,11 +49,13 @@
         };
 
         Result<bool> result = await Mediator.Send(command);
-
-        Snackbar.Add(result.Succeeded ? "Töövoo käivitamine õnnestus" : $"Töövoo käivitamine ebaõnnestus");
+        if (!result.Succeeded)
+        {
+            Snackbar.Add("Töövoo käivitamine ebaõnnestus");
+        }
 
         _isDisabled = false;
 
-        Navigation.NavigateTo("/contracts");
+        Navigation.NavigateTo($"/library-workflow/1/{DocumentId}");
     }
 }

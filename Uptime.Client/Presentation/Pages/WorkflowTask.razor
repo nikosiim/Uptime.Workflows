@@ -96,7 +96,7 @@
                     <TitleContent>
                         <div class="d-flex">
                             <MudText Class="mt-1">Töövoo ajalugu</MudText>
-                            <MudBadge Content="3" Color="Color.Primary" Overlap="true" Class="d-flex ml-auto">
+                            <MudBadge Content="@WorkflowState.Value.WorkflowHistoryQuery.Result.Value?.Count" Color="Color.Primary" Overlap="true" Class="d-flex ml-auto">
                                 <MudIcon Icon="@Icons.Material.Filled.History" Color="Color.Default" />
                             </MudBadge>
                         </div>
