@@ -1,21 +1,18 @@
 ﻿@page "/workflow/{workflowId:int}"
-
 @inject IDispatcher Dispatcher
 
-<MudContainer>
-    <MudPaper Elevation="1" Outlined="true" Class="pa-4 mb-6">
-        <WorkflowPageDetails />
-    </MudPaper>
-    <MudPaper Elevation="2" Outlined="true" Class="pa-4 my-6">
-        <WorkflowPageActions WorkflowCanceled="HandleWorkflowCanceled" />
-    </MudPaper>
-    <MudPaper Elevation="1" Outlined="true" Class="pa-4 my-6">
-        <WorkflowPageTasks />
-    </MudPaper>
-    <MudPaper Elevation="1" Outlined="true" Class="pa-4 my-6">
-        <WorkflowPageHistory />
-    </MudPaper>
-</MudContainer>
+<MudPaper Elevation="1" Outlined="true" Class="pa-4 mb-6">
+    <WorkflowPageDetails />
+</MudPaper>
+<MudPaper Elevation="2" Outlined="true" Class="pa-4 my-6">
+    <WorkflowPageActions WorkflowCanceled="HandleWorkflowCanceled" />
+</MudPaper>
+<MudPaper Elevation="1" Outlined="true" Class="pa-4 my-6">
+    <WorkflowPageTasks />
+</MudPaper>
+<MudPaper Elevation="1" Outlined="true" Class="pa-4 my-6">
+    <WorkflowPageHistory />
+</MudPaper>
 
 @code {
     [Parameter] public int WorkflowId { get; set; }

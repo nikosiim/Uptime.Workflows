@@ -3,51 +3,49 @@
 @inject ISnackbar Snackbar
 @inject IMediator Mediator
 
-<MudContainer>
-    <MudPaper Elevation="0" Outlined="false" Class="mb-6">
-        <LibraryWorkflowTemplates DocumentId="DocumentId" WorkflowTemplates="_availableTemplates" />
-        <MudDivider />
+<MudPaper Elevation="0" Outlined="false" Class="mb-6">
+    <LibraryWorkflowTemplates DocumentId="DocumentId" WorkflowTemplates="_availableTemplates" />
+    <MudDivider />
+</MudPaper>
+
+<MudPaper Elevation="0" Outlined="false" Class="my-6">
+    <MudText Typo="Typo.h5" Class="my-4">Töövood</MudText>
+
+    <MudPaper Elevation="0" Outlined="true" Class="pa-4 my-6">
+        <MudText Typo="Typo.subtitle1" Class="mt-4 mb-4">Töötavad töövood</MudText>
+        <MudTable Items="ActiveInstances" Bordered="false" Dense="true" Outlined="true" Loading="@_loading">
+            <HeaderContent>
+                <MudTh>Nimi</MudTh>
+                <MudTh>Käivitatud</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd><MudLink Href="@($"/workflow/{context.Id}")">@context.WorkflowTemplateName</MudLink></MudTd>
+                <MudTd>@context.StartDate.ToLocalTime()</MudTd>
+            </RowTemplate>
+            <NoRecordsContent>Dokumendil puuduvad aktiivsed töövood</NoRecordsContent>
+        </MudTable>
     </MudPaper>
 
-    <MudPaper Elevation="0" Outlined="false" Class="my-6">
-        <MudText Typo="Typo.h5" Class="my-4">Töövood</MudText>
-
-        <MudPaper Elevation="0" Outlined="true" Class="pa-4 my-6">
-            <MudText Typo="Typo.subtitle1" Class="mt-4 mb-4">Töötavad töövood</MudText>
-            <MudTable Items="ActiveInstances" Bordered="false" Dense="true" Outlined="true" Loading="@_loading">
-                <HeaderContent>
-                    <MudTh>Nimi</MudTh>
-                    <MudTh>Käivitatud</MudTh>
-                </HeaderContent>
-                <RowTemplate>
-                    <MudTd><MudLink Href="@($"/workflow/{context.Id}")">@context.WorkflowTemplateName</MudLink></MudTd>
-                    <MudTd>@context.StartDate.ToLocalTime()</MudTd>
-                </RowTemplate>
-                <NoRecordsContent>Dokumendil puuduvad aktiivsed töövood</NoRecordsContent>
-            </MudTable>
-        </MudPaper>
-
-        <MudPaper Elevation="0" Outlined="true" Class="pa-4 my-6">
-            <MudText Typo="Typo.subtitle1" Class="mt-4 mb-4">Lõpule viidud töövood</MudText>
-            <MudTable Items="CompletedInstances" Bordered="false" Dense="true" Outlined="true" Loading="@_loading">
-                <HeaderContent>
-                    <MudTh>Nimi</MudTh>
-                    <MudTh>Käivitatud</MudTh>
-                    <MudTh>Lõpule viidud</MudTh>
-                    <MudTh>Olek</MudTh>
-                </HeaderContent>
-                <RowTemplate>
-                    <MudTd><MudLink Href="@($"/workflow/{context.Id}")">@context.WorkflowTemplateName</MudLink></MudTd>
-                    <MudTd>@context.StartDate.ToLocalTime()</MudTd>
-                    <MudTd>@context.EndDate?.ToLocalTime()</MudTd>
-                    <MudTd>@context.Outcome</MudTd>
-                </RowTemplate>
-                <NoRecordsContent>Dokumendil puuduvad lõppenud töövood</NoRecordsContent>
-            </MudTable>
-        </MudPaper>
-        <MudDivider />
+    <MudPaper Elevation="0" Outlined="true" Class="pa-4 my-6">
+        <MudText Typo="Typo.subtitle1" Class="mt-4 mb-4">Lõpule viidud töövood</MudText>
+        <MudTable Items="CompletedInstances" Bordered="false" Dense="true" Outlined="true" Loading="@_loading">
+            <HeaderContent>
+                <MudTh>Nimi</MudTh>
+                <MudTh>Käivitatud</MudTh>
+                <MudTh>Lõpule viidud</MudTh>
+                <MudTh>Olek</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd><MudLink Href="@($"/workflow/{context.Id}")">@context.WorkflowTemplateName</MudLink></MudTd>
+                <MudTd>@context.StartDate.ToLocalTime()</MudTd>
+                <MudTd>@context.EndDate?.ToLocalTime()</MudTd>
+                <MudTd>@context.Outcome</MudTd>
+            </RowTemplate>
+            <NoRecordsContent>Dokumendil puuduvad lõppenud töövood</NoRecordsContent>
+        </MudTable>
     </MudPaper>
-</MudContainer>
+    <MudDivider />
+</MudPaper>
 
 @code {
     private bool _loading;

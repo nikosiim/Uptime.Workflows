@@ -3,13 +3,10 @@
 @inject IUserService UserService
 @inject IDispatcher Dispatcher
 
-@if (WorkflowState.Value.CurrentUser != null)
-{
-    <MudText Typo="Typo.body1" Class="px-2" Color="@(WorkflowState.Value.CurrentUser.IsAdmin ? Color.Warning : Color.Default)">
-        @WorkflowState.Value.CurrentUser.Name
-    </MudText>
-    <MudIconButton Icon="@Icons.Material.Filled.Logout" OnClick="OpenUserSelectionDialog" />
-}
+<MudText Typo="Typo.body1" Class="px-2" Color="@(WorkflowState.Value.CurrentUser.IsAdmin ? Color.Warning : Color.Default)">
+    @WorkflowState.Value.CurrentUser.Name
+</MudText>
+<MudIconButton Icon="@Icons.Material.Filled.Logout" OnClick="OpenUserSelectionDialog" />
 
 <MudDialog Visible="@ShowUserSelectionDialog" Options="_dialogOptions">
     <DialogContent>
@@ -34,25 +31,24 @@
 </MudDialog>
 
 @code {
-    private bool _forceShowDialog = false;
     private User _selectedUser = User.Default;
-    private bool ShowUserSelectionDialog => WorkflowState.Value.CurrentUser == null || _forceShowDialog;
+    private bool ShowUserSelectionDialog { get; set; } = false;
 
     private readonly DialogOptions _dialogOptions = new()
     {
         FullWidth = true,
         Position = DialogPosition.TopCenter,
-        MaxWidth = MaxWidth.Medium
+        MaxWidth = MaxWidth.Small
     };
     
     private void OpenUserSelectionDialog()
     {
-        _forceShowDialog = true;
+        ShowUserSelectionDialog = true;
     }
 
     private void ConfirmUserSelection()
     {
         Dispatcher.Dispatch(new SetCurrentUserAction(_selectedUser));
-        _forceShowDialog = false;
+        ShowUserSelectionDialog = false;
     }
 }

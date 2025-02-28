@@ -5,13 +5,6 @@ namespace Uptime.Client;
 
 public static class Constants
 {
-    public static readonly string[] AvailableUsers =
-    [
-        "Klient Üks", "Klient Kaks", "Klient Kolm", "Klient Neli", "Klient Viis",
-        "Lauri Saar", "Marika Oja", "Jana Pärn", "Piia Saar", "Urve Oja", "Riin Koppel", "Peeter Sepp", "Kristina Kroon",
-        "Markus Lepik", "Marta Laine", "Anton Rebane", "Signe Kask", "Viljar Laine"
-    ];
-
     public static class DialogParams
     {
         public const string AssignedTo = "AssignedTo";

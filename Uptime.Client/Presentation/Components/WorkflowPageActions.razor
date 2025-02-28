@@ -14,11 +14,14 @@
             <MudLink OnClick="@(() => OnCancelClick(WorkflowDetails.Id))">Katkesta töövoog</MudLink>
             <MudText Typo="Typo.subtitle2">Töövoo katkestamisel aktiivsed ülesanded katkestatakse ja uusi ülesandeid ei lisada.</MudText>
         </MudStack>
-
-        <MudStack Spacing="0">
-            <MudLink>Kustuta töövoog</MudLink>
-            <MudText Typo="Typo.subtitle2">Töövoo kustutamisel aktiivsed ülesanded katkestatakse ja uusi ülesandeid ei lisada.</MudText>
-        </MudStack>
+        
+        @if (WorkflowState.Value.CurrentUser.IsAdmin)
+        {
+            <MudStack Spacing="0">
+                <MudLink>Kustuta töövoog</MudLink>
+                <MudText Typo="Typo.subtitle2">Töövoo kustutamisel aktiivsed ülesanded katkestatakse ja uusi ülesandeid ei lisada.</MudText>
+            </MudStack>
+        }
     </MudStack>
 }
 
