@@ -8,13 +8,15 @@
         <MudGrid>
             @foreach (WorkflowTemplate template in WorkflowTemplates)
             {
+                @if (!GetInitiationFormUrl(template, DocumentId, out string url)) continue;
+
                 <MudItem xs="12" sm="6" md="3">
                     <MudPaper Class="pa-3" Elevation="2" Style="min-width: fit-content;">
                         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
                             <MudAvatar Size="Size.Small" Color="Color.Primary">
                                 <MudIcon Icon="@Icons.Material.Filled.Work" Size="Size.Small" />
                             </MudAvatar>
-                            <MudLink Href="@(GetInitiationFormUrl(template, DocumentId))" Style=" white-space: nowrap;">@template.Name</MudLink>
+                            <MudLink Href="@url" Style=" white-space: nowrap;">@template.Name</MudLink>
                         </MudStack>
                     </MudPaper>
                 </MudItem>
@@ -30,16 +32,19 @@
     [Parameter, EditorRequired]
     public List<WorkflowTemplate>? WorkflowTemplates { get; set; }
 
-    private string GetInitiationFormUrl(WorkflowTemplate template, int documentId)
+    private bool GetInitiationFormUrl(WorkflowTemplate template, int documentId, out string url)
     {
         WorkflowDefinition? definition = WorkflowState.Value.WorkflowDefinitionsQuery.Result.Value?.First(x => x.Id == template.WorkflowBaseId);
 
         if (!string.IsNullOrWhiteSpace(definition?.FormsConfiguration?.InitiationPage))
-        { 
-            return $"/{definition.FormsConfiguration!.InitiationPage}/{template.Id}/{documentId}";
+        {
+            url = $"/{definition.FormsConfiguration!.InitiationPage}/{template.Id}/{documentId}";
+            return true;
         }
 
         Console.WriteLine(@"Workflow definition forms configuration missing");
-        return "";
+
+        url = string.Empty;
+        return false;
     }
 }

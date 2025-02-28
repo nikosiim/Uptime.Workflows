@@ -2,13 +2,6 @@
     <TitleContent>@MudDialog.Title</TitleContent>
     <DialogContent>
         <MudText Typo="Typo.subtitle1">Tööülesande täitmine</MudText>
-        <MudSelect T="string" Label="Ülesande muutja" Variant="Variant.Outlined" Placeholder="Vali kasutaja" @bind-Value="_currentUser">
-            @foreach (string user in AvailableUsers)
-            {
-                <MudSelectItem T="string" Value="@user">@user</MudSelectItem>
-            }
-        </MudSelect>
-
         @if (EventType == WorkflowEventType.TaskDelegated)
         {
             <MudSelect T="string" Label="Ülesande saaja" Variant="Variant.Outlined" Placeholder="Vali kasutaja" @bind-Value="_delegatedUser">
@@ -29,7 +22,6 @@
 
 @code {
     private string? _comment;
-    private string? _currentUser;
     private string? _delegatedUser;
 
     [Parameter] public string? Document { get; set; }
@@ -38,23 +30,20 @@
     [Parameter, EditorRequired] public int WorkflowId { get; set; }
     [Parameter, EditorRequired] public WorkflowEventType EventType { get; set; }
 
-    [Inject] 
-    protected IMediator Mediator { get; set; } = null!;
+    [Inject] protected IMediator Mediator { get; set; } = null!;
+    [Inject] protected IState<WorkflowState> WorkflowState { get; set; } = null!;
 
     [CascadingParameter] 
     protected IMudDialogInstance MudDialog { get; set; } = null!;
-
-    protected override void OnInitialized()
-    {
-        _currentUser = AssignedTo;
-    }
-
+    
     protected virtual async Task OnSaveClick()
     {
         var input = new Dictionary<string, string?>();
 
+        string taskEditor = WorkflowState.Value.CurrentUser ?? "System";
+
         input.SetValue(GlobalConstants.TaskStorageKeys.TaskComment, _comment);
-        input.SetValue(GlobalConstants.TaskStorageKeys.TaskEditor, _currentUser);
+        input.SetValue(GlobalConstants.TaskStorageKeys.TaskEditor, taskEditor);
         input.SetValue(GlobalConstants.TaskStorageKeys.TaskResult, EventType.ToString());
 
         if (EventType == WorkflowEventType.TaskDelegated)

@@ -1,6 +1,7 @@
 ﻿@page "/signing-initiation/{templateId:int}/{documentId:int}"
 
 @inherits WorkflowInitForm<SigningInitFormModel>
+@inject IState<WorkflowState> WorkflowState
 
 <MudPaper Class="pa-4" Elevation="0">
     <MudPaper Class="pa-4 mb-4" Elevation="0">
@@ -8,12 +9,6 @@
     </MudPaper>
 
     <MudForm @ref="Form" Spacing="1">
-        <MudSelect T="string" Label="Ülesande andja" Variant="Variant.Outlined" Placeholder="Vali kasutaja" @bind-Value="FormModel.Originator">
-            @foreach (string user in AvailableUsers)
-            {
-                <MudSelectItem T="string" Value="@user">@user</MudSelectItem>
-            }
-        </MudSelect>
         <MudTextField T="string" Label="Ülesande saaja" Variant="Variant.Outlined" @bind-Value="FormModel.Signer" Placeholder="Comma-separated usernames"/>
         <MudTextField T="string" Label="Ülesanne" Variant="Variant.Outlined" @bind-Value="FormModel.TaskDescription" Lines="4" />
         <MudNumericField Label="Ülesande täitmise aeg" Variant="Variant.Outlined" @bind-Value="FormModel.DueDays" />
@@ -42,12 +37,14 @@
         storage.SetValue(GlobalConstants.TaskStorageKeys.TaskDescription, FormModel.TaskDescription);
         storage.SetValue(GlobalConstants.TaskStorageKeys.TaskDueDays, FormModel.DueDays.ToString());
         storage.SetValueAsList(GlobalConstants.TaskStorageKeys.TaskSigners, [FormModel.Signer!]);
-        
+
+        string originator = WorkflowState.Value.CurrentUser ?? "System";
+
         var command = new StartWorkflowCommand
         {
             WorkflowTemplateId = TemplateId,
             DocumentId = DocumentId,
-            Originator = "System",
+                Originator = originator,
             Storage = storage
         };
 

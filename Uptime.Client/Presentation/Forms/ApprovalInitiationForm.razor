@@ -1,5 +1,6 @@
 ﻿@page "/approval-initiation/{templateId:int}/{documentId:int}"
 @inherits WorkflowInitForm<ApprovalInitFormModel>
+@inject IState<WorkflowState> WorkflowState
 
 <MudPaper Class="pa-4" Elevation="0" Style="max-width:800px;">
     <MudPaper Class="pa-4 mb-4" Elevation="0">
@@ -13,14 +14,8 @@
                 <MudRadio Value="2" Color="Color.Secondary" UncheckedColor="Color.Default" Size="Size.Small">Paralleelselt</MudRadio>
             </MudRadioGroup>
         </MudPaper>
-        <MudSelect T="string" Label="Ülesande andja" Variant="Variant.Outlined" Placeholder="Vali kasutaja" @bind-Value="FormModel.Originator">
-            @foreach (string user in AvailableUsers)
-            {
-                <MudSelectItem T="string" Value="@user">@user</MudSelectItem>
-            }
-        </MudSelect>
         <MudSelect T="string" Label="Kinnitajad" Variant="Variant.Outlined" Placeholder="Vali kinnitajad"
-                   @bind-SelectedValues="FormModel.AssignedTo" MultiSelection="true">
+        @bind-SelectedValues="FormModel.AssignedTo" MultiSelection="true">
             @foreach (string user in AvailableUsers)
             {
                 <MudSelectItem T="string" Value="@user">@user</MudSelectItem>
@@ -67,11 +62,13 @@
             storage.SetValueAsList(GlobalConstants.TaskStorageKeys.TaskSigners, [FormModel.Signer]);
         }
 
+        string originator = WorkflowState.Value.CurrentUser ?? "System";
+
         var command = new StartWorkflowCommand
         {
             WorkflowTemplateId = TemplateId,
             DocumentId = DocumentId,
-            Originator = "System",
+            Originator = originator,
             Storage = storage
         };
 
