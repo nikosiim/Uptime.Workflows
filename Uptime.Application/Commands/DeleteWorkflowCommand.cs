@@ -20,7 +20,7 @@ public class DeleteWorkflowCommandHandler(IWorkflowDbContext dbContext, ILogger<
 
         if (workflow != null)
         {
-            workflow.IsDeleted = true;
+            dbContext.Workflows.Remove(workflow);
             await dbContext.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Workflow with ID {WorkflowId} deleted.", request.WorkflowId);

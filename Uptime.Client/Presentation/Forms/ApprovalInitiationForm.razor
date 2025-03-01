@@ -1,6 +1,5 @@
 ﻿@page "/approval-initiation/{templateId:int}/{documentId:int}"
 @inherits WorkflowInitForm<ApprovalInitFormModel>
-@inject IState<WorkflowState> WorkflowState
 @inject IUserService UserService
 
 <MudPaper Class="pa-4" Elevation="0" Style="max-width:800px;">
@@ -16,7 +15,7 @@
             </MudRadioGroup>
         </MudPaper>
         <MudSelect T="string" Label="Kinnitajad" Variant="Variant.Outlined" Placeholder="Vali kinnitajad"
-        @bind-SelectedValues="FormModel.AssignedTo" MultiSelection="true">
+                   @bind-SelectedValues="FormModel.AssignedTo" MultiSelection="true">
             @foreach (User user in UserService.GetUsers())
             {
                 <MudSelectItem T="string" Value="@user.Name">@user</MudSelectItem>
@@ -63,13 +62,10 @@
             storage.SetValueAsList(GlobalConstants.TaskStorageKeys.TaskSigners, [FormModel.Signer]);
         }
 
-        string originator = User.GetNameOrSystemAccount(WorkflowState.Value.CurrentUser);
-
         var command = new StartWorkflowCommand
         {
             WorkflowTemplateId = TemplateId,
             DocumentId = DocumentId,
-            Originator = originator,
             Storage = storage
         };
 

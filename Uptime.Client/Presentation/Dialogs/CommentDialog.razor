@@ -1,0 +1,30 @@
+﻿<MudDialog>
+    <TitleContent>@MudDialog.Title</TitleContent>
+    <DialogContent>
+        <MudTextField T="string" Label="Kommentaar" Variant="Variant.Outlined" @bind-Value="_comment" Lines="5" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" OnClick="Confirm">@ButtonText</MudButton>
+        <MudButton Variant="Variant.Outlined" OnClick="Cancel">Loobu</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private string? _comment;
+    
+    [CascadingParameter] 
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public string? ButtonText { get; set; }
+
+    private void Confirm()
+    {
+        MudDialog.Close(_comment);
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

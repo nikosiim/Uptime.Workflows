@@ -1,5 +1,5 @@
 ﻿using Uptime.Client.Application.Common;
-using Uptime.Client.Presentation.Forms;
+using Uptime.Client.Presentation.Dialogs;
 
 namespace Uptime.Client;
 

@@ -36,7 +36,7 @@ public static class ApiRoutes
 
         public const string StartWorkflow = $"{Base}/start-workflow";
         public const string CancelWorkflow = $"{Base}/{{workflowId}}/cancel-workflow";
-        public const string TerminateWorkflow = $"{Base}/{{workflowId}}/terminate-workflow";
+        public const string DeleteWorkflow = $"{Base}/{{workflowId}}/delete-workflow";
     }
 
     public static class WorkflowTemplates

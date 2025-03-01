@@ -79,7 +79,7 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
         return NoContent();
     }
 
-    [HttpPost("{workflowId:int}/delete-workflow")]
+    [HttpDelete("{workflowId:int}/delete-workflow")]
     public async Task<ActionResult> DeleteWorkflow(int workflowId)
     {
         var cmd = new DeleteWorkflowCommand((WorkflowId)workflowId);

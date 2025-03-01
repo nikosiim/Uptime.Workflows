@@ -5,7 +5,7 @@
     <WorkflowPageDetails />
 </MudPaper>
 <MudPaper Elevation="2" Outlined="true" Class="pa-4 my-6">
-    <WorkflowPageActions WorkflowCanceled="HandleWorkflowCanceled" />
+    <WorkflowPageActions PageUpdated="HandlePageUpdate" />
 </MudPaper>
 <MudPaper Elevation="1" Outlined="true" Class="pa-4 my-6">
     <WorkflowPageTasks />
@@ -24,7 +24,7 @@
         LoadWorkflowDetails();
     }
 
-    private void HandleWorkflowCanceled()
+    private void HandlePageUpdate()
     {
         LoadWorkflowDetails();
     }
