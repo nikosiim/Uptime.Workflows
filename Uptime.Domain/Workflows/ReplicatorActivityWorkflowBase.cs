@@ -38,18 +38,7 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
         
         return WorkflowModification(phaseId, replicatorState);
     }
-
-    public async Task<string> ModifyWorkflowAsync(ModificationContext modificationContext, CancellationToken cancellationToken)
-    {
-        bool isModified = await OnWorkflowModifiedAsync(modificationContext, cancellationToken);
-        if (isModified)
-        {
-            await SaveWorkflowStateAsync(cancellationToken);
-        }
-
-        return Machine.CurrentState.Value;
-    }
-
+    
     protected virtual IReplicatorPhaseBuilder CreateReplicatorPhaseBuilder()
     {
         return new ReplicatorPhaseBuilder(WorkflowDefinition.ReplicatorConfiguration!.PhaseConfigurations);
@@ -71,6 +60,23 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
         );
 
         InitializeReplicatorManagerAsync(cancellationToken);
+    }
+
+    protected override Task<bool> OnWorkflowModifiedAsync(ModificationContext modificationContext, CancellationToken cancellationToken)
+    {
+        if (WorkflowId.Value != modificationContext.WorkflowId || !WorkflowContext.ReplicatorStates.ContainsKey(modificationContext.PhaseId))
+        {
+            throw new InvalidOperationException("Modification context does not match the current workflow state.");
+        }
+
+        if (!WorkflowContext.ReplicatorStates.TryGetValue(modificationContext.PhaseId, out ReplicatorState? replicatorState))
+        {
+            return Task.FromResult(false);
+        }
+
+        bool result = OnReplicatorWorkflowModified(replicatorState, modificationContext);
+
+        return Task.FromResult(result);
     }
     
     protected override async Task OnTaskChangedAsync(WorkflowTaskContext storedTaskContext, Dictionary<string, string?> alterTaskPayload, CancellationToken cancellationToken)
@@ -102,14 +108,9 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
         return null;
     }
 
-    protected virtual Task<bool> OnWorkflowModifiedAsync(ModificationContext modificationContext, CancellationToken cancellationToken)
+    protected virtual bool OnReplicatorWorkflowModified(ReplicatorState replicatorState, ModificationContext modificationContext)
     {
-        if (WorkflowId.Value != modificationContext.WorkflowId || !WorkflowContext.ReplicatorStates.ContainsKey(modificationContext.PhaseId))
-        {
-            throw new InvalidOperationException("Modification context does not match the current workflow state.");
-        }
-
-        return Task.FromResult(false);
+        return false;
     }
     
     protected virtual UserTaskActivity? CreateChildActivity(WorkflowTaskContext context)

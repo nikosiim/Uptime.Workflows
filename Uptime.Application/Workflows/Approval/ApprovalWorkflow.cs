@@ -49,7 +49,7 @@ public class ApprovalWorkflow(
         WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
     }
 
-    protected override ModificationContext? WorkflowModification(string phaseId, ReplicatorState replicatorState)
+    protected override ModificationContext WorkflowModification(string phaseId, ReplicatorState replicatorState)
     {
         List<ReplicatorItem> activeItems = replicatorState.Items
             .Where(i => i.Status is ReplicatorItemStatus.NotStarted or ReplicatorItemStatus.InProgress)
@@ -65,32 +65,30 @@ public class ApprovalWorkflow(
         return new ModificationContext { WorkflowId = WorkflowId.Value, PhaseId = phaseId, ContextTasks = taskItems };
     }
 
-    protected override Task<bool> OnWorkflowModifiedAsync(ModificationContext modificationContext, CancellationToken cancellationToken)
+    protected override bool OnReplicatorWorkflowModified(ReplicatorState replicatorState, ModificationContext modificationContext)
     {
-        if (!WorkflowContext.ReplicatorStates.TryGetValue(modificationContext.PhaseId, out ReplicatorState? replicatorState))
+        ReplicatorItem? inProgressItem = replicatorState.Items.FirstOrDefault(item => item.Status == ReplicatorItemStatus.InProgress);
+        if (inProgressItem == null)
         {
-            return Task.FromResult(false);
+            return false;
         }
 
-        ReplicatorItem? currentTaskItem = replicatorState.Items.FirstOrDefault(item => item.Status == ReplicatorItemStatus.InProgress);
-        if (currentTaskItem == null)
-        {
-            return Task.FromResult(false);
-        }
-
-        var currentTaskData = currentTaskItem.Data.DeserializeTaskData<ApprovalTaskData>();
+        var currentTaskData = inProgressItem.Data.DeserializeTaskData<ApprovalTaskData>();
 
         replicatorState.Items.RemoveAll(item => item.Status == ReplicatorItemStatus.NotStarted);
         
         foreach (ContextTask newTask in modificationContext.ContextTasks ?? [])
         {
-            ApprovalTaskData newTaskData = ApprovalTaskData.Copy(currentTaskData);
-            newTaskData.AssignedTo = newTask.AssignedTo;
+            if (newTask.AssignedTo != currentTaskData.AssignedTo)
+            {
+                ApprovalTaskData newTaskData = ApprovalTaskData.Copy(currentTaskData);
+                newTaskData.AssignedTo = newTask.AssignedTo;
 
-            replicatorState.Items.Add(new ReplicatorItem { Data = newTaskData, Status = ReplicatorItemStatus.NotStarted });
+                replicatorState.Items.Add(new ReplicatorItem { Data = newTaskData, Status = ReplicatorItemStatus.NotStarted });
+            }
         }
 
-        return Task.FromResult(true);
+        return true;
     }
 
     protected override Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)

@@ -56,6 +56,17 @@ public abstract class WorkflowBase<TContext>(
         return Machine.CurrentState;
     }
 
+    public async Task<string> ModifyWorkflowAsync(ModificationContext modificationContext, CancellationToken cancellationToken)
+    {
+        bool isModified = await OnWorkflowModifiedAsync(modificationContext, cancellationToken);
+        if (isModified)
+        {
+            await SaveWorkflowStateAsync(cancellationToken);
+        }
+
+        return Machine.CurrentState.Value;
+    }
+
     public async Task CancelWorkflowAsync(string executor, string comment, CancellationToken cancellationToken)
     {
         if (Machine.CurrentState.IsFinal())
@@ -117,6 +128,11 @@ public abstract class WorkflowBase<TContext>(
     protected virtual Task OnWorkflowStartedAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
+    }
+
+    protected virtual Task<bool> OnWorkflowModifiedAsync(ModificationContext modificationContext, CancellationToken cancellationToken)
+    {
+        return Task.FromResult(false);
     }
 
     protected virtual Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)
