@@ -15,6 +15,40 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
     private ReplicatorManager? _replicatorManager;
 
     protected abstract IReplicatorActivityProvider ActivityProvider { get; }
+    
+    public ModificationContext? GetModificationContext(string phaseId)
+    {
+        if (!WorkflowContext.ReplicatorStates.TryGetValue(phaseId, out ReplicatorState? replicatorState))
+        {
+            logger.LogWarning("Workflow {WorkflowId} Replicator phase not found {phaseId}", WorkflowId, phaseId);
+            return null;
+        }
+
+        if (replicatorState.ReplicatorType == ReplicatorType.Parallel)
+        {
+            logger.LogWarning("Workflow {WorkflowId} update not allowed for parallel workflows", WorkflowId);
+            return null;
+        }
+
+        if (replicatorState.Items.All(item => item.Status is not (ReplicatorItemStatus.NotStarted or ReplicatorItemStatus.InProgress)))
+        {
+            logger.LogWarning("Workflow {WorkflowId} update not allowed in this phase", WorkflowId);
+            return null;
+        }
+        
+        return WorkflowModification(phaseId, replicatorState);
+    }
+
+    public async Task<string> ModifyWorkflowAsync(ModificationContext modificationContext, CancellationToken cancellationToken)
+    {
+        bool isModified = await OnWorkflowModifiedAsync(modificationContext, cancellationToken);
+        if (isModified)
+        {
+            await SaveWorkflowStateAsync(cancellationToken);
+        }
+
+        return Machine.CurrentState.Value;
+    }
 
     protected virtual IReplicatorPhaseBuilder CreateReplicatorPhaseBuilder()
     {
@@ -62,16 +96,10 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
             }
         }
     }
-    
-    public async Task<string> ModifyWorkflow(ModificationContext modificationContext, CancellationToken cancellationToken)
-    {
-        bool isModified = await OnWorkflowModifiedAsync(modificationContext, cancellationToken);
-        if (isModified)
-        {
-            await SaveWorkflowStateAsync(cancellationToken);
-        }
 
-        return Machine.CurrentState.Value;
+    protected virtual ModificationContext? WorkflowModification(string phaseId, ReplicatorState replicatorState)
+    {
+        return null;
     }
 
     protected virtual Task<bool> OnWorkflowModifiedAsync(ModificationContext modificationContext, CancellationToken cancellationToken)

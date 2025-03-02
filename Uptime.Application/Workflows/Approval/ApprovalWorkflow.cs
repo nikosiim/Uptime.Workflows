@@ -21,7 +21,7 @@ public class ApprovalWorkflow(
     protected override IWorkflowDefinition WorkflowDefinition => new ApprovalWorkflowDefinition();
 
     protected override IReplicatorActivityProvider ActivityProvider => new ApprovalWorkflowActivityProvider(_repository);
-
+    
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {
         Machine.Configure(BaseState.NotStarted)
@@ -41,12 +41,28 @@ public class ApprovalWorkflow(
             .OnEntryAsync(() => RunReplicatorAsync(ReplicatorPhases.Signing, cancellationToken))
             .Permit(WorkflowTrigger.AllTasksCompleted, BaseState.Completed);
     }
-
+    
     protected override void OnWorkflowActivatedAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
         base.OnWorkflowActivatedAsync(payload, cancellationToken);
 
         WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
+    }
+
+    protected override ModificationContext? WorkflowModification(string phaseId, ReplicatorState replicatorState)
+    {
+        List<ReplicatorItem> activeItems = replicatorState.Items
+            .Where(i => i.Status is ReplicatorItemStatus.NotStarted or ReplicatorItemStatus.InProgress)
+            .ToList();
+
+        List<ContextTask> taskItems = activeItems.Select(activeItem 
+            => new ContextTask
+            {
+                AssignedTo = activeItem.Data.DeserializeTaskData<ApprovalTaskData>().AssignedTo,
+                TaskGuid = activeItem.TaskGuid.ToString()
+            }).ToList();
+        
+        return new ModificationContext { WorkflowId = WorkflowId.Value, PhaseId = phaseId, ContextTasks = taskItems };
     }
 
     protected override Task<bool> OnWorkflowModifiedAsync(ModificationContext modificationContext, CancellationToken cancellationToken)

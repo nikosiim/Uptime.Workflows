@@ -37,6 +37,6 @@ public class ModifyWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflo
             return BaseState.Invalid.Value;
         }
         
-        return await machine.ModifyWorkflow(request.ModificationContext, cancellationToken);
+        return await machine.ModifyWorkflowAsync(request.ModificationContext, cancellationToken);
     }
 }

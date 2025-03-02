@@ -61,7 +61,7 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     [HttpGet("{workflowId:int}/workflow-context")]
     public async Task<ActionResult<ModificationContextResponse>> GetWorkflowContext(int workflowId)
     {
-        var cmd = new GetModificationContextQuery((WorkflowId)workflowId);
+        var cmd = new GetModificationDataQuery((WorkflowId)workflowId);
         ModificationContext? data = await mediator.Send(cmd);
 
         if (data == null)
