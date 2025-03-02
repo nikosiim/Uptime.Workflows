@@ -18,6 +18,7 @@ public class ReplicatorConfiguration
 public record PhaseActivity
 {
     public required string PhaseId { get; init; }
+    public bool UpdateEnabled { get; init; }
     public bool SupportsSequential { get; init; }
     public bool SupportsParallel { get; init; }
     public required IReadOnlyList<string> Actions { get; init; }

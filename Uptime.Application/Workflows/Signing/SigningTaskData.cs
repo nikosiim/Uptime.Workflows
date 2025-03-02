@@ -1,11 +1,5 @@
-﻿using Uptime.Domain.Interfaces;
+﻿using Uptime.Domain.Common;
 
 namespace Uptime.Application.Workflows.Signing;
 
-public class SigningTaskData : IUserTaskActivityData
-{
-    public required string AssignedTo { get; set; }
-    public required string AssignedBy { get; set; }
-    public string? TaskDescription { get; set; }
-    public DateTime? DueDate { get; set; }
-}
+public class SigningTaskData : UserTaskActivityData;

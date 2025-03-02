@@ -28,11 +28,10 @@
     private string? _comment;
     private string? _delegatedUser;
 
+    [Parameter] public int TaskId { get; set; }
+    [Parameter] public int WorkflowId { get; set; }
     [Parameter] public string? Document { get; set; }
-    [Parameter] public string? AssignedTo { get; set; }
-    [Parameter, EditorRequired] public int TaskId { get; set; }
-    [Parameter, EditorRequired] public int WorkflowId { get; set; }
-    [Parameter, EditorRequired] public WorkflowEventType EventType { get; set; }
+    [Parameter] public WorkflowEventType EventType { get; set; }
 
     [CascadingParameter] 
     protected IMudDialogInstance MudDialog { get; set; } = null!;

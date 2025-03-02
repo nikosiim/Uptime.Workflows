@@ -12,6 +12,7 @@ public record WorkflowDefinitionResponse
 public record PhaseResponse
 {
     public required string PhaseId { get; init; }
+    public bool UpdateEnabled { get; init; }
     public bool SupportsSequential { get; init; }
     public bool SupportsParallel { get; init; }
     public List<string>? Actions { get; init; }

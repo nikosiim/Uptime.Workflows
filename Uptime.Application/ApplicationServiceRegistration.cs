@@ -15,13 +15,9 @@ public static class ApplicationServiceRegistration
     {
         services.AddMediatR(config => config.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly()));
 
-        services.AddScoped<ApprovalWorkflow>();
-        services.AddScoped<SigningWorkflow>();
+        services.AddScoped<IWorkflowMachine, ApprovalWorkflow>();
+        services.AddScoped<IWorkflowMachine, SigningWorkflow>();
 
-        services.AddScoped<IWorkflowMachine>(sp => sp.GetRequiredService<ApprovalWorkflow>());
-        services.AddScoped<IWorkflowMachine>(sp => sp.GetRequiredService<SigningWorkflow>());
-
-        services.AddScoped<IWorkflowFactory, WorkflowFactory>();
         services.AddScoped<IWorkflowRepository, WorkflowRepository>();
         services.AddTransient(typeof(IStateMachineFactory<,>), typeof(StatelessStateMachineFactory<,>));
 

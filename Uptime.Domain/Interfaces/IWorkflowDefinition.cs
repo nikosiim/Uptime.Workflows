@@ -10,6 +10,7 @@ public interface IWorkflowDefinition
 {
     string Id { get; }
     Type Type { get; }
+    Type ContextType { get; }
     string Name { get; }
     string DisplayName { get; }
     WorkflowDefinition GetDefinition();

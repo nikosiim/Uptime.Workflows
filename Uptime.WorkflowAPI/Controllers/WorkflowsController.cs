@@ -58,6 +58,20 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
         return Ok(Mapper.MapToWorkflowHistoryResponse(items));
     }
     
+    [HttpGet("{workflowId:int}/workflow-context")]
+    public async Task<ActionResult<ModificationContextResponse>> GetWorkflowContext(int workflowId)
+    {
+        var cmd = new GetWorkflowContextQuery((WorkflowId)workflowId);
+        ModificationContext? data = await mediator.Send(cmd);
+
+        if (data == null)
+        {
+            return BadRequest("Failed to get data.");
+        }
+
+        return Ok(Mapper.MapToModificationContextResponse(data));
+    }
+    
     [HttpPost("start-workflow")]
     public async Task<ActionResult<Task>> StartWorkflow([FromBody] StartWorkflowRequest request)
     {

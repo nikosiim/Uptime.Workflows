@@ -8,6 +8,6 @@ namespace Uptime.Domain.Common;
 public class ReplicatorPhase
 {
     public required ReplicatorType Type { get; init; }
-    public required string PhaseName { get; init; }  // E.g., "ApprovalPhase"
+    public required string PhaseName { get; init; }
     public required List<object> TaskData { get; init; }
 }

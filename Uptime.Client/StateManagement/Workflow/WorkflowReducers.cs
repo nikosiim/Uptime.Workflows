@@ -52,8 +52,11 @@ public static class WorkflowReducers
                 ReplicatorActivities = wd.Phases?.Select(
                     pa => new PhaseActivity
                     {
-                        PhaseId = pa.PhaseId, SupportsSequential = pa.SupportsSequential,
-                        SupportsParallel = pa.SupportsParallel, Actions = pa.Actions?.ToList()
+                        PhaseId = pa.PhaseId, 
+                        UpdateEnabled = pa.UpdateEnabled,
+                        SupportsSequential = pa.SupportsSequential,
+                        SupportsParallel = pa.SupportsParallel, 
+                        Actions = pa.Actions?.ToList()
                     }).ToList(),
                 FormsConfiguration = Constants.WorkflowMappings.FirstOrDefault(x => x.Id == wd.Id)
             })
@@ -204,13 +207,15 @@ public static class WorkflowReducers
         var result = new WorkflowDetails
         {
             Id = action.WorkflowId,
+            Phase = response.Phase,
             DocumentId = response.DocumentId,
             Document = response.Document,
             Originator = response.Originator,
             StartDate = response.StartDate,
             EndDate = response.EndDate,
             Outcome = WorkflowResources.Get(response.Outcome),
-            IsActive = response.IsActive
+            IsActive = response.IsActive,
+            WorkflowBaseId = response.WorkflowBaseId
         };
 
         return state with

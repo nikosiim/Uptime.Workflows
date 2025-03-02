@@ -8,6 +8,8 @@ namespace Uptime.Application.Workflows.Approval;
 public sealed class ApprovalWorkflowDefinition : IWorkflowDefinition
 {
     public Type Type => typeof(ApprovalWorkflow);
+    public Type ContextType => typeof(ApprovalWorkflowContext);
+
     public string Name => Type.Name;
     public string DisplayName => "Kinnitamise töövoog";
     public string Id => "16778969-6d4c-4367-9106-1b0ae4a4594f";
@@ -30,6 +32,7 @@ public sealed class ApprovalWorkflowDefinition : IWorkflowDefinition
             new PhaseActivity
             {
                 PhaseId = ReplicatorPhases.Approval,
+                UpdateEnabled = true,
                 SupportsSequential = true,
                 SupportsParallel = true,
                 Actions = [ButtonAction.Approval, ButtonAction.Rejection, ButtonAction.Delegation, ButtonAction.Cancellation]
@@ -37,6 +40,7 @@ public sealed class ApprovalWorkflowDefinition : IWorkflowDefinition
             new PhaseActivity
             {
                 PhaseId = ReplicatorPhases.Signing,
+                UpdateEnabled = false,
                 SupportsSequential = true,
                 SupportsParallel = false,
                 Actions = [ButtonAction.Signing]

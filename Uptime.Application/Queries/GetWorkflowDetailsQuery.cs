@@ -22,9 +22,9 @@ public class GetWorkflowDetailsQueryHandler(IWorkflowDbContext dbContext) : IReq
                 StartDate = w.StartDate,
                 EndDate = w.EndDate,
                 Originator = w.Originator,
-                InstanceDataJson = w.StorageJson,
                 DocumentId = w.DocumentId,
-                Document = w.Document.Title
+                Document = w.Document.Title,
+                WorkflowBaseId = w.WorkflowTemplate.WorkflowBaseId
             })
             .FirstOrDefaultAsync(cancellationToken: cancellationToken);
     }

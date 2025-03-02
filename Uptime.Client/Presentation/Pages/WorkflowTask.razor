@@ -1,4 +1,5 @@
 ﻿@page "/workflow-task/{taskId:int}"
+@inherits FluxorComponent
 
 @inject IMediator Mediator
 @inject IDispatcher Dispatcher
@@ -63,25 +64,25 @@
                 if (IsButtonVisible(_task, ButtonAction.Signing))
                 {
                     <MudButton Size="Size.Medium" Variant="Variant.Filled"
-                               OnClick="@(() => OpenDialogAsync(_task, WorkflowEventType.TaskCompleted))">Allkirjasta</MudButton>
+                    OnClick="@(() => OpenDialogAsync(_task, WorkflowEventType.TaskCompleted))">Allkirjasta</MudButton>
                 }
 
                 if (IsButtonVisible(_task, ButtonAction.Approval))
                 {
                     <MudButton Size="Size.Medium" Variant="Variant.Filled"
-                               OnClick="@(() => OpenDialogAsync(_task, WorkflowEventType.TaskCompleted))">Kinnita</MudButton>
+                    OnClick="@(() => OpenDialogAsync(_task, WorkflowEventType.TaskCompleted))">Kinnita</MudButton>
                 }
 
                 if (IsButtonVisible(_task, ButtonAction.Delegation))
                 {
                     <MudButton Size="Size.Medium" Variant="Variant.Filled"
-                               OnClick="@(() => OpenDialogAsync(_task, WorkflowEventType.TaskDelegated))">Suuna ümber</MudButton>
+                    OnClick="@(() => OpenDialogAsync(_task, WorkflowEventType.TaskDelegated))">Suuna ümber</MudButton>
                 }
 
                 if (IsButtonVisible(_task, ButtonAction.Rejection))
                 {
                     <MudButton Size="Size.Medium" Variant="Variant.Filled"
-                               OnClick="@(() => OpenDialogAsync(_task, WorkflowEventType.TaskRejected))">Lükka tagasi</MudButton>
+                    OnClick="@(() => OpenDialogAsync(_task, WorkflowEventType.TaskRejected))">Lükka tagasi</MudButton>
                 }
             }
 
@@ -149,17 +150,16 @@
 
     private async Task OpenDialogAsync(WorkflowTaskDetails task, WorkflowEventType eventType)
     {
-        var parameters = new DialogParameters
+        var parameters = new DialogParameters<TaskCompletionDialog>
         {
-            { DialogParams.EventType, eventType },
-            { DialogParams.TaskId, task.Id },
-            { DialogParams.WorkflowId, task.WorkflowId },
-            { DialogParams.Document, task.Document },
-            { DialogParams.AssignedTo, task.AssignedTo }
+            { x => x.TaskId, task.Id },
+            { x => x.WorkflowId, task.WorkflowId },
+            { x => x.Document, task.Document },
+            { x => x.EventType, eventType }
         };
 
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
-        IDialogReference dialog = await DialogService.ShowAsync(typeof(TaskCompletionDialog), "Tööülesande lõpetamine", parameters, options);
+        IDialogReference dialog = await DialogService.ShowAsync<TaskCompletionDialog>("Tööülesande lõpetamine", parameters, options);
 
         DialogResult? result = await dialog.Result;
         if (result?.Canceled == false)

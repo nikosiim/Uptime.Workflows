@@ -35,6 +35,7 @@ public static class ApiRoutes
         public const string GetHistory = $"{Base}/{{workflowId}}/workflow-histories/{{historyId}}";
 
         public const string StartWorkflow = $"{Base}/start-workflow";
+        public const string ModifyWorkflow = $"{Base}/{{workflowId}}/modify-workflow";
         public const string CancelWorkflow = $"{Base}/{{workflowId}}/cancel-workflow";
         public const string DeleteWorkflow = $"{Base}/{{workflowId}}/delete-workflow";
     }

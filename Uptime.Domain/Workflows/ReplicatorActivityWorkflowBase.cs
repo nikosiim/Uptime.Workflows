@@ -31,7 +31,7 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
             phase => phase.PhaseName,
             phase => new ReplicatorState
             {
-                Type = phase.Type,
+                ReplicatorType = phase.Type,
                 Items = phase.TaskData.Select(data => new ReplicatorItem { Data = data }).ToList()
             }
         );

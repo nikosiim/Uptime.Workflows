@@ -35,7 +35,7 @@ public class CancelWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflo
             throw new InvalidOperationException($"Invalid workflow base ID '{workflow.WorkflowTemplate.WorkflowBaseId}'.");
         }
         
-        IWorkflowMachine? machine = workflowFactory.GetWorkflow(workflowBaseId);
+        IWorkflowMachine? machine = workflowFactory.TryGetStateMachine(workflowBaseId);
         if (machine == null)
         {
             logger.LogError("No workflow machine found for base ID {WorkflowBaseId}. Workflow: {WorkflowId}",

@@ -96,12 +96,14 @@ public static class Mapper
         return new WorkflowDetailsResponse
         {
             IsActive = source.IsActive,
+            Phase = source.Phase,
             Outcome = source.Outcome,
             Originator = source.Originator,
             StartDate = source.StartDate,
             EndDate = source.EndDate,
             DocumentId = source.DocumentId,
-            Document = source.Document
+            Document = source.Document,
+            WorkflowBaseId = source.WorkflowBaseId
         };
     }
 
@@ -147,11 +149,28 @@ public static class Mapper
                 .Select(pa => new PhaseResponse
                 {
                     PhaseId = pa.PhaseId,
+                    UpdateEnabled = pa.UpdateEnabled,
                     SupportsSequential = pa.SupportsSequential,
                     SupportsParallel = pa.SupportsParallel,
                     Actions = pa.Actions.ToList()
                 }).ToList()
         }).ToList();
+    }
+    
+    public static ModificationContextResponse? MapToModificationContextResponse(ModificationContext source)
+    {
+        return new ModificationContextResponse
+        {
+            WorkflowId = source.WorkflowId,
+            WorkflowBaseId = source.WorkflowBaseId,
+            PhaseId = source.PhaseId,
+            TaskItems = source.TaskItems?
+                .Select(t => new TaskResponse
+                {
+                    AssignedTo = t.AssignedTo,
+                    TaskGuid = t.TaskGuid
+                }).ToList()
+        };
     }
 
     #endregion

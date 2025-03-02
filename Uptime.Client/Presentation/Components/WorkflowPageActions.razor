@@ -7,10 +7,14 @@
 @if (WorkflowDetails != null && WorkflowDetails.IsActive)
 {
     <MudStack Spacing="4">
-        <MudStack Spacing="0">
-            <MudLink>Töövoo muutmine</MudLink>
-            <MudText Typo="Typo.subtitle2">Käimasoleva töövoo muutmine</MudText>
-        </MudStack>
+
+        @if (WorkflowState.Value.IsWorkflowUpdateEnabled(WorkflowDetails.WorkflowBaseId, WorkflowDetails.Phase))
+        {
+            <MudStack Spacing="0">
+                <MudLink OnClick="@(() => OnModifyClick(WorkflowDetails))">Töövoo muutmine</MudLink>
+                <MudText Typo="Typo.subtitle2">Käimasoleva töövoo muutmine</MudText>
+            </MudStack>
+        }
 
         <MudStack Spacing="0">
             <MudLink OnClick="@(() => OnCancelClick(WorkflowDetails.Id))">Katkesta töövoog</MudLink>
@@ -21,7 +25,7 @@
         {
             <MudStack Spacing="0">
                 <MudLink OnClick="@(() => OnDeleteClick(WorkflowDetails.Id))">Kustuta töövoog</MudLink>
-                <MudText Typo="Typo.subtitle2">Töövoo kustutamisel aktiivsed ülesanded katkestatakse ja uusi ülesandeid ei lisada.</MudText>
+                <MudText Typo="Typo.subtitle2">Töövoo kustutamisel kustutatakse kõik töövooga seotud kirjed.</MudText>
             </MudStack>
         }
     </MudStack>
@@ -34,8 +38,26 @@
             ? WorkflowState.Value.WorkflowDetailsQuery.Result.Value 
             : null;
 
-    [Parameter]
+    [Parameter] 
     public EventCallback PageUpdated { get; set; }
+
+    private async Task OnModifyClick(WorkflowDetails details)
+    {
+        WorkflowDefinition definition = WorkflowState.Value.WorkflowDefinitionsQuery.Result.Value!.First(x => x.Id == details.WorkflowBaseId);
+        if (definition.FormsConfiguration?.ModificationDialogType == null)
+        {
+            throw new Exception($"No association dialog defined for workflow {definition.Name}");
+        }
+
+        var parameters = new DialogParameters
+        {
+            { DialogParams.WorkflowDefinition, details }
+        };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        IDialogReference dialog = await DialogService.ShowAsync(definition.FormsConfiguration!.ModificationDialogType, "Töövoo muutmine", parameters, options);
+
+    }
     
     private async Task OnCancelClick(int workflowId)
     {

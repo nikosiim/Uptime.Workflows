@@ -20,7 +20,7 @@ public class ReplicatorManager(WorkflowId workflowId, IReplicatorActivityProvide
 
             var replicator = new Replicator
             {
-                Type = state.Type,
+                Type = state.ReplicatorType,
                 Items = state.Items.Where(item => item.Status == ReplicatorItemStatus.NotStarted || item.Status == ReplicatorItemStatus.InProgress).ToList(),
                 ChildActivity = data => activityProvider.CreateActivity(phaseId, data, new WorkflowTaskContext(workflowId, phaseId)),
                 OnChildInitialized = (data, activity) => activityProvider.OnChildInitialized(phaseId, data, activity),

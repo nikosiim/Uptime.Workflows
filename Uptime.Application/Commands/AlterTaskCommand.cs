@@ -34,13 +34,13 @@ public class AlterTaskCommandHandler(IWorkflowDbContext dbContext, IWorkflowFact
             return BaseState.Invalid.Value;
         }
         
-        IWorkflowMachine? workflow = workflowFactory.GetWorkflow(workflowBaseId);
-        if (workflow is not IActivityWorkflowMachine machine)
+        IWorkflowMachine? stateMachine = workflowFactory.TryGetStateMachine(workflowBaseId);
+        if (stateMachine is not IActivityWorkflowMachine machine)
         {
             logger.LogWarning("The workflow with ID {WorkflowBaseId} does not support task alterations.", workflowBaseId);
             return BaseState.Invalid.Value;
         }
-
+        
         bool isRehydrated = await machine.RehydrateAsync(request.WorkflowId, cancellationToken);
         if (!isRehydrated)
         {

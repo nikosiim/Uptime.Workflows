@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Collections.ObjectModel;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
 using Uptime.Domain.Interfaces;
@@ -8,33 +9,62 @@ namespace Uptime.Application.Common;
 public class WorkflowFactory : IWorkflowFactory
 {
     private readonly ILogger<WorkflowFactory> _logger;
-    private readonly Dictionary<Guid, IWorkflowMachine> _workflowMap;
+    private readonly ReadOnlyDictionary<Guid, IWorkflowMachine> _machinesByBaseId;
+    private readonly ReadOnlyDictionary<Guid, IWorkflowDefinition> _definitionsByBaseId;
 
     public WorkflowFactory(IEnumerable<IWorkflowMachine> workflows, IEnumerable<IWorkflowDefinition> definitions, ILogger<WorkflowFactory> logger)
     {
         _logger = logger;
 
-        Dictionary<Type, IWorkflowDefinition> definitionMap = definitions.ToDictionary(d => d.Type, d => d);
+        var typeToDefinition = new Dictionary<Type, IWorkflowDefinition>();
+        var definitionsById = new Dictionary<Guid, IWorkflowDefinition>();
 
-        _workflowMap = workflows
-            .Where(workflow => definitionMap.TryGetValue(workflow.GetType(), out _))
-            .ToDictionary(workflow => Guid.Parse(definitionMap[workflow.GetType()].Id), workflow => workflow);
+        // Validate and index all definitions
+        foreach (IWorkflowDefinition def in definitions)
+        {
+            if (!Guid.TryParse(def.Id, out Guid defGuid))
+            {
+                throw new InvalidOperationException($"Definition '{def.Name}' has invalid GUID '{def.Id}'.");
+            }
+            typeToDefinition[def.Type] = def;
+            definitionsById[defGuid] = def;
+        }
+
+        // Build machine map
+        var machinesById = new Dictionary<Guid, IWorkflowMachine>();
+
+        foreach (IWorkflowMachine machine in workflows)
+        {
+            if (!typeToDefinition.TryGetValue(machine.GetType(), out IWorkflowDefinition? def))
+            {
+                _logger.LogWarning("No matching definition for machine type {Type}", machine.GetType());
+                continue;
+            }
+
+            Guid defGuid = Guid.Parse(def.Id); // guaranteed to work since we validated above
+            machinesById[defGuid] = machine;
+        }
+
+        // Store as read-only
+        _machinesByBaseId = new ReadOnlyDictionary<Guid, IWorkflowMachine>(machinesById);
+        _definitionsByBaseId = new ReadOnlyDictionary<Guid, IWorkflowDefinition>(definitionsById);
     }
+    
+    public IWorkflowMachine? TryGetStateMachine(Guid workflowBaseId) 
+        => _machinesByBaseId.GetValueOrDefault(workflowBaseId);
 
+    public IWorkflowDefinition? TryGetDefinition(Guid workflowBaseId) 
+        => _definitionsByBaseId.GetValueOrDefault(workflowBaseId);
+    
     public async Task<string> StartWorkflowAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
-        if (_workflowMap.TryGetValue(payload.WorkflowBaseId, out IWorkflowMachine? workflow))
+        if (_machinesByBaseId.TryGetValue(payload.WorkflowBaseId, out IWorkflowMachine? machine))
         {
-            BaseState phase = await workflow.StartAsync(payload, cancellationToken);
+            BaseState phase = await machine.StartAsync(payload, cancellationToken);
             return phase.Value;
         }
 
-        _logger.LogWarning("No workflow found for WorkflowBaseId: {WorkflowBaseId}", payload.WorkflowBaseId);
+        _logger.LogWarning("No workflow machine found for baseId: {WorkflowBaseId}", payload.WorkflowBaseId);
         return BaseState.Invalid.Value;
-    }
-
-    public IWorkflowMachine? GetWorkflow(Guid workflowBaseId)
-    {
-        return _workflowMap.GetValueOrDefault(workflowBaseId);
     }
 }

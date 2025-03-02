@@ -1,14 +1,10 @@
-﻿using Uptime.Domain.Interfaces;
+﻿using Uptime.Domain.Common;
+using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application.Workflows.Approval;
 
-public sealed class ApprovalTaskData : IUserTaskActivityData
+public sealed class ApprovalTaskData : UserTaskActivityData
 {
-    public required string AssignedTo { get; set; }
-    public required string AssignedBy { get; set; }
-    public string? TaskDescription { get; set; }
-    public DateTime? DueDate { get; set; }
-
     public static ApprovalTaskData Copy(IUserTaskActivityData source)
     {
         return new ApprovalTaskData

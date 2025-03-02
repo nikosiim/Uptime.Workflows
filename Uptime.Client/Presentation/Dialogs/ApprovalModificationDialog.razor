@@ -1,0 +1,49 @@
+﻿@inject IUserService UserService
+@inject IMediator Mediator
+
+<MudDialog>
+    <TitleContent>@MudDialog.Title</TitleContent>
+    <DialogContent>
+        <MudForm @ref="Form">
+            <MudSelect T="string" Label="Kinnitajad" Variant="Variant.Outlined" Placeholder="Vali kinnitajad"
+                       @bind-SelectedValues="FormModel.AssignedTo" MultiSelection="true">
+                @foreach (User user in UserService.GetUsers()) 
+                {
+                    <MudSelectItem T="string" Value="@user.Name">@user.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" OnClick="UpdateWorkflow">Salvesta</MudButton>
+        <MudButton Variant="Variant.Outlined" OnClick="Cancel">Loobu</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code
+{
+    protected MudForm Form = null!;
+    protected ApprovalUpdateModel FormModel = new();
+
+    [Parameter]
+    public WorkflowDetails Details { get; set; } = null!;
+
+    [CascadingParameter] 
+    protected IMudDialogInstance MudDialog { get; set; } = null!;
+
+    protected virtual async Task UpdateWorkflow()
+    {
+        await Form.Validate();
+
+        if (Form.IsValid)
+        {
+            Result<bool> result = await Mediator.Send(new ModifyWorkflowCommand(Details.Id, FormModel.AssignedTo));
+            MudDialog.Close(DialogResult.Ok(result.Succeeded));
+        }
+    }
+
+    protected virtual void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}
