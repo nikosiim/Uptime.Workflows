@@ -16,23 +16,23 @@ public class CancelWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflo
 {
     public async Task Handle(CancelWorkflowCommand request, CancellationToken cancellationToken)
     {
-        Workflow? workflow = await dbContext.Workflows
+        Workflow? workflowInstance = await dbContext.Workflows
             .Include(w => w.WorkflowTemplate)
             .FirstOrDefaultAsync(w => w.Id == request.WorkflowId.Value, cancellationToken);
 
-        if (workflow == null)
+        if (workflowInstance == null)
         {
             logger.LogWarning("Workflow with ID {WorkflowId} not found.", request.WorkflowId);
             throw new NotFoundException(nameof(Workflow), request.WorkflowId);
         }
         
-        if (!Guid.TryParse(workflow.WorkflowTemplate.WorkflowBaseId, out Guid workflowBaseId))
+        if (!Guid.TryParse(workflowInstance.WorkflowTemplate.WorkflowBaseId, out Guid workflowBaseId))
         {
             logger.LogError("Invalid workflow base ID '{WorkflowBaseId}' for workflow {WorkflowId}.", 
-                workflow.WorkflowTemplate.WorkflowBaseId, 
+                workflowInstance.WorkflowTemplate.WorkflowBaseId, 
                 request.WorkflowId
             );
-            throw new InvalidOperationException($"Invalid workflow base ID '{workflow.WorkflowTemplate.WorkflowBaseId}'.");
+            throw new InvalidOperationException($"Invalid workflow base ID '{workflowInstance.WorkflowTemplate.WorkflowBaseId}'.");
         }
         
         IWorkflowMachine? machine = workflowFactory.TryGetStateMachine(workflowBaseId);
@@ -45,7 +45,7 @@ public class CancelWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflo
             throw new InvalidOperationException($"No workflow machine found for base ID {workflowBaseId}.");
         }
 
-        bool isRehydrated = await machine.RehydrateAsync(request.WorkflowId, cancellationToken);
+        bool isRehydrated = await machine.RehydrateAsync(workflowInstance, cancellationToken);
         if (!isRehydrated)
         {
             logger.LogError("Failed to rehydrate workflow {WorkflowId} (possibly not found in DB).", request.WorkflowId);

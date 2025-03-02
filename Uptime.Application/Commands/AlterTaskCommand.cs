@@ -11,7 +11,6 @@ namespace Uptime.Application.Commands;
 public record AlterTaskCommand : IRequest<string>
 {
     public TaskId TaskId { get; init; }
-    public WorkflowId WorkflowId { get; init; }
     public Dictionary<string, string?> Payload { get; init; } = new();
 }
 
@@ -36,9 +35,8 @@ public class AlterTaskCommandHandler(IWorkflowDbContext dbContext, IWorkflowFact
             logger.LogWarning("The workflow with ID {WorkflowBaseId} does not support task alterations.", baseId);
             return BaseState.Invalid.Value;
         }
-        
-        bool isRehydrated = await machine.RehydrateAsync(request.WorkflowId, cancellationToken);
-        if (!isRehydrated)
+
+        if (!await machine.RehydrateAsync(workflowTask.Workflow, cancellationToken))
         {
             return BaseState.Invalid.Value;
         }

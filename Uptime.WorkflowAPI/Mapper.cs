@@ -217,7 +217,6 @@ public static class Mapper
         return new AlterTaskCommand
         {
             TaskId = (TaskId)taskId,
-            WorkflowId = (WorkflowId)request.WorkflowId,
             Payload = request.Input
         };
     }

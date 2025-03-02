@@ -153,7 +153,6 @@
         var parameters = new DialogParameters<TaskCompletionDialog>
         {
             { x => x.TaskId, task.Id },
-            { x => x.WorkflowId, task.WorkflowId },
             { x => x.Document, task.Document },
             { x => x.EventType, eventType }
         };

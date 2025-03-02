@@ -29,7 +29,6 @@
     private string? _delegatedUser;
 
     [Parameter] public int TaskId { get; set; }
-    [Parameter] public int WorkflowId { get; set; }
     [Parameter] public string? Document { get; set; }
     [Parameter] public WorkflowEventType EventType { get; set; }
 
@@ -53,7 +52,6 @@
 
         var command = new AlterTaskCommand
         {
-            WorkflowId = WorkflowId,
             TaskId = TaskId,
             Input = input
         };

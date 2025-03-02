@@ -15,8 +15,7 @@ public class ModifyWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflo
 {
     public async Task<string> Handle(ModifyWorkflowCommand request, CancellationToken cancellationToken)
     {
-        // TODO: pass WorkflowBaseId and skip workflow search
-        Workflow? workflowInstance = await dbContext.Workflows.AsNoTracking()
+        Workflow? workflowInstance = await dbContext.Workflows
             .Include(w => w.WorkflowTemplate)
             .Where(x => x.Id == request.ModificationContext.WorkflowId)
             .FirstOrDefaultAsync(cancellationToken: cancellationToken);
@@ -33,8 +32,7 @@ public class ModifyWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflo
             return BaseState.Invalid.Value;
         }
         
-        bool isRehydrated = await machine.RehydrateAsync((WorkflowId)workflowInstance.Id, cancellationToken);
-        if (!isRehydrated)
+        if (!await machine.RehydrateAsync(workflowInstance, cancellationToken))
         {
             return BaseState.Invalid.Value;
         }

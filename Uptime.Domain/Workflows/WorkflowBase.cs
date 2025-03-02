@@ -86,18 +86,14 @@ public abstract class WorkflowBase<TContext>(
         }
     }
 
-    public async Task<bool> RehydrateAsync(WorkflowId workflowId, CancellationToken cancellationToken)
+    public Task<bool> RehydrateAsync(Workflow instance, CancellationToken cancellationToken)
     {
-        Workflow? instance = await repository.GetWorkflowInstanceAsync(workflowId, cancellationToken);
-        if (instance == null)
-            return false;
-
         WorkflowContext = WorkflowContextHelper.Deserialize<TContext>(instance.StorageJson);
-        WorkflowId = workflowId;
+        WorkflowId = (WorkflowId)instance.Id;
         
         InitializeStateMachine(BaseState.FromString(instance.Phase), cancellationToken);
 
-        return true;
+        return Task.FromResult(true);
     }
 
     public async Task TriggerTransitionAsync(WorkflowTrigger trigger, CancellationToken cancellationToken, bool autoCommit = true)
