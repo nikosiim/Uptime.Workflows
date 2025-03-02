@@ -1,4 +1,4 @@
-﻿namespace Uptime.Application.DTOs;
+﻿namespace Uptime.Shared.Models.WorkflowTemplates;
 
 public record WorkflowTemplateCreateRequest
 {

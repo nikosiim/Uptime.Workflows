@@ -32,6 +32,7 @@ public static class ApiRoutes
         public const string GetWorkflow = $"{Base}/{{workflowId}}";
         public const string GetTasks = $"{Base}/{{workflowId}}/workflow-tasks";
         public const string GetHistories = $"{Base}/{{workflowId}}/workflow-histories";
+        public const string GetModificationContext = $"{Base}/{{workflowId}}/workflow-context";
         public const string GetHistory = $"{Base}/{{workflowId}}/workflow-histories/{{historyId}}";
 
         public const string StartWorkflow = $"{Base}/start-workflow";

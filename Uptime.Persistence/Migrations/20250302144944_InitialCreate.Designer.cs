@@ -12,7 +12,7 @@ using Uptime.Persistence;
 namespace Uptime.Persistence.Migrations
 {
     [DbContext(typeof(WorkflowDbContext))]
-    [Migration("20250227103255_InitialCreate")]
+    [Migration("20250302144944_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

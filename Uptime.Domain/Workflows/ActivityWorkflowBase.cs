@@ -13,17 +13,20 @@ public abstract class ActivityWorkflowBase<TContext>(
     where TContext : class, IWorkflowContext, new()
 {
     private readonly ILogger<WorkflowBase<TContext>> _logger = logger;
-
-    public async Task AlterTaskCoreAsync(WorkflowTaskContext storedTaskContext, Dictionary<string, string?> alterTaskPayload, CancellationToken cancellationToken)
+    
+    public async Task AlterTaskAsync(WorkflowTaskContext storedTaskContext, Dictionary<string, string?> alterTaskPayload, CancellationToken cancellationToken)
     {
         if (CanAlterTask())
         {
-            await AlterTaskInternalAsync(storedTaskContext, alterTaskPayload, cancellationToken);
+            await OnTaskChangedAsync(storedTaskContext, alterTaskPayload, cancellationToken);
             await SaveWorkflowStateAsync(cancellationToken);
         }
     }
-
-    protected abstract Task AlterTaskInternalAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken);
+    
+    protected virtual Task OnTaskChangedAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
 
     private bool CanAlterTask()
     {

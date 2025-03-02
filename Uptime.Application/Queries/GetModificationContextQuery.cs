@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Uptime.Application.Common;
-using Uptime.Application.DTOs;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
@@ -11,12 +10,12 @@ using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application.Queries;
 
-public record GetWorkflowContextQuery(WorkflowId WorkflowId) : IRequest<ModificationContext?>;
+public record GetModificationContextQuery(WorkflowId WorkflowId) : IRequest<ModificationContext?>;
 
-public class GetWorkflowContextQueryHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory, ILogger<GetWorkflowContextQueryHandler> logger) 
-    : IRequestHandler<GetWorkflowContextQuery, ModificationContext?>
+public class GetModificationContextQueryHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory, ILogger<GetModificationContextQueryHandler> logger) 
+    : IRequestHandler<GetModificationContextQuery, ModificationContext?>
 {
-    public async Task<ModificationContext?> Handle(GetWorkflowContextQuery request, CancellationToken cancellationToken)
+    public async Task<ModificationContext?> Handle(GetModificationContextQuery request, CancellationToken cancellationToken)
     {
         Workflow? workflowInstance = await dbContext.Workflows.AsNoTracking()
             .Include(w => w.WorkflowTemplate)
@@ -24,7 +23,7 @@ public class GetWorkflowContextQueryHandler(IWorkflowDbContext dbContext, IWorkf
             .FirstOrDefaultAsync(cancellationToken: cancellationToken);
         
         if (workflowInstance == null)
-            return null;
+            throw new InvalidOperationException($"Workflow with ID {request.WorkflowId} not found.");
 
         (IReplicatorWorkflowContext? ctx, PhaseActivity? activity, ReplicatorState? replicatorState) = 
             WorkflowReplicatorHelper.ResolveReplicatorPhaseData(workflowInstance, workflowFactory, logger);
@@ -36,8 +35,8 @@ public class GetWorkflowContextQueryHandler(IWorkflowDbContext dbContext, IWorkf
             .Where(i => i.Status is ReplicatorItemStatus.NotStarted or ReplicatorItemStatus.InProgress)
             .ToList();
 
-        List<TaskItem> taskItems = activeItems.OfTypeUserTaskActivity()
-            .Select(i => new TaskItem
+        List<ContextTask> taskItems = activeItems.OfTypeUserTaskActivity()
+            .Select(i => new ContextTask
             {
                 AssignedTo = i.AssignedTo, 
                 TaskGuid = i.TaskGuid.ToString()
@@ -46,10 +45,9 @@ public class GetWorkflowContextQueryHandler(IWorkflowDbContext dbContext, IWorkf
 
         return new ModificationContext
         {
-            WorkflowId = workflowInstance.Id.ToString(),
-            WorkflowBaseId = workflowInstance.WorkflowTemplate.WorkflowBaseId,
+            WorkflowId = workflowInstance.Id,
             PhaseId = workflowInstance.Phase,
-            TaskItems = taskItems
+            ContextTasks = taskItems
         };
     }
 }

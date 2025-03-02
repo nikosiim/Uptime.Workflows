@@ -34,6 +34,7 @@
     <Compile Remove="Common\WorkflowStatusMapper.cs" />
     <Compile Remove="Common\WorkflowTaskContext.cs" />
     <Compile Remove="Common\WorkflowTaskRepository.cs" />
+    <Compile Remove="DTOs\ModificationContext.cs" />
     <Compile Remove="DTOs\WorkflowInstanceData.cs" />
     <Compile Remove="DTOs\WorkflowStateData.cs" />
     <Compile Remove="Interfaces\IActivityContext.cs" />

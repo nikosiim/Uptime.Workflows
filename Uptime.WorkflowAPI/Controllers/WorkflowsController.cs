@@ -61,7 +61,7 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     [HttpGet("{workflowId:int}/workflow-context")]
     public async Task<ActionResult<ModificationContextResponse>> GetWorkflowContext(int workflowId)
     {
-        var cmd = new GetWorkflowContextQuery((WorkflowId)workflowId);
+        var cmd = new GetModificationContextQuery((WorkflowId)workflowId);
         ModificationContext? data = await mediator.Send(cmd);
 
         if (data == null)
@@ -82,6 +82,15 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
             return BadRequest("Failed to start workflow.");
 
         return Ok();
+    }
+
+    [HttpPost("{workflowId:int}/modify-workflow")]
+    public async Task<ActionResult> ModifyWorkflow(int workflowId, [FromBody] ModifyWorkflowRequest request)
+    {
+        var cmd = new ModifyWorkflowCommand(Mapper.MapToModificationContext(request));
+        await mediator.Send(cmd);
+
+        return NoContent();
     }
 
     [HttpPost("{workflowId:int}/cancel-workflow")]

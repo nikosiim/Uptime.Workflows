@@ -11,8 +11,9 @@ public static class Constants
         public const string LibraryId = "LibraryId";
         public const string TemplateId = "TemplateId";
         public const string WorkflowDefinition = "WorkflowDefinition";
-        public const string WorkflowId = "WorkflowId";
         public const string WorkflowDetails = "WorkflowDetails";
+        public const string WorkflowId = "WorkflowId";
+        public const string ModificationContext = "ModificationContext";
     }
 
     public static Dictionary<string, int> Libraries = new(StringComparer.OrdinalIgnoreCase)

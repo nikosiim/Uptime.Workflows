@@ -20,8 +20,8 @@ public class ApprovalWorkflow(
 
     protected override IWorkflowDefinition WorkflowDefinition => new ApprovalWorkflowDefinition();
 
-    protected override IReplicatorActivityProvider ActivityProvider  => new ApprovalWorkflowActivityProvider(_repository);
-    
+    protected override IReplicatorActivityProvider ActivityProvider => new ApprovalWorkflowActivityProvider(_repository);
+
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {
         Machine.Configure(BaseState.NotStarted)
@@ -45,15 +45,43 @@ public class ApprovalWorkflow(
     protected override void OnWorkflowActivatedAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
         base.OnWorkflowActivatedAsync(payload, cancellationToken);
-        
+
         WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
+    }
+
+    protected override Task<bool> OnWorkflowModifiedAsync(ModificationContext modificationContext, CancellationToken cancellationToken)
+    {
+        if (!WorkflowContext.ReplicatorStates.TryGetValue(modificationContext.PhaseId, out ReplicatorState? replicatorState))
+        {
+            return Task.FromResult(false);
+        }
+
+        ReplicatorItem? currentTaskItem = replicatorState.Items.FirstOrDefault(item => item.Status == ReplicatorItemStatus.InProgress);
+        if (currentTaskItem == null)
+        {
+            return Task.FromResult(false);
+        }
+
+        var currentTaskData = currentTaskItem.Data.DeserializeTaskData<ApprovalTaskData>();
+
+        replicatorState.Items.RemoveAll(item => item.Status == ReplicatorItemStatus.NotStarted);
+        
+        foreach (ContextTask newTask in modificationContext.ContextTasks ?? [])
+        {
+            ApprovalTaskData newTaskData = ApprovalTaskData.Copy(currentTaskData);
+            newTaskData.AssignedTo = newTask.AssignedTo;
+
+            replicatorState.Items.Add(new ReplicatorItem { Data = newTaskData, Status = ReplicatorItemStatus.NotStarted });
+        }
+
+        return Task.FromResult(true);
     }
 
     protected override Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)
     {
         WorkflowContext.Outcome = ExtendedOutcome.Approved;
         WorkflowCompletedHistoryDescription = $"{AssociationName} on lõpetatud.";
-        
+
         return Task.CompletedTask;
     }
 }

@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Uptime.Application.Common;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
@@ -26,18 +25,15 @@ public class AlterTaskCommandHandler(IWorkflowDbContext dbContext, IWorkflowFact
             .ThenInclude(w => w.WorkflowTemplate)
             .FirstOrDefaultAsync(task => task.Id == request.TaskId.Value, cancellationToken);
 
-        if (workflowTask is null) 
-            return BaseState.Invalid.Value;
+        if (workflowTask == null)
+            throw new InvalidOperationException($"Workflow task with ID {request.TaskId.Value} not found.");
         
-        if (!Guid.TryParse(workflowTask.Workflow.WorkflowTemplate.WorkflowBaseId, out Guid workflowBaseId))
-        {
-            return BaseState.Invalid.Value;
-        }
+        var baseId = new Guid(workflowTask.Workflow.WorkflowTemplate.WorkflowBaseId);
         
-        IWorkflowMachine? stateMachine = workflowFactory.TryGetStateMachine(workflowBaseId);
+        IWorkflowMachine? stateMachine = workflowFactory.TryGetStateMachine(baseId);
         if (stateMachine is not IActivityWorkflowMachine machine)
         {
-            logger.LogWarning("The workflow with ID {WorkflowBaseId} does not support task alterations.", workflowBaseId);
+            logger.LogWarning("The workflow with ID {WorkflowBaseId} does not support task alterations.", baseId);
             return BaseState.Invalid.Value;
         }
         
@@ -47,18 +43,8 @@ public class AlterTaskCommandHandler(IWorkflowDbContext dbContext, IWorkflowFact
             return BaseState.Invalid.Value;
         }
         
-        var taskContext = new WorkflowTaskContext((WorkflowId)workflowTask.WorkflowId, workflowTask.PhaseId)
-        {
-            TaskId = request.TaskId,
-            TaskGuid = workflowTask.TaskGuid,
-            AssignedTo = workflowTask.AssignedTo,
-            AssignedBy = workflowTask.AssignedBy,
-            TaskDescription = workflowTask.Description,
-            DueDate = workflowTask.DueDate,
-            Storage = workflowTask.StorageJson.DeserializeStorage()
-        };
-
-        await machine.AlterTaskCoreAsync(taskContext, request.Payload, cancellationToken);
+        var taskContext = new WorkflowTaskContext(workflowTask);
+        await machine.AlterTaskAsync(taskContext, request.Payload, cancellationToken);
 
         return machine.CurrentState.Value;
     }

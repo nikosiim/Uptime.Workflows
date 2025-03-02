@@ -9,7 +9,7 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
     IStateMachineFactory<BaseState, WorkflowTrigger> stateMachineFactory,
     IWorkflowRepository repository,
     ILogger<WorkflowBase<TContext>> logger)
-    : ActivityWorkflowBase<TContext>(stateMachineFactory, repository, logger)
+    : ActivityWorkflowBase<TContext>(stateMachineFactory, repository, logger), IReplicatorActivityWorkflowMachine
     where TContext : class, IReplicatorWorkflowContext, new()
 {
     private ReplicatorManager? _replicatorManager;
@@ -39,7 +39,7 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
         InitializeReplicatorManagerAsync(cancellationToken);
     }
     
-    protected override async Task AlterTaskInternalAsync(WorkflowTaskContext storedTaskContext, Dictionary<string, string?> alterTaskPayload, CancellationToken cancellationToken)
+    protected override async Task OnTaskChangedAsync(WorkflowTaskContext storedTaskContext, Dictionary<string, string?> alterTaskPayload, CancellationToken cancellationToken)
     {
         if (CreateChildActivity(storedTaskContext) is not { } taskActivity)
         {
@@ -62,7 +62,28 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
             }
         }
     }
+    
+    public async Task<string> ModifyWorkflow(ModificationContext modificationContext, CancellationToken cancellationToken)
+    {
+        bool isModified = await OnWorkflowModifiedAsync(modificationContext, cancellationToken);
+        if (isModified)
+        {
+            await SaveWorkflowStateAsync(cancellationToken);
+        }
 
+        return Machine.CurrentState.Value;
+    }
+
+    protected virtual Task<bool> OnWorkflowModifiedAsync(ModificationContext modificationContext, CancellationToken cancellationToken)
+    {
+        if (WorkflowId.Value != modificationContext.WorkflowId || !WorkflowContext.ReplicatorStates.ContainsKey(modificationContext.PhaseId))
+        {
+            throw new InvalidOperationException("Modification context does not match the current workflow state.");
+        }
+
+        return Task.FromResult(false);
+    }
+    
     protected virtual UserTaskActivity? CreateChildActivity(WorkflowTaskContext context)
     {
         ReplicatorItem? item = WorkflowContext.ReplicatorStates.FindReplicatorItem(context.TaskGuid, out string? phase);

@@ -40,24 +40,6 @@
 
     [Parameter] 
     public EventCallback PageUpdated { get; set; }
-
-    private async Task OnModifyClick(WorkflowDetails details)
-    {
-        WorkflowDefinition definition = WorkflowState.Value.WorkflowDefinitionsQuery.Result.Value!.First(x => x.Id == details.WorkflowBaseId);
-        if (definition.FormsConfiguration?.ModificationDialogType == null)
-        {
-            throw new Exception($"No association dialog defined for workflow {definition.Name}");
-        }
-
-        var parameters = new DialogParameters
-        {
-            { DialogParams.WorkflowDefinition, details }
-        };
-
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
-        IDialogReference dialog = await DialogService.ShowAsync(definition.FormsConfiguration!.ModificationDialogType, "Töövoo muutmine", parameters, options);
-
-    }
     
     private async Task OnCancelClick(int workflowId)
     {
@@ -111,5 +93,33 @@
             }
             await PageUpdated.InvokeAsync();
         }
+    }
+
+    private async Task OnModifyClick(WorkflowDetails details)
+    {
+        Result<ModificationContext> modificationContext = await Mediator.Send(new GetModificationContextQuery(details.Id));
+        if (!modificationContext.Succeeded)
+        {
+            Snackbar.Add("Töövoo muutmine ebaõnnestus", Severity.Error);
+            return;
+        }
+
+        WorkflowDefinition definition = WorkflowState.Value.WorkflowDefinitionsQuery.Result.Value!.First(x => x.Id == details.WorkflowBaseId);
+        if (definition.FormsConfiguration?.ModificationDialogType == null)
+        {
+            Console.WriteLine($@"No association dialog defined for workflow {definition.Name}");
+            Snackbar.Add("Töövoo muutmine ebaõnnestus", Severity.Error);
+            return;
+        }
+
+        var parameters = new DialogParameters
+        {
+            { DialogParams.WorkflowDetails, details },
+            { DialogParams.ModificationContext, modificationContext.Value }
+        };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        IDialogReference dialog = await DialogService.ShowAsync(definition.FormsConfiguration!.ModificationDialogType, "Töövoo muutmine", parameters, options);
+
     }
 }

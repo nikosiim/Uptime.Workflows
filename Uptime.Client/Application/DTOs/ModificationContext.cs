@@ -1,8 +1,8 @@
-﻿namespace Uptime.Application.DTOs;
+﻿namespace Uptime.Client.Application.DTOs;
 
-public record ModificationContext
+public sealed class ModificationContext
 {
-    public required string WorkflowId { get; set; }
+    public int WorkflowId { get; set; }
     public required string PhaseId { get; set; }
     public List<ContextTask>? ContextTasks { get; set; }
 }

@@ -157,15 +157,31 @@ public static class Mapper
         }).ToList();
     }
     
-    public static ModificationContextResponse? MapToModificationContextResponse(ModificationContext source)
+    public static ModificationContextResponse MapToModificationContextResponse(ModificationContext source)
     {
         return new ModificationContextResponse
         {
+            Executor = source.Executor,
             WorkflowId = source.WorkflowId,
-            WorkflowBaseId = source.WorkflowBaseId,
             PhaseId = source.PhaseId,
-            TaskItems = source.TaskItems?
-                .Select(t => new TaskResponse
+            ContextTasks = source.ContextTasks?
+                .Select(t => new ContextTaskResponse
+                {
+                    AssignedTo = t.AssignedTo,
+                    TaskGuid = t.TaskGuid
+                }).ToList()
+        };
+    }
+
+    public static ModificationContext MapToModificationContext(ModifyWorkflowRequest source)
+    {
+        return new ModificationContext
+        {
+            Executor = source.Executor,
+            WorkflowId = source.WorkflowId,
+            PhaseId = source.PhaseId,
+            ContextTasks = source.ContextTasks?
+                .Select(t => new ContextTask
                 {
                     AssignedTo = t.AssignedTo,
                     TaskGuid = t.TaskGuid

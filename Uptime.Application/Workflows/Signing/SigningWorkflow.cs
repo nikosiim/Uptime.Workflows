@@ -55,7 +55,7 @@ public class SigningWorkflow(
         }             
     }
 
-    protected override async Task AlterTaskInternalAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
+    protected override async Task OnTaskChangedAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
     {
         var taskActivity = new SigningTaskActivity(_repository, context)
         {
