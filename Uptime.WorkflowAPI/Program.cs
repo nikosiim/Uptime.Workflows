@@ -18,8 +18,11 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: "AllowBlazorClient", policy =>
     {
-        policy
-            .WithOrigins("https://localhost:7142")
+        policy.WithOrigins(
+                "https://localhost:7142",
+                "https://uptimeworkflowsweb-ddcab3gybvcbg6a8.northeurope-01.azurewebsites.net",
+                "https://uptimeworkflows.azurewebsites.net" // added missing origin
+            )
             .AllowAnyMethod()
             .AllowAnyHeader();
     });

@@ -17,6 +17,7 @@ namespace Uptime.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("UptimeAPI")
                 .HasAnnotation("ProductVersion", "9.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
@@ -56,7 +57,7 @@ namespace Uptime.Persistence.Migrations
 
                     b.HasIndex("LibraryId");
 
-                    b.ToTable("Documents");
+                    b.ToTable("Documents", "UptimeAPI");
 
                     b.HasData(
                         new
@@ -182,7 +183,7 @@ namespace Uptime.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Libraries");
+                    b.ToTable("Libraries", "UptimeAPI");
 
                     b.HasData(
                         new
@@ -250,7 +251,7 @@ namespace Uptime.Persistence.Migrations
 
                     b.HasIndex("WorkflowTemplateId");
 
-                    b.ToTable("Workflows");
+                    b.ToTable("Workflows", "UptimeAPI");
                 });
 
             modelBuilder.Entity("Uptime.Domain.Entities.WorkflowHistory", b =>
@@ -289,7 +290,7 @@ namespace Uptime.Persistence.Migrations
 
                     b.HasIndex("WorkflowId");
 
-                    b.ToTable("WorkflowHistories");
+                    b.ToTable("WorkflowHistories", "UptimeAPI");
                 });
 
             modelBuilder.Entity("Uptime.Domain.Entities.WorkflowTask", b =>
@@ -348,7 +349,7 @@ namespace Uptime.Persistence.Migrations
 
                     b.HasIndex("WorkflowId");
 
-                    b.ToTable("WorkflowTasks");
+                    b.ToTable("WorkflowTasks", "UptimeAPI");
                 });
 
             modelBuilder.Entity("Uptime.Domain.Entities.WorkflowTemplate", b =>
@@ -394,7 +395,7 @@ namespace Uptime.Persistence.Migrations
 
                     b.HasIndex("LibraryId");
 
-                    b.ToTable("WorkflowTemplates");
+                    b.ToTable("WorkflowTemplates", "UptimeAPI");
                 });
 
             modelBuilder.Entity("Uptime.Domain.Entities.Document", b =>

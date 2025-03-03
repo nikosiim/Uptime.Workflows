@@ -18,6 +18,8 @@ public class WorkflowDbContext(DbContextOptions options) : DbContext(options), I
     {
         base.OnModelCreating(builder);
 
+        builder.HasDefaultSchema("UptimeAPI");
+
         // Library -> Documents (Cascade delete)
         builder.Entity<Document>()
             .HasOne(d => d.Library)

@@ -20,7 +20,10 @@ builder.Services.AddFluxor(options => options.ScanAssemblies(typeof(Program).Ass
 
 builder.Services.AddHttpClient<IApiService, ApiService>(ApiRoutes.WorkflowApiClient, client =>
 {
-    client.BaseAddress = new Uri("https://localhost:7250/");
+    string environment = builder.HostEnvironment.Environment;
+    client.BaseAddress = environment == "Development"
+        ? new Uri("https://localhost:7250/")
+        : new Uri("https://uptimeworkflowsapi-c7dcfkfyghg0bndd.northeurope-01.azurewebsites.net");
 });
 
 builder.Services.AddScoped<IApiService, ApiService>();

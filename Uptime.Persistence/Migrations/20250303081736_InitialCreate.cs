@@ -13,8 +13,12 @@ namespace Uptime.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.EnsureSchema(
+                name: "UptimeAPI");
+
             migrationBuilder.CreateTable(
                 name: "Libraries",
+                schema: "UptimeAPI",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -30,6 +34,7 @@ namespace Uptime.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Documents",
+                schema: "UptimeAPI",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -47,6 +52,7 @@ namespace Uptime.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_Documents_Libraries_LibraryId",
                         column: x => x.LibraryId,
+                        principalSchema: "UptimeAPI",
                         principalTable: "Libraries",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -54,6 +60,7 @@ namespace Uptime.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "WorkflowTemplates",
+                schema: "UptimeAPI",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -73,6 +80,7 @@ namespace Uptime.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_WorkflowTemplates_Libraries_LibraryId",
                         column: x => x.LibraryId,
+                        principalSchema: "UptimeAPI",
                         principalTable: "Libraries",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -80,6 +88,7 @@ namespace Uptime.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Workflows",
+                schema: "UptimeAPI",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -101,12 +110,14 @@ namespace Uptime.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_Workflows_Documents_DocumentId",
                         column: x => x.DocumentId,
+                        principalSchema: "UptimeAPI",
                         principalTable: "Documents",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Workflows_WorkflowTemplates_WorkflowTemplateId",
                         column: x => x.WorkflowTemplateId,
+                        principalSchema: "UptimeAPI",
                         principalTable: "WorkflowTemplates",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -114,6 +125,7 @@ namespace Uptime.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "WorkflowHistories",
+                schema: "UptimeAPI",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -132,6 +144,7 @@ namespace Uptime.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_WorkflowHistories_Workflows_WorkflowId",
                         column: x => x.WorkflowId,
+                        principalSchema: "UptimeAPI",
                         principalTable: "Workflows",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -139,6 +152,7 @@ namespace Uptime.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "WorkflowTasks",
+                schema: "UptimeAPI",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -162,12 +176,14 @@ namespace Uptime.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_WorkflowTasks_Workflows_WorkflowId",
                         column: x => x.WorkflowId,
+                        principalSchema: "UptimeAPI",
                         principalTable: "Workflows",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.InsertData(
+                schema: "UptimeAPI",
                 table: "Libraries",
                 columns: new[] { "Id", "Created", "IsDeleted", "Name" },
                 values: new object[,]
@@ -177,6 +193,7 @@ namespace Uptime.Persistence.Migrations
                 });
 
             migrationBuilder.InsertData(
+                schema: "UptimeAPI",
                 table: "Documents",
                 columns: new[] { "Id", "Created", "CreatedBy", "Description", "IsDeleted", "LibraryId", "Title" },
                 values: new object[,]
@@ -195,31 +212,37 @@ namespace Uptime.Persistence.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_Documents_LibraryId",
+                schema: "UptimeAPI",
                 table: "Documents",
                 column: "LibraryId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkflowHistories_WorkflowId",
+                schema: "UptimeAPI",
                 table: "WorkflowHistories",
                 column: "WorkflowId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Workflows_DocumentId",
+                schema: "UptimeAPI",
                 table: "Workflows",
                 column: "DocumentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Workflows_WorkflowTemplateId",
+                schema: "UptimeAPI",
                 table: "Workflows",
                 column: "WorkflowTemplateId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkflowTasks_WorkflowId",
+                schema: "UptimeAPI",
                 table: "WorkflowTasks",
                 column: "WorkflowId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkflowTemplates_LibraryId",
+                schema: "UptimeAPI",
                 table: "WorkflowTemplates",
                 column: "LibraryId");
         }
@@ -228,22 +251,28 @@ namespace Uptime.Persistence.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "WorkflowHistories");
+                name: "WorkflowHistories",
+                schema: "UptimeAPI");
 
             migrationBuilder.DropTable(
-                name: "WorkflowTasks");
+                name: "WorkflowTasks",
+                schema: "UptimeAPI");
 
             migrationBuilder.DropTable(
-                name: "Workflows");
+                name: "Workflows",
+                schema: "UptimeAPI");
 
             migrationBuilder.DropTable(
-                name: "Documents");
+                name: "Documents",
+                schema: "UptimeAPI");
 
             migrationBuilder.DropTable(
-                name: "WorkflowTemplates");
+                name: "WorkflowTemplates",
+                schema: "UptimeAPI");
 
             migrationBuilder.DropTable(
-                name: "Libraries");
+                name: "Libraries",
+                schema: "UptimeAPI");
         }
     }
 }
