@@ -1,6 +1,6 @@
 ﻿namespace Uptime.Domain.Common;
 
-public record ModificationContext
+public record ModificationPayload
 {
     public string? Executor { get; set; }
     public int WorkflowId { get; set; }

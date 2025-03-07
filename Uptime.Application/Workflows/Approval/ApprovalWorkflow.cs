@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Text.Json;
 using Uptime.Application.Common;
 using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
@@ -32,13 +33,13 @@ public class ApprovalWorkflow(
             .Permit(WorkflowTrigger.TaskRejected, BaseState.Completed);
         Machine.Configure(ExtendedState.Approval)
             .SubstateOf(BaseState.InProgress)
-            .OnEntryAsync(() => RunReplicatorAsync(ReplicatorPhases.Approval, cancellationToken))
+            .OnEntryAsync(() => RunReplicatorAsync(ExtendedState.Approval.Value, cancellationToken))
             //.PermitIf(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Completed, () => WorkflowContext.AnyTaskRejected)
             //.PermitIf(WorkflowTrigger.AllTasksCompleted, ApprovalPhase.Signing, () => !WorkflowContext.AnyTaskRejected)
             .PermitDynamic(WorkflowTrigger.AllTasksCompleted, () => WorkflowContext.AnyTaskRejected ? BaseState.Completed : ExtendedState.Signing);
         Machine.Configure(ExtendedState.Signing)
             .SubstateOf(BaseState.InProgress)
-            .OnEntryAsync(() => RunReplicatorAsync(ReplicatorPhases.Signing, cancellationToken))
+            .OnEntryAsync(() => RunReplicatorAsync(ExtendedState.Signing.Value, cancellationToken))
             .Permit(WorkflowTrigger.AllTasksCompleted, BaseState.Completed);
     }
     
@@ -48,24 +49,31 @@ public class ApprovalWorkflow(
 
         WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
     }
-
-    protected override ModificationContext WorkflowModification(string phaseId, ReplicatorState replicatorState)
+    
+    protected override string OnWorkflowModification()
     {
+        base.OnWorkflowModification();
+
+        ReplicatorState replicatorState = WorkflowContext.ReplicatorStates[Machine.CurrentState.Value];
+
         List<ReplicatorItem> activeItems = replicatorState.Items
             .Where(i => i.Status is ReplicatorItemStatus.NotStarted or ReplicatorItemStatus.InProgress)
             .ToList();
-
-        List<ContextTask> taskItems = activeItems.Select(activeItem 
-            => new ContextTask
-            {
-                AssignedTo = activeItem.Data.DeserializeTaskData<ApprovalTaskData>().AssignedTo,
-                TaskGuid = activeItem.TaskGuid.ToString()
-            }).ToList();
         
-        return new ModificationContext { WorkflowId = WorkflowId.Value, PhaseId = phaseId, ContextTasks = taskItems };
-    }
+        var context = new ApprovalModificationContext
+        {
+            ApprovalTasks = activeItems.Select(activeItem 
+                => new ApprovalTask
+                {
+                    AssignedTo = activeItem.Data.DeserializeTaskData<ApprovalTaskData>().AssignedTo,
+                    TaskGuid = activeItem.TaskGuid.ToString()
+                }).ToList()
+        };
 
-    protected override bool OnReplicatorWorkflowModified(ReplicatorState replicatorState, ModificationContext modificationContext)
+        return JsonSerializer.Serialize(context);
+    }
+    
+    protected override bool OnReplicatorWorkflowModified(ReplicatorState replicatorState, ModificationPayload payload)
     {
         ReplicatorItem? inProgressItem = replicatorState.Items.FirstOrDefault(item => item.Status == ReplicatorItemStatus.InProgress);
         if (inProgressItem == null)
@@ -77,7 +85,7 @@ public class ApprovalWorkflow(
 
         replicatorState.Items.RemoveAll(item => item.Status == ReplicatorItemStatus.NotStarted);
         
-        foreach (ContextTask newTask in modificationContext.ContextTasks ?? [])
+        foreach (ContextTask newTask in payload.ContextTasks ?? [])
         {
             if (newTask.AssignedTo != currentTaskData.AssignedTo)
             {

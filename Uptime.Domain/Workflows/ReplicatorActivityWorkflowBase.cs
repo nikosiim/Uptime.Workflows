@@ -16,29 +16,6 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
 
     protected abstract IReplicatorActivityProvider ActivityProvider { get; }
     
-    public ModificationContext? GetModificationContext(string phaseId)
-    {
-        if (!WorkflowContext.ReplicatorStates.TryGetValue(phaseId, out ReplicatorState? replicatorState))
-        {
-            logger.LogWarning("Workflow {WorkflowId} Replicator phase not found {phaseId}", WorkflowId, phaseId);
-            return null;
-        }
-
-        if (replicatorState.ReplicatorType == ReplicatorType.Parallel)
-        {
-            logger.LogWarning("Workflow {WorkflowId} update not allowed for parallel workflows", WorkflowId);
-            return null;
-        }
-
-        if (replicatorState.Items.All(item => item.Status is not (ReplicatorItemStatus.NotStarted or ReplicatorItemStatus.InProgress)))
-        {
-            logger.LogWarning("Workflow {WorkflowId} update not allowed in this phase", WorkflowId);
-            return null;
-        }
-        
-        return WorkflowModification(phaseId, replicatorState);
-    }
-    
     protected virtual IReplicatorPhaseBuilder CreateReplicatorPhaseBuilder()
     {
         return new ReplicatorPhaseBuilder(WorkflowDefinition.ReplicatorConfiguration!.PhaseConfigurations);
@@ -62,7 +39,32 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
         InitializeReplicatorManagerAsync(cancellationToken);
     }
 
-    protected override Task<bool> OnWorkflowModifiedAsync(ModificationContext modificationContext, CancellationToken cancellationToken)
+    protected override string OnWorkflowModification()
+    {
+        var modificationContext = string.Empty;
+
+        if (!WorkflowContext.ReplicatorStates.TryGetValue(Machine.CurrentState.Value, out ReplicatorState? replicatorState))
+        {
+            logger.LogWarning("Workflow {WorkflowId} Replicator phase not found {phaseId}", WorkflowId, Machine.CurrentState.Value);
+            return modificationContext;
+        }
+
+        if (replicatorState.ReplicatorType == ReplicatorType.Parallel)
+        {
+            logger.LogWarning("Workflow {WorkflowId} update not allowed for parallel workflows", WorkflowId);
+            return modificationContext;
+        }
+
+        if (!replicatorState.HasActiveItems)
+        {
+            logger.LogWarning("Workflow {WorkflowId} update not allowed in this phase", WorkflowId);
+            return modificationContext;
+        }
+
+        return modificationContext;
+    }
+
+    protected override Task<bool> OnWorkflowModifiedAsync(ModificationPayload modificationContext, CancellationToken cancellationToken)
     {
         if (WorkflowId.Value != modificationContext.WorkflowId || !WorkflowContext.ReplicatorStates.ContainsKey(modificationContext.PhaseId))
         {
@@ -102,13 +104,8 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
             }
         }
     }
-
-    protected virtual ModificationContext? WorkflowModification(string phaseId, ReplicatorState replicatorState)
-    {
-        return null;
-    }
-
-    protected virtual bool OnReplicatorWorkflowModified(ReplicatorState replicatorState, ModificationContext modificationContext)
+    
+    protected virtual bool OnReplicatorWorkflowModified(ReplicatorState replicatorState, ModificationPayload modificationContext)
     {
         return false;
     }

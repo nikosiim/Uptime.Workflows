@@ -4,6 +4,5 @@ namespace Uptime.Domain.Interfaces;
 
 public interface IReplicatorActivityWorkflowMachine : IWorkflowMachine
 {
-    ModificationContext? GetModificationContext(string phaseId);
-    Task<string> ModifyWorkflowAsync(ModificationContext modificationContext, CancellationToken cancellationToken);
+    Task<string> ModifyWorkflowAsync(ModificationPayload modificationContext, CancellationToken cancellationToken);
 }

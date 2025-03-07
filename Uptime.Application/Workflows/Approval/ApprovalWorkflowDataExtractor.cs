@@ -10,7 +10,7 @@ namespace Uptime.Application.Workflows.Approval;
 
 internal static class ApprovalWorkflowDataExtractor
 {
-    public static ReplicatorType GetReplicatorType(this IWorkflowPayload payload, string phaseName)
+    public static ReplicatorType GetReplicatorType(this IWorkflowPayload payload, string phaseId)
     {
         var replicatorType = ReplicatorType.Sequential;
         if (payload.Storage.TryGetValueAsEnum(WorkflowStorageKeys.ReplicatorType, out ReplicatorType type))
@@ -18,12 +18,17 @@ internal static class ApprovalWorkflowDataExtractor
             replicatorType = type;
         }
 
-        return phaseName switch
+        if (phaseId == ExtendedState.Approval.Value)
         {
-            ReplicatorPhases.Approval => replicatorType,
-            ReplicatorPhases.Signing => ReplicatorType.Sequential,
-            _ => throw new InvalidOperationException($"Unknown phase: {phaseName}")
-        };
+            return replicatorType;
+        }
+
+        if (phaseId == ExtendedState.Signing.Value)
+        {
+            return ReplicatorType.Sequential;
+        }
+
+        throw new InvalidOperationException($"Unknown phase: {phaseId}");
     }
 
     public static List<ApprovalTaskData> GetApprovalTasks(this IWorkflowPayload payload, WorkflowId workflowId)

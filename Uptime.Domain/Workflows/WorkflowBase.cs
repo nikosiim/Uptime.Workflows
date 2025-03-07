@@ -56,17 +56,6 @@ public abstract class WorkflowBase<TContext>(
         return Machine.CurrentState;
     }
 
-    public async Task<string> ModifyWorkflowAsync(ModificationContext modificationContext, CancellationToken cancellationToken)
-    {
-        bool isModified = await OnWorkflowModifiedAsync(modificationContext, cancellationToken);
-        if (isModified)
-        {
-            await SaveWorkflowStateAsync(cancellationToken);
-        }
-
-        return Machine.CurrentState.Value;
-    }
-
     public async Task CancelWorkflowAsync(string executor, string comment, CancellationToken cancellationToken)
     {
         if (Machine.CurrentState.IsFinal())
@@ -118,6 +107,30 @@ public abstract class WorkflowBase<TContext>(
         }
     }
 
+    public Result<string?> GetModificationContext()
+    {
+        string modificationContext = OnWorkflowModification();
+    
+        if (string.IsNullOrWhiteSpace(modificationContext))
+        {
+            logger.LogWarning("No valid modification context available for workflow {WorkflowId}.", WorkflowId);
+            return Result<string?>.Failure("No modification context available.");
+        }
+
+        return Result<string?>.Success(modificationContext);
+    }
+
+    public async Task<string> ModifyWorkflowAsync(ModificationPayload modificationContext, CancellationToken cancellationToken)
+    {
+        bool isModified = await OnWorkflowModifiedAsync(modificationContext, cancellationToken);
+        if (isModified)
+        {
+            await SaveWorkflowStateAsync(cancellationToken);
+        }
+
+        return Machine.CurrentState.Value;
+    }
+
     #endregion
 
     #region Protected Methods
@@ -130,7 +143,12 @@ public abstract class WorkflowBase<TContext>(
         return Task.CompletedTask;
     }
 
-    protected virtual Task<bool> OnWorkflowModifiedAsync(ModificationContext modificationContext, CancellationToken cancellationToken)
+    protected virtual string OnWorkflowModification()
+    {
+        return string.Empty;
+    }
+
+    protected virtual Task<bool> OnWorkflowModifiedAsync(ModificationPayload modificationContext, CancellationToken cancellationToken)
     {
         return Task.FromResult(false);
     }

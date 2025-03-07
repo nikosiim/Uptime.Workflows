@@ -23,32 +23,7 @@ public static class WorkflowContextHelper
             return new TContext();
         }
     }
-
-    public static object? Deserialize(Type contextType, string? json)
-    {
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return Activator.CreateInstance(contextType);
-        }
-
-        try
-        {
-            return JsonSerializer.Deserialize(json, contextType);
-        }
-        catch (JsonException)
-        {
-            return Activator.CreateInstance(contextType);
-        }
-    }
-
-    /// <summary>
-    /// Serializes the workflow context to JSON.
-    /// </summary>
-    public static string Serialize<TContext>(TContext context) where TContext : IWorkflowContext, new()
-    {
-        return JsonSerializer.Serialize(context);
-    }
-
+    
     /// <summary>
     /// Merges the storage of the updated context into the existing context.
     /// </summary>

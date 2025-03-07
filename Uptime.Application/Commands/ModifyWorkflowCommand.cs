@@ -8,7 +8,7 @@ using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application.Commands;
 
-public record ModifyWorkflowCommand(ModificationContext ModificationContext) : IRequest<string>;
+public record ModifyWorkflowCommand(ModificationPayload ModificationContext) : IRequest<string>;
 
 public class ModifyWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory, ILogger<ModifyWorkflowCommand> logger)
     : IRequestHandler<ModifyWorkflowCommand, string>

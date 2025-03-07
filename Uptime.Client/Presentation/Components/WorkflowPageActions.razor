@@ -97,8 +97,8 @@
 
     private async Task OnModifyClick(WorkflowDetails details)
     {
-        Result<ModificationContext> modificationContext = await Mediator.Send(new GetModificationContextQuery(details.Id));
-        if (!modificationContext.Succeeded)
+        Result<string?> modificationContext = await Mediator.Send(new GetModificationContextQuery(details.Id));
+        if (!modificationContext.Succeeded || string.IsNullOrWhiteSpace(modificationContext.Value))
         {
             Snackbar.Add("Töövoo muutmine ebaõnnestus", Severity.Error);
             return;

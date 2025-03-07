@@ -71,7 +71,7 @@ public class WorkflowRepository(IWorkflowDbContextFactory factory) : IWorkflowRe
         WorkflowContextHelper.MergeContext(existingContext, context);
 
         instance.Phase = phase.Value;
-        instance.StorageJson = WorkflowContextHelper.Serialize(context);
+        instance.StorageJson = JsonSerializer.Serialize(context);
         instance.Outcome = context.Outcome.Value;
 
         if (phase.IsFinal())

@@ -8,36 +8,43 @@ using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application.Queries;
 
-public record GetModificationDataQuery(WorkflowId WorkflowId) : IRequest<ModificationContext?>;
+public record GetModificationDataQuery(WorkflowId WorkflowId) : IRequest<Result<string?>>;
 
-public class GetModificationDataQueryHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory, ILogger<GetModificationDataQuery> logger) 
-    : IRequestHandler<GetModificationDataQuery, ModificationContext?>
+public sealed class GetModificationDataQueryHandler(
+    IWorkflowDbContext dbContext,
+    IWorkflowFactory workflowFactory,
+    ILogger<GetModificationDataQueryHandler> logger)
+    : IRequestHandler<GetModificationDataQuery, Result<string?>>
 {
-    public async Task<ModificationContext?> Handle(GetModificationDataQuery request, CancellationToken cancellationToken)
+    public async Task<Result<string?>> Handle(GetModificationDataQuery request, CancellationToken cancellationToken)
     {
+        if (cancellationToken.IsCancellationRequested)
+            return Result<string?>.Cancelled();
+
         Workflow? workflow = await dbContext.Workflows.AsNoTracking()
             .Include(w => w.WorkflowTemplate)
-            .Where(x => x.Id == request.WorkflowId.Value)
-            .FirstOrDefaultAsync(cancellationToken: cancellationToken);
-        
+            .FirstOrDefaultAsync(w => w.Id == request.WorkflowId.Value, cancellationToken);
+
         if (workflow == null)
-            throw new InvalidOperationException($"Workflow with ID {request.WorkflowId} not found.");
+        {
+            return Result<string?>.Failure($"Workflow with ID {request.WorkflowId} not found.");
+        }
 
         var baseId = new Guid(workflow.WorkflowTemplate.WorkflowBaseId);
-        
+
         IWorkflowMachine? stateMachine = workflowFactory.TryGetStateMachine(baseId);
-        if (stateMachine is not IReplicatorActivityWorkflowMachine machine)
+        if (stateMachine == null)
         {
-            logger.LogWarning("Workflow {Id} does not implement IReplicatorWorkflowContext", workflow.Id);
-            return null;
+            logger.LogWarning("Failed to detect-state machine for workflow {Id}", workflow.Id);
+            return Result<string?>.Failure("Invalid workflow machine type.");
         }
 
-        if (!await machine.RehydrateAsync(workflow, cancellationToken))
+        if (!await stateMachine.RehydrateAsync(workflow, cancellationToken))
         {
-            logger.LogWarning("Workflow {Id} state-machine reHydration failed.", workflow.Id);
-            return null;
+            logger.LogWarning("State-machine reHydration failed for workflow {Id}.", workflow.Id);
+            return Result<string?>.Failure("Workflow state-machine reHydration failed.");
         }
 
-        return machine.GetModificationContext(workflow.Phase);
+        return stateMachine.GetModificationContext();
     }
 }

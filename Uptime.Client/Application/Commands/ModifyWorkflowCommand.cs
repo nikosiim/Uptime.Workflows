@@ -8,6 +8,7 @@ using Uptime.Shared.Models.Workflows;
 
 namespace Uptime.Client.Application.Commands;
 
+/*
 public record ModifyWorkflowCommand(ModificationContext ModificationContext) : IRequest<Result<bool>>;
 
 public class ModifyWorkflowCommandHandler(IApiService apiService, IState<WorkflowState> workflowState)
@@ -35,3 +36,4 @@ public class ModifyWorkflowCommandHandler(IApiService apiService, IState<Workflo
         return await apiService.PostAsJsonAsync(url, payload, cancellationToken);
     }
 }
+*/
