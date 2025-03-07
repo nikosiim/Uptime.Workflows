@@ -1,0 +1,35 @@
+﻿@inject IUserService UserService
+@inject IDispatcher Dispatcher
+
+<MudDialog>
+    <DialogContent>
+        <MudSelect T="User" Label="Kes sa oled?" Variant="Variant.Outlined"
+                   Placeholder="Vali kasutaja"
+                   Value="@User.Default"
+                   ValueChanged="OnUserChanged">
+            @foreach (User user in UserService.GetUsers())
+            {
+                <MudSelectItem T="User" Value="@user">
+                    <MudContainer Class="d-flex align-center">
+                        <MudText>@user.Name</MudText>
+                        @if (user.IsAdmin)
+                        {
+                            <MudText Typo="Typo.caption" Class="ml-1">(Administrator)</MudText>
+                        }
+                    </MudContainer>
+                </MudSelectItem>
+            }
+        </MudSelect>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    private void OnUserChanged(User newUser)
+    {
+        Dispatcher.Dispatch(new SetCurrentUserAction(newUser));
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}

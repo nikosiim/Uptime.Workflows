@@ -1,54 +1,28 @@
 ﻿@inherits FluxorComponent
+@inject IDialogService DialogService
 @inject IState<WorkflowState> WorkflowState
-@inject IUserService UserService
-@inject IDispatcher Dispatcher
 
 <MudText Typo="Typo.body1" Class="px-2" Color="@(WorkflowState.Value.CurrentUser.IsAdmin ? Color.Warning : Color.Default)">
     @WorkflowState.Value.CurrentUser.Name
 </MudText>
-<MudIconButton Icon="@Icons.Material.Filled.Logout" OnClick="OpenUserSelectionDialog" />
-
-<MudDialog Visible="@ShowUserSelectionDialog" Options="_dialogOptions">
-    <DialogContent>
-        <MudSelect T="User" Label="Kes sa oled?" Variant="Variant.Outlined" Placeholder="Vali kasutaja" @bind-Value="_selectedUser">
-            @foreach (User user in UserService.GetUsers())
-            {
-                <MudSelectItem T="User" Value="@user">
-                    <MudContainer Class="d-flex align-center">
-                        <MudText>@user.Name</MudText>
-                        @if (user.IsAdmin)
-                        {
-                            <MudText Typo="Typo.caption" Class="ml-1">(Administrator)</MudText>
-                        }
-                    </MudContainer>
-                </MudSelectItem>
-            }
-        </MudSelect>
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="ConfirmUserSelection">Salvesta</MudButton>
-    </DialogActions>
-</MudDialog>
+<MudIconButton Icon="@Icons.Material.Filled.Logout" Disabled="@_isSaving" OnClick="OpenUserPickerDialog" />
 
 @code {
-    private User _selectedUser = User.Default;
-    private bool ShowUserSelectionDialog { get; set; } = false;
+    private bool _isSaving = false;
 
-    private readonly DialogOptions _dialogOptions = new()
+    private async Task OpenUserPickerDialog()
     {
-        FullWidth = true,
-        Position = DialogPosition.TopCenter,
-        MaxWidth = MaxWidth.Small
-    };
-    
-    private void OpenUserSelectionDialog()
-    {
-        ShowUserSelectionDialog = true;
-    }
+        _isSaving = true;
 
-    private void ConfirmUserSelection()
-    {
-        Dispatcher.Dispatch(new SetCurrentUserAction(_selectedUser));
-        ShowUserSelectionDialog = false;
+        DialogOptions options = new()
+        {
+            FullWidth = true,
+            Position = DialogPosition.TopCenter,
+            MaxWidth = MaxWidth.Small
+        };
+
+        await DialogService.ShowAsync<UserPickerDialog>("Vali kasutaja", options);
+
+        _isSaving = false;
     }
 }
