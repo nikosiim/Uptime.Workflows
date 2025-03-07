@@ -1,5 +1,4 @@
-﻿@using System.Text.Json
-@inject IUserService UserService
+﻿@inject IUserService UserService
 @inject IMediator Mediator
 
 <MudDialog>
@@ -25,6 +24,8 @@
     protected MudForm Form = null!;
     private IEnumerable<string> _selectedUsers = [];
 
+    private ApprovalModificationContext Context { get; set; } = new() { ApprovalTasks = [] };
+
     [Parameter] public WorkflowDetails WorkflowDetails { get; set; } = null!;
     [Parameter] public string ModificationContext { get; set; } = null!;
 
@@ -34,37 +35,40 @@
     protected override void OnInitialized()
     {
         var context = JsonSerializer.Deserialize<ApprovalModificationContext>(ModificationContext);
-
-        _selectedUsers = context?.ApprovalTasks.Select(x => x.AssignedTo).ToList() ?? [];
+        if (context != null)
+        {
+            Context = context;
+            _selectedUsers = context.ApprovalTasks.Select(x => x.AssignedTo).ToList();
+        }
     }
 
     protected virtual async Task UpdateWorkflow()
     {
         await Form.Validate();
 
-        // if (Form.IsValid)
-        // {
-        //     ModificationContext.ContextTasks ??= [];
+        if (Form.IsValid)
+        {
+            List<string> existingUserNames = Context.ApprovalTasks.Select(t => t.AssignedTo).ToList();
+            List<string> removedUsers = existingUserNames.Except(_selectedUsers).ToList();
 
-        //     List<string> existingUserNames = ModificationContext.ContextTasks.Select(t => t.AssignedTo).ToList();
-        //     List<string> removedUsers = existingUserNames.Except(_selectedUsers).ToList();
+            List<string> addedUsers = _selectedUsers.Except(existingUserNames).ToList();
 
-        //     List<string> addedUsers = _selectedUsers.Except(existingUserNames).ToList();
+            Context.ApprovalTasks.RemoveAll(task => removedUsers.Contains(task.AssignedTo));
 
-        //     ModificationContext.ContextTasks.RemoveAll(task => removedUsers.Contains(task.AssignedTo));
+            foreach (string newUser in addedUsers)
+            {
+                Context.ApprovalTasks.Add(new ApprovalTask
+                {
+                    AssignedTo = newUser,
+                    TaskGuid = Guid.Empty.ToString()
+                });
+            }
 
-        //     foreach (string newUser in addedUsers)
-        //     {
-        //         ModificationContext.ContextTasks.Add(new ContextTask
-        //         {
-        //             AssignedTo = newUser,
-        //             TaskGuid = Guid.Empty.ToString()
-        //         });
-        //     }
+            ModificationContext = JsonSerializer.Serialize(Context);
 
-        //     Result<bool> result = await Mediator.Send(new ModifyWorkflowCommand(ModificationContext));
-        //     MudDialog.Close(DialogResult.Ok(result.Succeeded));
-        // }
+            Result<bool> result = await Mediator.Send(new ModifyWorkflowCommand(WorkflowDetails.Id, ModificationContext));
+            MudDialog.Close(DialogResult.Ok(result.Succeeded));
+        }
     }
     
     protected virtual void Cancel()

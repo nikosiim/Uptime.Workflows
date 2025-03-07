@@ -7,7 +7,6 @@ using Uptime.Client.Application.Commands;
 using Uptime.Client.Application.Common;
 using Uptime.Client.Application.DTOs;
 using Uptime.Client.Application.Queries;
-using Uptime.Shared.Common;
 
 namespace Uptime.Client.Presentation.Forms;
 

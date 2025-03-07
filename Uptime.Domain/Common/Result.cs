@@ -2,6 +2,7 @@
 
 namespace Uptime.Domain.Common;
 
+public readonly record struct Unit;
 public readonly record struct Result<TValue>
 {
     [MemberNotNullWhen(true, nameof(Value))]

@@ -6,53 +6,35 @@ using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
 using Uptime.Domain.Interfaces;
+using Unit = Uptime.Domain.Common.Unit;
 
 namespace Uptime.Application.Commands;
 
-public record CancelWorkflowCommand(WorkflowId WorkflowId, string Executor, string Comment) : IRequest;
+public record CancelWorkflowCommand(WorkflowId WorkflowId, string Executor, string Comment) : IRequest<Result<Unit>>;
 
-public class CancelWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory, ILogger<CancelWorkflowCommand> logger)
-    : IRequestHandler<CancelWorkflowCommand>
+public class CancelWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory)
+    : IRequestHandler<CancelWorkflowCommand, Result<Unit>>
 {
-    public async Task Handle(CancelWorkflowCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> Handle(CancelWorkflowCommand request, CancellationToken cancellationToken)
     {
-        Workflow? workflowInstance = await dbContext.Workflows
+        if (cancellationToken.IsCancellationRequested)
+            return Result<Unit>.Cancelled();
+
+        Workflow? workflow = await dbContext.Workflows
             .Include(w => w.WorkflowTemplate)
             .FirstOrDefaultAsync(w => w.Id == request.WorkflowId.Value, cancellationToken);
-
-        if (workflowInstance == null)
-        {
-            logger.LogWarning("Workflow with ID {WorkflowId} not found.", request.WorkflowId);
-            throw new NotFoundException(nameof(Workflow), request.WorkflowId);
-        }
         
-        if (!Guid.TryParse(workflowInstance.WorkflowTemplate.WorkflowBaseId, out Guid workflowBaseId))
-        {
-            logger.LogError("Invalid workflow base ID '{WorkflowBaseId}' for workflow {WorkflowId}.", 
-                workflowInstance.WorkflowTemplate.WorkflowBaseId, 
-                request.WorkflowId
-            );
-            throw new InvalidOperationException($"Invalid workflow base ID '{workflowInstance.WorkflowTemplate.WorkflowBaseId}'.");
-        }
+        if (workflow == null)
+            return Result<Unit>.Failure($"Workflow with ID {request.WorkflowId.Value} not found.");
         
-        IWorkflowMachine? machine = workflowFactory.TryGetStateMachine(workflowBaseId);
-        if (machine == null)
-        {
-            logger.LogError("No workflow machine found for base ID {WorkflowBaseId}. Workflow: {WorkflowId}",
-                workflowBaseId,
-                request.WorkflowId
-            );
-            throw new InvalidOperationException($"No workflow machine found for base ID {workflowBaseId}.");
-        }
+        IWorkflowMachine? stateMachine = workflowFactory.TryGetStateMachine(workflow.WorkflowTemplate.WorkflowBaseId);
+        if (stateMachine == null) 
+            return Result<Unit>.Failure("Invalid workflow machine type.");
+        
+        Result<Unit> reHydrationResult = stateMachine.RehydrateAsync(workflow, cancellationToken);
+        if (!reHydrationResult.Succeeded)
+            return Result<Unit>.Failure("Workflow state-machine reHydration failed.");
 
-        bool isRehydrated = await machine.RehydrateAsync(workflowInstance, cancellationToken);
-        if (!isRehydrated)
-        {
-            logger.LogError("Failed to rehydrate workflow {WorkflowId} (possibly not found in DB).", request.WorkflowId);
-            throw new InvalidOperationException($"Workflow {request.WorkflowId} could not be rehydrated.");
-        }
-
-        await machine.CancelWorkflowAsync(request.Executor, request.Comment, CancellationToken.None);
-        logger.LogInformation("Successfully cancelled workflow {WorkflowId}.", request.WorkflowId);
+        return await stateMachine.CancelAsync(request.Executor, request.Comment, cancellationToken);
     }
 }

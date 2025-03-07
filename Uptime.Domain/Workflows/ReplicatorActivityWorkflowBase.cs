@@ -9,7 +9,7 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
     IStateMachineFactory<BaseState, WorkflowTrigger> stateMachineFactory,
     IWorkflowRepository repository,
     ILogger<WorkflowBase<TContext>> logger)
-    : ActivityWorkflowBase<TContext>(stateMachineFactory, repository, logger), IReplicatorActivityWorkflowMachine
+    : ActivityWorkflowBase<TContext>(stateMachineFactory, repository, logger)
     where TContext : class, IReplicatorWorkflowContext, new()
 {
     private ReplicatorManager? _replicatorManager;
@@ -63,23 +63,6 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
 
         return modificationContext;
     }
-
-    protected override Task<bool> OnWorkflowModifiedAsync(ModificationPayload modificationContext, CancellationToken cancellationToken)
-    {
-        if (WorkflowId.Value != modificationContext.WorkflowId || !WorkflowContext.ReplicatorStates.ContainsKey(modificationContext.PhaseId))
-        {
-            throw new InvalidOperationException("Modification context does not match the current workflow state.");
-        }
-
-        if (!WorkflowContext.ReplicatorStates.TryGetValue(modificationContext.PhaseId, out ReplicatorState? replicatorState))
-        {
-            return Task.FromResult(false);
-        }
-
-        bool result = OnReplicatorWorkflowModified(replicatorState, modificationContext);
-
-        return Task.FromResult(result);
-    }
     
     protected override async Task OnTaskChangedAsync(WorkflowTaskContext storedTaskContext, Dictionary<string, string?> alterTaskPayload, CancellationToken cancellationToken)
     {
@@ -103,11 +86,6 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
                 await RunReplicatorAsync(phase, cancellationToken);
             }
         }
-    }
-    
-    protected virtual bool OnReplicatorWorkflowModified(ReplicatorState replicatorState, ModificationPayload modificationContext)
-    {
-        return false;
     }
     
     protected virtual UserTaskActivity? CreateChildActivity(WorkflowTaskContext context)

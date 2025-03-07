@@ -18,22 +18,24 @@ public abstract class WorkflowBase<TContext>(
     protected WorkflowId WorkflowId;
 
     public TContext WorkflowContext { get; private set; } = new();
-    public BaseState CurrentState => Machine.CurrentState;
 
     #endregion
 
     #region Public Methods
 
-    public async Task<BaseState> StartAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> StartAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
-        WorkflowContext.Storage.MergeWith(payload.Storage);
-
-        InitializeStateMachine(BaseState.NotStarted, cancellationToken);
-
-        WorkflowId = await repository.CreateWorkflowInstanceAsync(payload, cancellationToken);
+        if (cancellationToken.IsCancellationRequested)
+            return Result<Unit>.Cancelled();
 
         try
         {
+            WorkflowContext.Storage.MergeWith(payload.Storage);
+
+            InitializeStateMachine(BaseState.NotStarted, cancellationToken);
+
+            WorkflowId = await repository.CreateWorkflowInstanceAsync(payload, cancellationToken);
+
             OnWorkflowActivatedAsync(payload, cancellationToken);
 
             await repository.AddWorkflowHistoryAsync(
@@ -51,49 +53,87 @@ public abstract class WorkflowBase<TContext>(
         catch (Exception ex)
         {
             await HandleWorkflowExceptionAsync(ex, WorkflowId, cancellationToken);
+            return Result<Unit>.Failure("An error occurred while starting the workflow.");
         }
 
-        return Machine.CurrentState;
+        return Result<Unit>.Success(new Unit());
     }
-
-    public async Task CancelWorkflowAsync(string executor, string comment, CancellationToken cancellationToken)
+    
+    public async Task<Result<Unit>> ModifyAsync(ModificationPayload payload, CancellationToken cancellationToken)
     {
-        if (Machine.CurrentState.IsFinal())
-        {
-            logger.LogInformation("Workflow {WorkflowId} is already in final state '{State}'; no cancellation needed.", WorkflowId, CurrentState);
-            return;
-        }
-        
-        await repository.AddWorkflowHistoryAsync(
-            WorkflowId,
-            WorkflowEventType.WorkflowComment,
-            executor,
-            description: comment,
-            cancellationToken:cancellationToken
-        );
-
-        await CancelAllTasksAsync(cancellationToken);
+        if (cancellationToken.IsCancellationRequested)
+            return Result<Unit>.Cancelled();
 
         try
         {
+            if (await OnWorkflowModifiedAsync(payload, cancellationToken))
+            {
+                await SaveWorkflowStateAsync(cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to modify workflow with ID {WorkflowId}", WorkflowId.Value);
+            return Result<Unit>.Failure("Workflow update failed");
+        }
+
+        return Result<Unit>.Success(new Unit());
+    }
+
+    public Result<Unit> RehydrateAsync(Workflow instance, CancellationToken cancellationToken)
+    {
+        if (cancellationToken.IsCancellationRequested)
+            return Result<Unit>.Cancelled();
+
+        try
+        {
+            WorkflowContext = WorkflowContextHelper.Deserialize<TContext>(instance.StorageJson);
+            WorkflowId = (WorkflowId)instance.Id;
+
+            InitializeStateMachine(BaseState.FromString(instance.Phase), cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to rehydrate workflow with ID {WorkflowId}", instance.Id);
+            return Result<Unit>.Failure("Workflow rehydration failed");
+        }
+
+        return Result<Unit>.Success(new Unit());
+    }
+
+    public async Task<Result<Unit>> CancelAsync(string executor, string comment, CancellationToken cancellationToken)
+    {
+        if (cancellationToken.IsCancellationRequested)
+            return Result<Unit>.Cancelled();
+
+        if (Machine.CurrentState.IsFinal())
+        {
+            logger.LogInformation("Workflow {WorkflowId} is already in final state '{State}'; no cancellation needed.", WorkflowId, Machine.CurrentState);
+            return Result<Unit>.Failure("Workflow is already in final state");
+        }
+
+        try
+        {
+            await repository.AddWorkflowHistoryAsync(
+                WorkflowId,
+                WorkflowEventType.WorkflowComment,
+                executor,
+                description: comment,
+                cancellationToken:cancellationToken
+            );
+
+            await CancelAllTasksAsync(cancellationToken);
             await Machine.FireAsync(WorkflowTrigger.Cancel);
             await SaveWorkflowStateAsync(cancellationToken);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "An error occurred while cancelling the workflow.");
-            throw;
+            return Result<Unit>.Failure("An error occurred while cancelling the workflow");
         }
-    }
 
-    public Task<bool> RehydrateAsync(Workflow instance, CancellationToken cancellationToken)
-    {
-        WorkflowContext = WorkflowContextHelper.Deserialize<TContext>(instance.StorageJson);
-        WorkflowId = (WorkflowId)instance.Id;
-        
-        InitializeStateMachine(BaseState.FromString(instance.Phase), cancellationToken);
-
-        return Task.FromResult(true);
+        logger.LogInformation("Successfully cancelled workflow {WorkflowId}.", WorkflowId);
+        return Result<Unit>.Success(new Unit());
     }
 
     public async Task TriggerTransitionAsync(WorkflowTrigger trigger, CancellationToken cancellationToken, bool autoCommit = true)
@@ -107,28 +147,17 @@ public abstract class WorkflowBase<TContext>(
         }
     }
 
-    public Result<string?> GetModificationContext()
+    public Result<string> GetModificationContext()
     {
         string modificationContext = OnWorkflowModification();
     
         if (string.IsNullOrWhiteSpace(modificationContext))
         {
             logger.LogWarning("No valid modification context available for workflow {WorkflowId}.", WorkflowId);
-            return Result<string?>.Failure("No modification context available.");
+            return Result<string>.Failure("No modification context available.");
         }
 
-        return Result<string?>.Success(modificationContext);
-    }
-
-    public async Task<string> ModifyWorkflowAsync(ModificationPayload modificationContext, CancellationToken cancellationToken)
-    {
-        bool isModified = await OnWorkflowModifiedAsync(modificationContext, cancellationToken);
-        if (isModified)
-        {
-            await SaveWorkflowStateAsync(cancellationToken);
-        }
-
-        return Machine.CurrentState.Value;
+        return Result<string>.Success(modificationContext);
     }
 
     #endregion
@@ -148,7 +177,7 @@ public abstract class WorkflowBase<TContext>(
         return string.Empty;
     }
 
-    protected virtual Task<bool> OnWorkflowModifiedAsync(ModificationPayload modificationContext, CancellationToken cancellationToken)
+    protected virtual Task<bool> OnWorkflowModifiedAsync(ModificationPayload payload, CancellationToken cancellationToken)
     {
         return Task.FromResult(false);
     }

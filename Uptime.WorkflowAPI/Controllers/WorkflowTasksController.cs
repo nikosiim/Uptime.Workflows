@@ -5,6 +5,7 @@ using Uptime.Application.DTOs;
 using Uptime.Application.Queries;
 using Uptime.Domain.Common;
 using Uptime.Shared.Models.Tasks;
+using Unit = Uptime.Domain.Common.Unit;
 
 namespace Uptime.WorkflowAPI.Controllers;
 
@@ -28,11 +29,11 @@ public class WorkflowTasksController(IMediator mediator) : ControllerBase
     public async Task<ActionResult> AlterTask(int taskId, [FromBody] AlterTaskRequest request)
     {
         AlterTaskCommand command = Mapper.MapToAlterTaskCommand(request, taskId);
-        string phase = await mediator.Send(command);
+        Result<Unit> result = await mediator.Send(command);
 
-        if (phase == BaseState.Invalid.Value)
+        if (!result.Succeeded)
         {
-            return BadRequest("An unexpected error occurred in the workflow process.");
+            return BadRequest(result.Error);
         }
 
         return Ok();

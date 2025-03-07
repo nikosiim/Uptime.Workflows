@@ -1,4 +1,4 @@
-﻿using Uptime.Shared.Common;
+﻿using Uptime.Client.Application.Common;
 
 namespace Uptime.Client.Application.Services;
 

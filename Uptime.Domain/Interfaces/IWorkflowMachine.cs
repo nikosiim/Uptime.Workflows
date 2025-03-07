@@ -6,10 +6,10 @@ namespace Uptime.Domain.Interfaces;
 
 public interface IWorkflowMachine
 {
-    BaseState CurrentState { get; }
-    Task<BaseState> StartAsync(IWorkflowPayload payload, CancellationToken cancellationToken);
-    Result<string?> GetModificationContext(); 
-    Task CancelWorkflowAsync(string executor, string comment, CancellationToken cancellationToken);
-    Task<bool> RehydrateAsync(Workflow instance, CancellationToken cancellationToken);
+    Task<Result<Unit>> StartAsync(IWorkflowPayload payload, CancellationToken cancellationToken);
+    Result<string> GetModificationContext(); 
+    Task<Result<Unit>> ModifyAsync(ModificationPayload payload, CancellationToken cancellationToken);
+    Task<Result<Unit>> CancelAsync(string executor, string comment, CancellationToken cancellationToken);
+    Result<Unit> RehydrateAsync(Workflow instance, CancellationToken cancellationToken);
     Task TriggerTransitionAsync(WorkflowTrigger trigger, CancellationToken cancellationToken, bool autoCommit = true);
 }

@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace Uptime.Shared.Common;
+namespace Uptime.Client.Application.Common;
 
 public readonly record struct Result<TValue>
 {

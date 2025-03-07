@@ -72,31 +72,39 @@ public class ApprovalWorkflow(
 
         return JsonSerializer.Serialize(context);
     }
-    
-    protected override bool OnReplicatorWorkflowModified(ReplicatorState replicatorState, ModificationPayload payload)
+
+    protected override Task<bool> OnWorkflowModifiedAsync(ModificationPayload payload, CancellationToken cancellationToken)
     {
+        if (!WorkflowContext.ReplicatorStates.TryGetValue(Machine.CurrentState.Value, out ReplicatorState? replicatorState))
+            return Task.FromResult(false);
+        
         ReplicatorItem? inProgressItem = replicatorState.Items.FirstOrDefault(item => item.Status == ReplicatorItemStatus.InProgress);
         if (inProgressItem == null)
-        {
-            return false;
-        }
+            return Task.FromResult(false);
 
+        if (string.IsNullOrWhiteSpace(payload.ModificationContext))
+            return Task.FromResult(false);
+
+        var context = JsonSerializer.Deserialize<ApprovalModificationContext>(payload.ModificationContext);
+        if (context == null) 
+            return Task.FromResult(true);
+       
         var currentTaskData = inProgressItem.Data.DeserializeTaskData<ApprovalTaskData>();
 
         replicatorState.Items.RemoveAll(item => item.Status == ReplicatorItemStatus.NotStarted);
         
-        foreach (ContextTask newTask in payload.ContextTasks ?? [])
+        foreach (ApprovalTask tasks in context.ApprovalTasks)
         {
-            if (newTask.AssignedTo != currentTaskData.AssignedTo)
+            if (tasks.AssignedTo != currentTaskData.AssignedTo)
             {
                 ApprovalTaskData newTaskData = ApprovalTaskData.Copy(currentTaskData);
-                newTaskData.AssignedTo = newTask.AssignedTo;
+                newTaskData.AssignedTo = tasks.AssignedTo;
 
                 replicatorState.Items.Add(new ReplicatorItem { Data = newTaskData, Status = ReplicatorItemStatus.NotStarted });
             }
         }
 
-        return true;
+        return Task.FromResult(true);
     }
 
     protected override Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)
