@@ -64,24 +64,24 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
         return modificationContext;
     }
     
-    protected override async Task OnTaskChangedAsync(WorkflowTaskContext storedTaskContext, Dictionary<string, string?> alterTaskPayload, CancellationToken cancellationToken)
+    protected override async Task OnTaskChangedAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
     {
-        if (CreateChildActivity(storedTaskContext) is not { } taskActivity)
+        if (CreateChildActivity(context) is not { } taskActivity)
         {
-            throw new InvalidOperationException($"Task {storedTaskContext.TaskId} is not a user-interrupting activity.");
+            throw new InvalidOperationException($"Task {context.TaskId} is not a user-interrupting activity.");
         }
 
         if (!taskActivity.IsCompleted)
         {
-            await taskActivity.ChangedTaskAsync(alterTaskPayload, cancellationToken);
+            await taskActivity.ChangedTaskAsync(payload, cancellationToken);
             
-            string? phase = WorkflowContext.ReplicatorStates.FindPhase(storedTaskContext.TaskGuid);
+            string? phase = WorkflowContext.ReplicatorStates.FindPhase(context.TaskGuid);
 
             if (taskActivity.IsCompleted && !string.IsNullOrWhiteSpace(phase))
             {
                 ActivityProvider.OnChildCompleted(phase, taskActivity, WorkflowContext);
 
-                UpdateWorkflowContextReplicatorState(storedTaskContext.TaskGuid, ReplicatorItemStatus.Completed);
+                UpdateWorkflowContextReplicatorState(context.TaskGuid, ReplicatorItemStatus.Completed);
 
                 await RunReplicatorAsync(phase, cancellationToken);
             }

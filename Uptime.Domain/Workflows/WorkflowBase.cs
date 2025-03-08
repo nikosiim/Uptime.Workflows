@@ -136,6 +136,28 @@ public abstract class WorkflowBase<TContext>(
         return Result<Unit>.Success(new Unit());
     }
 
+    public async Task<Result<Unit>> AlterTaskAsync(WorkflowTask workflowTask, Dictionary<string, string?> payload, CancellationToken cancellationToken)
+    {
+        if (Machine.CurrentState.IsFinal())
+        {
+            logger.LogInformation("Workflow is already completed. No modifications allowed.");
+            return Result<Unit>.Failure("Workflow is already completed.");
+        }
+
+        try
+        {
+            var taskContext = new WorkflowTaskContext(workflowTask);
+            await OnTaskAlteredAsync(taskContext, payload, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to alter workflow with ID {WorkflowId} task", WorkflowId.Value);
+            return Result<Unit>.Failure("Task update failed");
+        }
+        
+        return Result<Unit>.Success(new Unit());
+    }
+
     public async Task TriggerTransitionAsync(WorkflowTrigger trigger, CancellationToken cancellationToken, bool autoCommit = true)
     {
         var transitionQueue = new StateTransitionQueue<BaseState, WorkflowTrigger>(Machine, logger);
@@ -191,6 +213,11 @@ public abstract class WorkflowBase<TContext>(
     protected virtual Task OnWorkflowCancelledAsync(CancellationToken cancellationToken)
     {
         WorkflowContext.Outcome = WorkflowOutcome.Cancelled;
+        return Task.CompletedTask;
+    }
+    
+    protected virtual Task OnTaskAlteredAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
+    {
         return Task.CompletedTask;
     }
     

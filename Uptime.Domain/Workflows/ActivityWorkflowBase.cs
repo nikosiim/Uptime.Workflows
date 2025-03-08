@@ -9,34 +9,16 @@ public abstract class ActivityWorkflowBase<TContext>(
     IStateMachineFactory<BaseState, WorkflowTrigger> stateMachineFactory,
     IWorkflowRepository repository, 
     ILogger<WorkflowBase<TContext>> logger)
-    : WorkflowBase<TContext>(stateMachineFactory, repository, logger: logger), IActivityWorkflowMachine
+    : WorkflowBase<TContext>(stateMachineFactory, repository, logger: logger)
     where TContext : class, IWorkflowContext, new()
 {
-    private readonly ILogger<WorkflowBase<TContext>> _logger = logger;
-    
-    public async Task<Result<Unit>> AlterTaskAsync(WorkflowTaskContext storedTaskContext, Dictionary<string, string?> alterTaskPayload, CancellationToken cancellationToken)
+    protected override async Task OnTaskAlteredAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
     {
-        if (Machine.CurrentState.IsFinal())
-        {
-            _logger.LogDebug("Workflow is already completed. No modifications allowed.");
-            return Result<Unit>.Failure("Workflow is already completed.");
-        }
-
-        try
-        {
-            await OnTaskChangedAsync(storedTaskContext, alterTaskPayload, cancellationToken);
-            await SaveWorkflowStateAsync(cancellationToken);
-
-            return Result<Unit>.Success(new Unit());
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to alter workflow with ID {WorkflowId} task", WorkflowId.Value);
-            return Result<Unit>.Failure("Task update failed");
-        }
+        await OnTaskChangedAsync(context, payload, cancellationToken);
+        await SaveWorkflowStateAsync(cancellationToken);
     }
     
-    protected virtual Task OnTaskChangedAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
+    protected virtual Task OnTaskChangedAsync(WorkflowTaskContext taskContext, Dictionary<string, string?> payload, CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
     }

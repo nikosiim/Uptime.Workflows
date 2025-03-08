@@ -30,20 +30,15 @@ public class AlterTaskCommandHandler(IWorkflowDbContext dbContext, IWorkflowFact
 
         if (workflowTask == null)
             return Result<Unit>.Failure($"Workflow task with ID {request.TaskId.Value} not found.");
-        
+
         IWorkflowMachine? stateMachine = workflowFactory.TryGetStateMachine(workflowTask.Workflow.WorkflowTemplate.WorkflowBaseId);
-        if (stateMachine is not IActivityWorkflowMachine machine)
-        {
-            // TODO: peaks viima otse WorkflowBase koodi
-            logger.LogWarning("The workflow does not support task alterations.");
-            return Result<Unit>.Failure("Task alterations not supported.");
-        }
+        if (stateMachine == null) 
+            return Result<Unit>.Failure("Invalid workflow machine type.");
       
         Result<Unit> reHydrationResult = stateMachine.RehydrateAsync(workflowTask.Workflow, cancellationToken);
         if (!reHydrationResult.Succeeded)
             return Result<Unit>.Failure("Workflow state-machine reHydration failed.");
         
-        var taskContext = new WorkflowTaskContext(workflowTask);
-        return await machine.AlterTaskAsync(taskContext, request.Payload, cancellationToken);
+        return await stateMachine.AlterTaskAsync(workflowTask, request.Payload, cancellationToken);
     }
 }
