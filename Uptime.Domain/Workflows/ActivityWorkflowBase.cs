@@ -9,33 +9,17 @@ public abstract class ActivityWorkflowBase<TContext>(
     IStateMachineFactory<BaseState, WorkflowTrigger> stateMachineFactory,
     IWorkflowRepository repository, 
     ILogger<WorkflowBase<TContext>> logger)
-    : WorkflowBase<TContext>(stateMachineFactory, repository, logger), IActivityWorkflowMachine
+    : WorkflowBase<TContext>(stateMachineFactory, repository, logger: logger)
     where TContext : class, IWorkflowContext, new()
 {
-    private readonly ILogger<WorkflowBase<TContext>> _logger = logger;
-    
-    public async Task AlterTaskAsync(WorkflowTaskContext storedTaskContext, Dictionary<string, string?> alterTaskPayload, CancellationToken cancellationToken)
+    protected override async Task OnTaskAlteredAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
     {
-        if (CanAlterTask())
-        {
-            await OnTaskChangedAsync(storedTaskContext, alterTaskPayload, cancellationToken);
-            await SaveWorkflowStateAsync(cancellationToken);
-        }
+        await OnTaskChangedAsync(context, payload, cancellationToken);
+        await SaveWorkflowStateAsync(cancellationToken);
     }
     
-    protected virtual Task OnTaskChangedAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
+    protected virtual Task OnTaskChangedAsync(WorkflowTaskContext taskContext, Dictionary<string, string?> payload, CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
-    }
-
-    private bool CanAlterTask()
-    {
-        if (Machine.CurrentState.IsFinal())
-        {
-            _logger.LogDebug("Workflow is already completed. No modifications allowed.");
-            return false;
-        }
-
-        return true;
     }
 }

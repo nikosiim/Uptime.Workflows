@@ -157,35 +157,12 @@ public static class Mapper
         }).ToList();
     }
     
-    public static ModificationContextResponse MapToModificationContextResponse(ModificationContext source)
+    public static ModificationPayload MapToModificationPayload(ModifyWorkflowRequest source)
     {
-        return new ModificationContextResponse
+        return new ModificationPayload
         {
             Executor = source.Executor,
-            WorkflowId = source.WorkflowId,
-            PhaseId = source.PhaseId,
-            ContextTasks = source.ContextTasks?
-                .Select(t => new ContextTaskResponse
-                {
-                    AssignedTo = t.AssignedTo,
-                    TaskGuid = t.TaskGuid
-                }).ToList()
-        };
-    }
-
-    public static ModificationContext MapToModificationContext(ModifyWorkflowRequest source)
-    {
-        return new ModificationContext
-        {
-            Executor = source.Executor,
-            WorkflowId = source.WorkflowId,
-            PhaseId = source.PhaseId,
-            ContextTasks = source.ContextTasks?
-                .Select(t => new ContextTask
-                {
-                    AssignedTo = t.AssignedTo,
-                    TaskGuid = t.TaskGuid
-                }).ToList()
+            ModificationContext = source.ModificationContext
         };
     }
 

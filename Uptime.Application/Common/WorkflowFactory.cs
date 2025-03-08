@@ -50,21 +50,20 @@ public class WorkflowFactory : IWorkflowFactory
         _definitionsByBaseId = new ReadOnlyDictionary<Guid, IWorkflowDefinition>(definitionsById);
     }
     
-    public IWorkflowMachine? TryGetStateMachine(Guid workflowBaseId) 
-        => _machinesByBaseId.GetValueOrDefault(workflowBaseId);
+    public IWorkflowMachine? TryGetStateMachine(string workflowBaseId) 
+        => _machinesByBaseId.GetValueOrDefault(new Guid(workflowBaseId));
 
     public IWorkflowDefinition? TryGetDefinition(Guid workflowBaseId) 
         => _definitionsByBaseId.GetValueOrDefault(workflowBaseId);
     
-    public async Task<string> StartWorkflowAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> StartWorkflowAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
         if (_machinesByBaseId.TryGetValue(payload.WorkflowBaseId, out IWorkflowMachine? machine))
         {
-            BaseState phase = await machine.StartAsync(payload, cancellationToken);
-            return phase.Value;
+            return await machine.StartAsync(payload, cancellationToken);
         }
 
         _logger.LogWarning("No workflow machine found for baseId: {WorkflowBaseId}", payload.WorkflowBaseId);
-        return BaseState.Invalid.Value;
+        return Result<Unit>.Failure("Workflow machine not found");
     }
 }

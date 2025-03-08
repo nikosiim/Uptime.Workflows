@@ -1,42 +1,39 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
 using Uptime.Domain.Interfaces;
+using Unit = Uptime.Domain.Common.Unit;
 
 namespace Uptime.Application.Commands;
 
-public record ModifyWorkflowCommand(ModificationContext ModificationContext) : IRequest<string>;
+public record ModifyWorkflowCommand(WorkflowId WorkflowId, ModificationPayload Payload) : IRequest<Result<Unit>>;
 
-public class ModifyWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory, ILogger<ModifyWorkflowCommand> logger)
-    : IRequestHandler<ModifyWorkflowCommand, string>
+public class ModifyWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory)
+    : IRequestHandler<ModifyWorkflowCommand, Result<Unit>>
 {
-    public async Task<string> Handle(ModifyWorkflowCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> Handle(ModifyWorkflowCommand request, CancellationToken cancellationToken)
     {
-        Workflow? workflowInstance = await dbContext.Workflows
+        if (cancellationToken.IsCancellationRequested)
+            return Result<Unit>.Cancelled();
+        
+        Workflow? workflow = await dbContext.Workflows
             .Include(w => w.WorkflowTemplate)
-            .Where(x => x.Id == request.ModificationContext.WorkflowId)
+            .Where(x => x.Id == request.WorkflowId.Value)
             .FirstOrDefaultAsync(cancellationToken: cancellationToken);
         
-        if (workflowInstance == null)
-            throw new InvalidOperationException($"Workflow with ID {request.ModificationContext.WorkflowId} not found.");
+        if (workflow == null)
+            return Result<Unit>.Failure($"Workflow with ID {request.WorkflowId.Value} not found.");
         
-        var baseId = new Guid(workflowInstance.WorkflowTemplate.WorkflowBaseId);
+        IWorkflowMachine? stateMachine = workflowFactory.TryGetStateMachine(workflow.WorkflowTemplate.WorkflowBaseId);
+        if (stateMachine == null) 
+            return Result<Unit>.Failure("Invalid workflow machine type.");
         
-        IWorkflowMachine? stateMachine = workflowFactory.TryGetStateMachine(baseId);
-        if (stateMachine is not IReplicatorActivityWorkflowMachine machine)
-        {
-            logger.LogWarning("The workflow with ID {WorkflowBaseId} does not support workflow modification.", baseId);
-            return BaseState.Invalid.Value;
-        }
+        Result<Unit> reHydrationResult = stateMachine.RehydrateAsync(workflow, cancellationToken);
+        if (!reHydrationResult.Succeeded)
+            return Result<Unit>.Failure("Workflow state-machine reHydration failed.");
         
-        if (!await machine.RehydrateAsync(workflowInstance, cancellationToken))
-        {
-            return BaseState.Invalid.Value;
-        }
-        
-        return await machine.ModifyWorkflowAsync(request.ModificationContext, cancellationToken);
+        return await stateMachine.ModifyAsync(request.Payload, cancellationToken);
     }
 }

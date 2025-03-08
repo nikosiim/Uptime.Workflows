@@ -1,8 +1,8 @@
 ﻿using Fluxor;
 using MediatR;
+using Uptime.Client.Application.Common;
 using Uptime.Client.Application.Services;
 using Uptime.Client.StateManagement.Workflow;
-using Uptime.Shared.Common;
 
 namespace Uptime.Client.Application.Commands;
 

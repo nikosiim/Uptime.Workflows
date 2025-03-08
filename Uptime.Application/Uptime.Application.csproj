@@ -24,6 +24,7 @@
     <Compile Remove="Common\ReplicatorManager.cs" />
     <Compile Remove="Common\ReplicatorPhase.cs" />
     <Compile Remove="Common\ReplicatorPhaseBuilder.cs" />
+    <Compile Remove="Common\ReplicatorPhases.cs" />
     <Compile Remove="Common\ReplicatorState.cs" />
     <Compile Remove="Common\ReplicatorWorkflowBase.cs" />
     <Compile Remove="Common\StateTransitionQueue.cs" />

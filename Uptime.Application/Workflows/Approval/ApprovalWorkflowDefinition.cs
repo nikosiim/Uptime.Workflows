@@ -31,7 +31,7 @@ public sealed class ApprovalWorkflowDefinition : IWorkflowDefinition
         [
             new PhaseActivity
             {
-                PhaseId = ReplicatorPhases.Approval,
+                PhaseId = ExtendedState.Approval.Value,
                 UpdateEnabled = true,
                 SupportsSequential = true,
                 SupportsParallel = true,
@@ -39,7 +39,7 @@ public sealed class ApprovalWorkflowDefinition : IWorkflowDefinition
             },
             new PhaseActivity
             {
-                PhaseId = ReplicatorPhases.Signing,
+                PhaseId = ExtendedState.Signing.Value,
                 UpdateEnabled = false,
                 SupportsSequential = true,
                 SupportsParallel = false,
@@ -49,17 +49,17 @@ public sealed class ApprovalWorkflowDefinition : IWorkflowDefinition
         PhaseConfigurations = new Dictionary<string, ReplicatorPhaseConfiguration>
         {
             {
-                ReplicatorPhases.Approval, new ReplicatorPhaseConfiguration
+                ExtendedState.Approval.Value, new ReplicatorPhaseConfiguration
                 {
                     ActivityData = (payload, workflowId) => payload.GetApprovalTasks(workflowId),
-                    ReplicatorType = payload => payload.GetReplicatorType(ReplicatorPhases.Approval)
+                    ReplicatorType = payload => payload.GetReplicatorType(ExtendedState.Approval.Value)
                 }
             },
             {
-                ReplicatorPhases.Signing, new ReplicatorPhaseConfiguration
+                ExtendedState.Signing.Value, new ReplicatorPhaseConfiguration
                 {
                     ActivityData = (payload, workflowId) => payload.GetSigningTasks(workflowId),
-                    ReplicatorType = payload => payload.GetReplicatorType(ReplicatorPhases.Signing)
+                    ReplicatorType = payload => payload.GetReplicatorType(ExtendedState.Signing.Value)
                 }
             }
         }

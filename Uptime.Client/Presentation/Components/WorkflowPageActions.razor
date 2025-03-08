@@ -97,17 +97,17 @@
 
     private async Task OnModifyClick(WorkflowDetails details)
     {
-        Result<ModificationContext> modificationContext = await Mediator.Send(new GetModificationContextQuery(details.Id));
-        if (!modificationContext.Succeeded)
+        WorkflowDefinition definition = WorkflowState.Value.WorkflowDefinitionsQuery.Result.Value!.First(x => x.Id == details.WorkflowBaseId);
+        if (definition.FormsConfiguration?.ModificationDialogType == null)
         {
+            Console.WriteLine($@"No modification dialog defined for workflow {definition.Name}");
             Snackbar.Add("Töövoo muutmine ebaõnnestus", Severity.Error);
             return;
         }
 
-        WorkflowDefinition definition = WorkflowState.Value.WorkflowDefinitionsQuery.Result.Value!.First(x => x.Id == details.WorkflowBaseId);
-        if (definition.FormsConfiguration?.ModificationDialogType == null)
+        Result<string?> modificationContext = await Mediator.Send(new GetModificationContextQuery(details.Id));
+        if (!modificationContext.Succeeded || string.IsNullOrWhiteSpace(modificationContext.Value))
         {
-            Console.WriteLine($@"No association dialog defined for workflow {definition.Name}");
             Snackbar.Add("Töövoo muutmine ebaõnnestus", Severity.Error);
             return;
         }
@@ -119,7 +119,6 @@
         };
 
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
-        IDialogReference dialog = await DialogService.ShowAsync(definition.FormsConfiguration!.ModificationDialogType, "Töövoo muutmine", parameters, options);
-
+        await DialogService.ShowAsync(definition.FormsConfiguration!.ModificationDialogType, "Töövoo muutmine", parameters, options);
     }
 }

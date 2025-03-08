@@ -5,45 +5,40 @@ using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
 using Uptime.Domain.Interfaces;
+using Unit = Uptime.Domain.Common.Unit;
 
 namespace Uptime.Application.Commands;
 
-public record AlterTaskCommand : IRequest<string>
+public record AlterTaskCommand : IRequest<Result<Unit>>
 {
     public TaskId TaskId { get; init; }
     public Dictionary<string, string?> Payload { get; init; } = new();
 }
 
 public class AlterTaskCommandHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory, ILogger<AlterTaskCommand> logger) 
-    : IRequestHandler<AlterTaskCommand, string>
+    : IRequestHandler<AlterTaskCommand, Result<Unit>>
 {
-    public async Task<string> Handle(AlterTaskCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> Handle(AlterTaskCommand request, CancellationToken cancellationToken)
     {
+        if (cancellationToken.IsCancellationRequested)
+            return Result<Unit>.Cancelled();
+
         WorkflowTask? workflowTask = await dbContext.WorkflowTasks
             .Include(x => x.Workflow)
             .ThenInclude(w => w.WorkflowTemplate)
             .FirstOrDefaultAsync(task => task.Id == request.TaskId.Value, cancellationToken);
 
         if (workflowTask == null)
-            throw new InvalidOperationException($"Workflow task with ID {request.TaskId.Value} not found.");
-        
-        var baseId = new Guid(workflowTask.Workflow.WorkflowTemplate.WorkflowBaseId);
-        
-        IWorkflowMachine? stateMachine = workflowFactory.TryGetStateMachine(baseId);
-        if (stateMachine is not IActivityWorkflowMachine machine)
-        {
-            logger.LogWarning("The workflow with ID {WorkflowBaseId} does not support task alterations.", baseId);
-            return BaseState.Invalid.Value;
-        }
+            return Result<Unit>.Failure($"Workflow task with ID {request.TaskId.Value} not found.");
 
-        if (!await machine.RehydrateAsync(workflowTask.Workflow, cancellationToken))
-        {
-            return BaseState.Invalid.Value;
-        }
+        IWorkflowMachine? stateMachine = workflowFactory.TryGetStateMachine(workflowTask.Workflow.WorkflowTemplate.WorkflowBaseId);
+        if (stateMachine == null) 
+            return Result<Unit>.Failure("Invalid workflow machine type.");
+      
+        Result<Unit> reHydrationResult = stateMachine.RehydrateAsync(workflowTask.Workflow, cancellationToken);
+        if (!reHydrationResult.Succeeded)
+            return Result<Unit>.Failure("Workflow state-machine reHydration failed.");
         
-        var taskContext = new WorkflowTaskContext(workflowTask);
-        await machine.AlterTaskAsync(taskContext, request.Payload, cancellationToken);
-
-        return machine.CurrentState.Value;
+        return await stateMachine.AlterTaskAsync(workflowTask, request.Payload, cancellationToken);
     }
 }

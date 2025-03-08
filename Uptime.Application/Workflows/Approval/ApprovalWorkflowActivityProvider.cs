@@ -8,13 +8,13 @@ namespace Uptime.Application.Workflows.Approval;
 
 public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository) : ReplicatorActivityProvider(repository)
 {
-    public override IWorkflowActivity CreateActivity(string phaseName, object data, WorkflowTaskContext context)
+    public override IWorkflowActivity CreateActivity(string phaseId, object data, WorkflowTaskContext context)
     {
-        if (phaseName == ReplicatorPhases.Signing)
+        if (phaseId == ExtendedState.Signing.Value)
         {
             return new SigningTaskActivity(Repository, context)
             {
-                TaskData = data.DeserializeTaskData<SigningTaskData>()
+                TaskData = data.DeserializeTaskData<SigningTaskData>() // TODO: kas see on õige?
             };
         }
 
@@ -24,36 +24,27 @@ public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository) : 
         };
     }
 
-    public override void OnChildInitialized(string phaseName, object data, IWorkflowActivity activity)
+    public override void OnChildInitialized(string phaseId, object data, IWorkflowActivity activity)
     {
-        if (phaseName == ReplicatorPhases.Approval)
+        if (phaseId == ExtendedState.Approval.Value)
         {
-            var taskData = data.DeserializeTaskData<ApprovalTaskData>();
-            Console.WriteLine($"Approval task initialized for {taskData.AssignedTo}");
+            // var taskData = data.DeserializeTaskData<ApprovalTaskData>();
         }
-        else if (phaseName == ReplicatorPhases.Signing)
+        else if (phaseId == ExtendedState.Signing.Value)
         {
-            var taskData = data.DeserializeTaskData<SigningTaskData>();
-            Console.WriteLine($"Signing task initialized for {taskData.AssignedTo}");
+            // var taskData = data.DeserializeTaskData<SigningTaskData>();
         }
     }
 
-    public override void OnChildCompleted<TContext>(string phaseName, UserTaskActivity activity, TContext workflowContext)
+    public override void OnChildCompleted<TContext>(string phaseId, UserTaskActivity activity, TContext workflowContext)
     {
-        switch (phaseName)
+        if (phaseId == ExtendedState.Approval.Value)
         {
-            case ReplicatorPhases.Approval:
-                HandleApprovalPhaseChildCompleted((ApprovalTaskActivity)activity, workflowContext);
-                break;
-
-            case ReplicatorPhases.Signing:
-                HandleSigningPhaseChildCompleted((SigningTaskActivity)activity, workflowContext);
-                break;
-
-            default:
-                // If you expect more phases in the future, handle them here 
-                // or do nothing if it's safe to ignore unknown phases.
-                break;
+            HandleApprovalPhaseChildCompleted((ApprovalTaskActivity)activity, workflowContext);
+        }
+        else if (phaseId == ExtendedState.Signing.Value)
+        {
+            HandleSigningPhaseChildCompleted((SigningTaskActivity)activity, workflowContext);
         }
     }
 
@@ -66,7 +57,7 @@ public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository) : 
                 ApprovalTaskData data = ApprovalTaskData.Copy(activity.TaskData!);
                 data.AssignedTo = activity.Context.Storage.GetValueOrDefault(TaskStorageKeys.TaskDelegatedTo)!;
 
-                approvalContext.ReplicatorStates.InsertItemAfter(ReplicatorPhases.Approval, activity.Context.TaskGuid, new ReplicatorItem { Data = data });
+                approvalContext.ReplicatorStates.InsertItemAfter(ExtendedState.Approval.Value, activity.Context.TaskGuid, new ReplicatorItem { Data = data });
             }
             else if (activity.IsTaskRejected)
             {

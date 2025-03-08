@@ -1,6 +1,5 @@
 ﻿using Uptime.Client.Application.DTOs;
 using Uptime.Client.StateManagement.Workflow;
-using Uptime.Shared.Common;
 
 namespace Uptime.Client.Application.Common;
 

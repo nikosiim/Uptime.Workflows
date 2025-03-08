@@ -1,11 +1,43 @@
 ﻿using System.Net.Http.Json;
-using Uptime.Shared.Common;
+using Uptime.Client.Application.Common;
 
 namespace Uptime.Client.Application.Services;
 
 public class ApiService(IHttpClientFactory httpClientFactory, CancellationTokenSource globalCancellationTokenSource) : IApiService
 {
     private readonly HttpClient _httpClient = httpClientFactory.CreateClient(ApiRoutes.WorkflowApiClient);
+
+    public async Task<Result<string?>> ReadAsRawStringAsync(string url, CancellationToken? token = null)
+    {
+        CancellationToken linkedToken = GetLinkedCancellationToken(token);
+
+        try
+        {
+            using HttpResponseMessage response = await _httpClient.GetAsync(url, linkedToken);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string errorMessage = await response.Content.ReadAsStringAsync(linkedToken);
+                return Result<string?>.Failure($"Error {response.StatusCode}: {errorMessage}");
+            }
+
+            // Read the content as a raw string, do not parse as JSON here
+            var rawContent = await response.Content.ReadAsStringAsync(linkedToken);
+            return Result<string?>.Success(rawContent);
+        }
+        catch (OperationCanceledException)
+        {
+            return Result<string?>.Cancelled();
+        }
+        catch (HttpRequestException ex)
+        {
+            return Result<string?>.Failure($"Request failed: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            return Result<string?>.Failure($"Unexpected error: {ex.Message}");
+        }
+    }
    
     public async Task<Result<T>> ReadFromJsonAsync<T>(string url, CancellationToken? token = null)
     {

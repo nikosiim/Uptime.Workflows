@@ -9,35 +9,12 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
     IStateMachineFactory<BaseState, WorkflowTrigger> stateMachineFactory,
     IWorkflowRepository repository,
     ILogger<WorkflowBase<TContext>> logger)
-    : ActivityWorkflowBase<TContext>(stateMachineFactory, repository, logger), IReplicatorActivityWorkflowMachine
+    : ActivityWorkflowBase<TContext>(stateMachineFactory, repository, logger)
     where TContext : class, IReplicatorWorkflowContext, new()
 {
     private ReplicatorManager? _replicatorManager;
 
     protected abstract IReplicatorActivityProvider ActivityProvider { get; }
-    
-    public ModificationContext? GetModificationContext(string phaseId)
-    {
-        if (!WorkflowContext.ReplicatorStates.TryGetValue(phaseId, out ReplicatorState? replicatorState))
-        {
-            logger.LogWarning("Workflow {WorkflowId} Replicator phase not found {phaseId}", WorkflowId, phaseId);
-            return null;
-        }
-
-        if (replicatorState.ReplicatorType == ReplicatorType.Parallel)
-        {
-            logger.LogWarning("Workflow {WorkflowId} update not allowed for parallel workflows", WorkflowId);
-            return null;
-        }
-
-        if (replicatorState.Items.All(item => item.Status is not (ReplicatorItemStatus.NotStarted or ReplicatorItemStatus.InProgress)))
-        {
-            logger.LogWarning("Workflow {WorkflowId} update not allowed in this phase", WorkflowId);
-            return null;
-        }
-        
-        return WorkflowModification(phaseId, replicatorState);
-    }
     
     protected virtual IReplicatorPhaseBuilder CreateReplicatorPhaseBuilder()
     {
@@ -62,55 +39,53 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
         InitializeReplicatorManagerAsync(cancellationToken);
     }
 
-    protected override Task<bool> OnWorkflowModifiedAsync(ModificationContext modificationContext, CancellationToken cancellationToken)
+    protected override string OnWorkflowModification()
     {
-        if (WorkflowId.Value != modificationContext.WorkflowId || !WorkflowContext.ReplicatorStates.ContainsKey(modificationContext.PhaseId))
+        var modificationContext = string.Empty;
+
+        if (!WorkflowContext.ReplicatorStates.TryGetValue(Machine.CurrentState.Value, out ReplicatorState? replicatorState))
         {
-            throw new InvalidOperationException("Modification context does not match the current workflow state.");
+            logger.LogWarning("Workflow {WorkflowId} Replicator phase not found {phaseId}", WorkflowId, Machine.CurrentState.Value);
+            return modificationContext;
         }
 
-        if (!WorkflowContext.ReplicatorStates.TryGetValue(modificationContext.PhaseId, out ReplicatorState? replicatorState))
+        if (replicatorState.ReplicatorType == ReplicatorType.Parallel)
         {
-            return Task.FromResult(false);
+            logger.LogWarning("Workflow {WorkflowId} update not allowed for parallel workflows", WorkflowId);
+            return modificationContext;
         }
 
-        bool result = OnReplicatorWorkflowModified(replicatorState, modificationContext);
+        if (!replicatorState.HasActiveItems)
+        {
+            logger.LogWarning("Workflow {WorkflowId} update not allowed in this phase", WorkflowId);
+            return modificationContext;
+        }
 
-        return Task.FromResult(result);
+        return modificationContext;
     }
     
-    protected override async Task OnTaskChangedAsync(WorkflowTaskContext storedTaskContext, Dictionary<string, string?> alterTaskPayload, CancellationToken cancellationToken)
+    protected override async Task OnTaskChangedAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
     {
-        if (CreateChildActivity(storedTaskContext) is not { } taskActivity)
+        if (CreateChildActivity(context) is not { } taskActivity)
         {
-            throw new InvalidOperationException($"Task {storedTaskContext.TaskId} is not a user-interrupting activity.");
+            throw new InvalidOperationException($"Task {context.TaskId} is not a user-interrupting activity.");
         }
 
         if (!taskActivity.IsCompleted)
         {
-            await taskActivity.ChangedTaskAsync(alterTaskPayload, cancellationToken);
+            await taskActivity.ChangedTaskAsync(payload, cancellationToken);
             
-            string? phase = WorkflowContext.ReplicatorStates.FindPhase(storedTaskContext.TaskGuid);
+            string? phase = WorkflowContext.ReplicatorStates.FindPhase(context.TaskGuid);
 
             if (taskActivity.IsCompleted && !string.IsNullOrWhiteSpace(phase))
             {
                 ActivityProvider.OnChildCompleted(phase, taskActivity, WorkflowContext);
 
-                UpdateWorkflowContextReplicatorState(storedTaskContext.TaskGuid, ReplicatorItemStatus.Completed);
+                UpdateWorkflowContextReplicatorState(context.TaskGuid, ReplicatorItemStatus.Completed);
 
                 await RunReplicatorAsync(phase, cancellationToken);
             }
         }
-    }
-
-    protected virtual ModificationContext? WorkflowModification(string phaseId, ReplicatorState replicatorState)
-    {
-        return null;
-    }
-
-    protected virtual bool OnReplicatorWorkflowModified(ReplicatorState replicatorState, ModificationContext modificationContext)
-    {
-        return false;
     }
     
     protected virtual UserTaskActivity? CreateChildActivity(WorkflowTaskContext context)

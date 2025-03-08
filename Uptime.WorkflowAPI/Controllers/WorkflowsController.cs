@@ -5,6 +5,7 @@ using Uptime.Application.DTOs;
 using Uptime.Application.Queries;
 using Uptime.Domain.Common;
 using Uptime.Shared.Models.Workflows;
+using Unit = Uptime.Domain.Common.Unit;
 using WorkflowTaskStatus = Uptime.Shared.Enums.WorkflowTaskStatus;
 
 namespace Uptime.WorkflowAPI.Controllers;
@@ -59,36 +60,45 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     }
     
     [HttpGet("{workflowId:int}/workflow-context")]
-    public async Task<ActionResult<ModificationContextResponse>> GetWorkflowContext(int workflowId)
+    public async Task<ActionResult<string>> GetModificationContext(int workflowId)
     {
-        var cmd = new GetModificationDataQuery((WorkflowId)workflowId);
-        ModificationContext? data = await mediator.Send(cmd);
+        var query = new GetModificationContextQuery((WorkflowId)workflowId);
+        Result<string> result = await mediator.Send(query);
 
-        if (data == null)
+        if (!result.Succeeded)
         {
-            return BadRequest("Failed to get data.");
+            return BadRequest(result.Error);
         }
 
-        return Ok(Mapper.MapToModificationContextResponse(data));
+        return Ok(result.Value);
     }
     
     [HttpPost("start-workflow")]
-    public async Task<ActionResult<Task>> StartWorkflow([FromBody] StartWorkflowRequest request)
+    public async Task<ActionResult> StartWorkflow([FromBody] StartWorkflowRequest request)
     {
         StartWorkflowCommand cmd = Mapper.MapToStartWorkflowCommand(request);
-        string phase = await mediator.Send(cmd);
+        Result<Unit> result = await mediator.Send(cmd);
 
-        if (phase == BaseState.Invalid.Value)
-            return BadRequest("Failed to start workflow.");
+        if (!result.Succeeded)
+        {
+            return BadRequest(result.Error);
+        }
 
-        return Ok();
+        return NoContent();
     }
 
     [HttpPost("{workflowId:int}/modify-workflow")]
     public async Task<ActionResult> ModifyWorkflow(int workflowId, [FromBody] ModifyWorkflowRequest request)
     {
-        var cmd = new ModifyWorkflowCommand(Mapper.MapToModificationContext(request));
-        await mediator.Send(cmd);
+        ModificationPayload payload = Mapper.MapToModificationPayload(request);
+
+        var cmd = new ModifyWorkflowCommand((WorkflowId)workflowId, payload);
+        Result<Unit> result = await mediator.Send(cmd);
+
+        if (!result.Succeeded)
+        {
+            return BadRequest(result.Error);
+        }
 
         return NoContent();
     }
@@ -97,7 +107,12 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     public async Task<ActionResult> CancelWorkflow(int workflowId, [FromBody] CancelWorkflowRequest request)
     {
         var cmd = new CancelWorkflowCommand((WorkflowId)workflowId, request.Executor, request.Comment);
-        await mediator.Send(cmd);
+        Result<Unit> result = await mediator.Send(cmd);
+
+        if (!result.Succeeded)
+        {
+            return BadRequest(result.Error);
+        }
 
         return NoContent();
     }
