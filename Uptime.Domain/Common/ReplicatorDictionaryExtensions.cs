@@ -67,11 +67,11 @@ public static class ReplicatorDictionaryExtensions
     /// the item whose TaskGuid is <paramref name="existingTaskGuid"/>.
     /// If the existing task is not found, the new item is simply appended.
     /// </summary>
-    public static void InsertItemAfter(this IDictionary<string, ReplicatorState> states, string phaseName, Guid existingTaskGuid, ReplicatorItem newItem)
+    public static void InsertItemAfter(this IDictionary<string, ReplicatorState> states, string phaseId, Guid existingTaskGuid, ReplicatorItem newItem)
     {
-        if (!states.TryGetValue(phaseName, out ReplicatorState? state))
+        if (!states.TryGetValue(phaseId, out ReplicatorState? state))
         {
-            throw new ArgumentException($"Phase '{phaseName}' not found in replicator states.", nameof(phaseName));
+            throw new ArgumentException($"Phase '{phaseId}' not found in replicator states.", nameof(phaseId));
         }
 
         int idx = state.Items.FindIndex(i => i.TaskGuid == existingTaskGuid);

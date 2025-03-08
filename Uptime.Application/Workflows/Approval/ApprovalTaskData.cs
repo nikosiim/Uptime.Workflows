@@ -5,12 +5,12 @@ namespace Uptime.Application.Workflows.Approval;
 
 public sealed class ApprovalTaskData : UserTaskActivityData
 {
-    public static ApprovalTaskData Copy(IUserTaskActivityData source)
+    public static ApprovalTaskData Copy(IUserTaskActivityData source, string assignedTo)
     {
         return new ApprovalTaskData
         {
             AssignedBy = source.AssignedBy,
-            AssignedTo = source.AssignedTo,
+            AssignedTo = assignedTo,
             TaskDescription = source.TaskDescription,
             DueDate = source.DueDate
         };

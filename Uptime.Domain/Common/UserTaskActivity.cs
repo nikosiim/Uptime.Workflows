@@ -15,8 +15,6 @@ public abstract class UserTaskActivity(IWorkflowRepository repository, WorkflowT
     
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        Context.TaskGuid = Guid.NewGuid();
-
         InitializeContext();
         OnExecuteTask();
 

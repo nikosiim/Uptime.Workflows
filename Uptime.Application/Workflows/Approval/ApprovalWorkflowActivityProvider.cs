@@ -8,9 +8,9 @@ namespace Uptime.Application.Workflows.Approval;
 
 public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository) : ReplicatorActivityProvider(repository)
 {
-    public override IWorkflowActivity CreateActivity(string phaseId, object data, WorkflowTaskContext context)
+    public override IWorkflowActivity CreateActivity(WorkflowTaskContext context, object data)
     {
-        if (phaseId == ExtendedState.Signing.Value)
+        if (context.PhaseId == ExtendedState.Signing.Value)
         {
             return new SigningTaskActivity(Repository, context)
             {
@@ -54,10 +54,11 @@ public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository) : 
         {
             if (activity.IsTaskDelegated)
             {
-                ApprovalTaskData data = ApprovalTaskData.Copy(activity.TaskData!);
-                data.AssignedTo = activity.Context.Storage.GetValueOrDefault(TaskStorageKeys.TaskDelegatedTo)!;
+                string assignedTo = activity.Context.Storage.GetValueOrDefault(TaskStorageKeys.TaskDelegatedTo)!;
+                ApprovalTaskData data = ApprovalTaskData.Copy(activity.TaskData!, assignedTo);
 
-                approvalContext.ReplicatorStates.InsertItemAfter(ExtendedState.Approval.Value, activity.Context.TaskGuid, new ReplicatorItem { Data = data });
+                Guid existingTaskGuid = activity.Context.TaskGuid;
+                approvalContext.ReplicatorStates.InsertItemAfter(ExtendedState.Approval.Value, existingTaskGuid, new ReplicatorItem(Guid.NewGuid(), data));
             }
             else if (activity.IsTaskRejected)
             {

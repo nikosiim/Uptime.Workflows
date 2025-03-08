@@ -32,7 +32,7 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
             phase => new ReplicatorState
             {
                 ReplicatorType = phase.Type,
-                Items = phase.TaskData.Select(data => new ReplicatorItem { Data = data }).ToList()
+                Items = phase.TaskData.Select(data => new ReplicatorItem(Guid.NewGuid(), data) ).ToList()
             }
         );
 
@@ -90,10 +90,10 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
     
     protected virtual UserTaskActivity? CreateChildActivity(WorkflowTaskContext context)
     {
-        ReplicatorItem? item = WorkflowContext.ReplicatorStates.FindReplicatorItem(context.TaskGuid, out string? phase);
+        ReplicatorItem? item = WorkflowContext.ReplicatorStates.FindReplicatorItem(context.TaskGuid);
         if (item != null)
         {
-            return ActivityProvider.CreateActivity(phase!, item.Data, context) as UserTaskActivity;
+            return ActivityProvider.CreateActivity(context, item.Data) as UserTaskActivity;
         }
 
         return null;

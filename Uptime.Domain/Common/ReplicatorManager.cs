@@ -22,7 +22,7 @@ public class ReplicatorManager(WorkflowId workflowId, IReplicatorActivityProvide
             {
                 Type = state.ReplicatorType,
                 Items = state.Items.Where(item => item.Status is ReplicatorItemStatus.NotStarted or ReplicatorItemStatus.InProgress).ToList(),
-                ChildActivity = data => activityProvider.CreateActivity(phaseId, data, new WorkflowTaskContext(workflowId, phaseId)),
+                ChildActivity = item => activityProvider.CreateActivity(new WorkflowTaskContext(workflowId, item.TaskGuid, phaseId), item.Data),
                 OnChildInitialized = (data, activity) => activityProvider.OnChildInitialized(phaseId, data, activity),
                 OnAllTasksCompleted = async () => await workflowMachine.TriggerTransitionAsync(WorkflowTrigger.AllTasksCompleted, cancellationToken)
             };

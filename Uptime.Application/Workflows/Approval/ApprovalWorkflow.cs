@@ -93,15 +93,19 @@ public class ApprovalWorkflow(
 
         replicatorState.Items.RemoveAll(item => item.Status == ReplicatorItemStatus.NotStarted);
         
-        foreach (ApprovalTask tasks in context.ApprovalTasks)
+        foreach (ApprovalTask task in context.ApprovalTasks)
         {
-            if (tasks.AssignedTo != currentTaskData.AssignedTo)
-            {
-                ApprovalTaskData newTaskData = ApprovalTaskData.Copy(currentTaskData);
-                newTaskData.AssignedTo = tasks.AssignedTo;
+            if (task.AssignedTo == currentTaskData.AssignedTo) continue;
+            
+            ApprovalTaskData data = ApprovalTaskData.Copy(currentTaskData, task.AssignedTo);
 
-                replicatorState.Items.Add(new ReplicatorItem { Data = newTaskData, Status = ReplicatorItemStatus.NotStarted });
+            Guid taskGuid = Guid.Parse(task.TaskGuid);
+            if (taskGuid.Equals(Guid.Empty))
+            {
+                taskGuid = Guid.NewGuid();
             }
+
+            replicatorState.Items.Add(new ReplicatorItem(taskGuid, data));
         }
 
         return Task.FromResult(true);

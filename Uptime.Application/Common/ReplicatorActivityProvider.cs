@@ -7,7 +7,7 @@ public abstract class ReplicatorActivityProvider(IWorkflowRepository repository)
 {
     protected readonly IWorkflowRepository Repository = repository;
 
-    public abstract IWorkflowActivity CreateActivity(string phaseId, object data, WorkflowTaskContext context);
+    public abstract IWorkflowActivity CreateActivity(WorkflowTaskContext context, object data);
 
     public virtual void OnChildInitialized(string phaseId, object data, IWorkflowActivity activity)
     {

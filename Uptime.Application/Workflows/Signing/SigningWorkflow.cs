@@ -87,7 +87,7 @@ public class SigningWorkflow(
         }
 
         SigningTaskData taskData = WorkflowContext.SigningTask!;
-        var taskActivity = new SigningTaskActivity(_repository, new WorkflowTaskContext(WorkflowId))
+        var taskActivity = new SigningTaskActivity(_repository, new WorkflowTaskContext(WorkflowId, Guid.NewGuid()))
         {
             TaskData = taskData
         };
