@@ -1,11 +1,12 @@
 ﻿@page "/workflow/{workflowId:int}"
 @inject IDispatcher Dispatcher
+@inject NavigationManager Navigation
 
 <MudPaper Elevation="1" Outlined="true" Class="pa-4 mb-6">
     <WorkflowPageDetails />
 </MudPaper>
 <MudPaper Elevation="2" Outlined="true" Class="pa-4 my-6">
-    <WorkflowPageActions PageUpdated="HandlePageUpdate" />
+    <WorkflowPageActions WorkflowUpdated="HandleWorkflowUpdate" WorkflowDeleted="HandleWorkflowDelete" />
 </MudPaper>
 <MudPaper Elevation="1" Outlined="true" Class="pa-4 my-6">
     <WorkflowPageTasks />
@@ -24,9 +25,14 @@
         LoadWorkflowDetails();
     }
 
-    private void HandlePageUpdate()
+    private void HandleWorkflowUpdate()
     {
         LoadWorkflowDetails();
+    }
+
+    private void HandleWorkflowDelete()
+    {
+        Navigation.NavigateTo("/contracts");
     }
 
     private void LoadWorkflowDetails()

@@ -39,61 +39,10 @@
             : null;
 
     [Parameter] 
-    public EventCallback PageUpdated { get; set; }
-    
-    private async Task OnCancelClick(int workflowId)
-    {
-        var parameters = new DialogParameters<CommentDialog>
-        {
-            { x => x.ButtonText, "Katkesta töövoog" }
-        };
+    public EventCallback WorkflowUpdated { get; set; }
 
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
-
-        IDialogReference dialog = await DialogService.ShowAsync<CommentDialog>("Töövoo katkestamine", parameters, options);
-        DialogResult? dialogResult = await dialog.Result;
-
-        if (dialogResult is { Canceled: false, Data: string comment })
-        {
-            var command = new CancelWorkflowCommand(workflowId, $"Töövoog tühistatud kommentaariga: {comment}");
-
-            Result<bool> result = await Mediator.Send(command);
-            if (!result.Succeeded)
-            {
-                Snackbar.Add("Töövoo katkestamine ebaõnnestus", Severity.Error);
-                return;
-              
-            }
-            await PageUpdated.InvokeAsync();
-        }
-    }
-
-    private async Task OnDeleteClick(int workflowId)
-    {
-        var parameters = new DialogParameters<ConfirmationDialog>
-        {
-            { x => x.ContentText, "Oled kindel, et soovid antud töövoo kustutada?" },
-            { x => x.ButtonText, "Jah" },
-            { x => x.Color, Color.Warning }
-        };
-
-        IDialogReference dialog = await DialogService.ShowAsync<ConfirmationDialog>("Töövoo kustutamine", parameters);
-        DialogResult? dialogResult = await dialog.Result;
-
-        if (dialogResult is { Canceled: false })
-        {
-            var command = new DeleteWorkflowCommand(workflowId);
-
-            Result<bool> result = await Mediator.Send(command);
-            if (!result.Succeeded)
-            {
-                Snackbar.Add("Töövoo katkestamine ebaõnnestus", Severity.Error);
-                return;
-              
-            }
-            await PageUpdated.InvokeAsync();
-        }
-    }
+    [Parameter] 
+    public EventCallback WorkflowDeleted { get; set; }
 
     private async Task OnModifyClick(WorkflowDetails details)
     {
@@ -120,5 +69,59 @@
 
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
         await DialogService.ShowAsync(definition.FormsConfiguration!.ModificationDialogType, "Töövoo muutmine", parameters, options);
+    }
+    
+    private async Task OnCancelClick(int workflowId)
+    {
+        var parameters = new DialogParameters<CommentDialog>
+        {
+            { x => x.ButtonText, "Katkesta töövoog" }
+        };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+        IDialogReference dialog = await DialogService.ShowAsync<CommentDialog>("Töövoo katkestamine", parameters, options);
+        DialogResult? dialogResult = await dialog.Result;
+
+        if (dialogResult is { Canceled: false, Data: string comment })
+        {
+            var command = new CancelWorkflowCommand(workflowId, $"Töövoog tühistatud kommentaariga: {comment}");
+
+            Result<bool> result = await Mediator.Send(command);
+            if (!result.Succeeded)
+            {
+                Snackbar.Add("Töövoo katkestamine ebaõnnestus", Severity.Error);
+                return;
+              
+            }
+            await WorkflowUpdated.InvokeAsync();
+        }
+    }
+
+    private async Task OnDeleteClick(int workflowId)
+    {
+        var parameters = new DialogParameters<ConfirmationDialog>
+        {
+            { x => x.ContentText, "Oled kindel, et soovid antud töövoo kustutada?" },
+            { x => x.ButtonText, "Jah" },
+            { x => x.Color, Color.Warning }
+        };
+
+        IDialogReference dialog = await DialogService.ShowAsync<ConfirmationDialog>("Töövoo kustutamine", parameters);
+        DialogResult? dialogResult = await dialog.Result;
+
+        if (dialogResult is { Canceled: false })
+        {
+            var command = new DeleteWorkflowCommand(workflowId);
+
+            Result<bool> result = await Mediator.Send(command);
+            if (!result.Succeeded)
+            {
+                Snackbar.Add("Töövoo katkestamine ebaõnnestus", Severity.Error);
+                return;
+              
+            }
+            await WorkflowDeleted.InvokeAsync();
+        }
     }
 }

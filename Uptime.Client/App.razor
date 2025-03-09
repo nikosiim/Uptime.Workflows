@@ -1,5 +1,8 @@
 ﻿<Fluxor.Blazor.Web.StoreInitializer />
 
+@inject IState<WorkflowState> WorkflowState
+@inject IDispatcher Dispatcher
+
 <Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
@@ -12,3 +15,16 @@
         </LayoutView>
     </NotFound>
 </Router>
+
+@code
+{
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        if (WorkflowState.Value.WorkflowDefinitionsQuery.Status == QueryStatus.Uninitialized)
+        {
+            Dispatcher.Dispatch(new LoadWorkflowDefinitionsAction());
+        }
+    }
+}

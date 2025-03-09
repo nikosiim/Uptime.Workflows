@@ -21,7 +21,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
                 "https://localhost:7142",
                 "https://uptimeworkflowsweb-ddcab3gybvcbg6a8.northeurope-01.azurewebsites.net",
-                "https://uptimeworkflows.azurewebsites.net" // added missing origin
+                "https://uptimeworkflows.azurewebsites.net"
             )
             .AllowAnyMethod()
             .AllowAnyHeader();
