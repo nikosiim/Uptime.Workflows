@@ -19,7 +19,7 @@ public sealed class SigningWorkflowDefinition : IWorkflowDefinition
             Id = Id,
             Name = Name,
             DisplayName = DisplayName,
-            Actions = [ButtonAction.Signing]
+            Actions = [ButtonAction.Signing, ButtonAction.Rejection]
         };
     }
 

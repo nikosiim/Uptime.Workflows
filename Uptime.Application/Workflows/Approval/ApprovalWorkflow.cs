@@ -113,7 +113,7 @@ public class ApprovalWorkflow(
 
     protected override Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)
     {
-        WorkflowContext.Outcome = ExtendedOutcome.Approved;
+        WorkflowContext.Outcome = WorkflowContext.AnyTaskRejected ? ExtendedOutcome.Rejected : ExtendedOutcome.Approved;
         WorkflowCompletedHistoryDescription = $"{AssociationName} on lõpetatud.";
 
         return Task.CompletedTask;

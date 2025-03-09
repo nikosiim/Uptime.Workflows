@@ -17,9 +17,11 @@ public class SigningWorkflow(
 {
     private readonly IWorkflowRepository _repository = repository;
 
+    public bool IsTaskRejected { get; private set; }
+
     protected string? AssociationName => WorkflowContext.Storage.GetValueOrDefault(GlobalConstants.WorkflowStorageKeys.AssociationName);
 
-    protected override IWorkflowDefinition WorkflowDefinition => throw new NotImplementedException();
+    protected override IWorkflowDefinition WorkflowDefinition => new SigningWorkflowDefinition();
 
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {
@@ -64,6 +66,8 @@ public class SigningWorkflow(
 
         await taskActivity.ChangedTaskAsync(payload, cancellationToken);
 
+        IsTaskRejected = taskActivity.IsTaskRejected;
+
         if (taskActivity.IsCompleted)
         {
             await TriggerTransitionAsync(WorkflowTrigger.TaskCompleted, cancellationToken);
@@ -72,7 +76,7 @@ public class SigningWorkflow(
 
     protected override Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)
     {
-        WorkflowContext.Outcome = ExtendedOutcome.Signed;
+        WorkflowContext.Outcome = IsTaskRejected ? ExtendedOutcome.Rejected : ExtendedOutcome.Signed;
         WorkflowCompletedHistoryDescription = $"{AssociationName} on lõpetatud.";
 
         return Task.CompletedTask;
@@ -97,6 +101,5 @@ public class SigningWorkflow(
     
     private static void OnSigningTaskCompleted()
     {
-  
     }
 }

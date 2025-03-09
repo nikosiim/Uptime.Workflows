@@ -70,6 +70,9 @@ public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository) : 
 
     private static void HandleSigningPhaseChildCompleted<TContext>(SigningTaskActivity activity, TContext workflowContext)
     {
-        
+        if (workflowContext is ApprovalWorkflowContext approvalContext && activity.IsTaskRejected)
+        {
+            approvalContext.AnyTaskRejected = true;
+        }
     }
 }

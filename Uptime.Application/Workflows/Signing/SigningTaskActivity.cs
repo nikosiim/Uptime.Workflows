@@ -12,6 +12,8 @@ public class SigningTaskActivity(IWorkflowRepository repository, WorkflowTaskCon
     private readonly IWorkflowRepository _repository = repository;
     private string? AssociationName => Context.Storage.GetValueOrDefault(WorkflowStorageKeys.AssociationName);
 
+    public bool IsTaskRejected { get; private set; }
+
     protected override void OnExecuteTask()
     {
         if (TaskData is null) return;
@@ -35,6 +37,7 @@ public class SigningTaskActivity(IWorkflowRepository repository, WorkflowTaskCon
             switch (workflowEvent)
             {
                 case WorkflowEventType.TaskRejected:
+                    IsTaskRejected = true;
                     outcome = "Tagasilükatud";
                     description = $"Kasutaja {TaskData?.AssignedTo} on tööülesande {AssociationName} tagasilükanud.";
                     break;

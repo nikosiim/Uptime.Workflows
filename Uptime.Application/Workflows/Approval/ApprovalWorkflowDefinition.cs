@@ -43,7 +43,7 @@ public sealed class ApprovalWorkflowDefinition : IWorkflowDefinition
                 UpdateEnabled = false,
                 SupportsSequential = true,
                 SupportsParallel = false,
-                Actions = [ButtonAction.Signing]
+                Actions = [ButtonAction.Signing, ButtonAction.Rejection]
             }
         ],
         PhaseConfigurations = new Dictionary<string, ReplicatorPhaseConfiguration>
