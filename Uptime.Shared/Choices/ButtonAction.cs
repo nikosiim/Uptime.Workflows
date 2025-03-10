@@ -1,6 +1,6 @@
 ﻿namespace Uptime.Shared.Choices
 {
-    public class ButtonAction
+    public static class ButtonAction
     {
         public const string Signing = "Signing";
         public const string Approval = "Approval";

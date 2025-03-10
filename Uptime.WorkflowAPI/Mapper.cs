@@ -13,14 +13,14 @@ public static class Mapper
 {
     #region Enums
 
-    public static Shared.Enums.WorkflowTaskStatus ToShared(this Domain.Enums.WorkflowTaskStatus status)
-    {
-        return (Shared.Enums.WorkflowTaskStatus)status;
-    }
-
     public static Domain.Enums.WorkflowTaskStatus? ToDomain(this Shared.Enums.WorkflowTaskStatus? status)
     {
         return status != null ? (Domain.Enums.WorkflowTaskStatus)status : null;
+    }
+
+    public static Shared.Enums.WorkflowTaskStatus ToShared(this Domain.Enums.WorkflowTaskStatus status)
+    {
+        return (Shared.Enums.WorkflowTaskStatus)status;
     }
 
     public static Shared.Enums.WorkflowEventType ToShared(this Domain.Enums.WorkflowEventType eventType)

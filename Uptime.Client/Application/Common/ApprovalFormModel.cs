@@ -12,5 +12,3 @@ public class ApprovalFormModel : IWorkflowFormModel
     public IEnumerable<string> AssignedTo { get; set; } = [];
     public string? Signer { get; set; }
 }
-
-public sealed class ApprovalInitFormModel : ApprovalFormModel;

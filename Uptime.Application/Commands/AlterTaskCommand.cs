@@ -15,7 +15,7 @@ public record AlterTaskCommand : IRequest<Result<Unit>>
     public Dictionary<string, string?> Payload { get; init; } = new();
 }
 
-public class AlterTaskCommandHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory, ILogger<AlterTaskCommand> logger) 
+public class AlterTaskCommandHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory) 
     : IRequestHandler<AlterTaskCommand, Result<Unit>>
 {
     public async Task<Result<Unit>> Handle(AlterTaskCommand request, CancellationToken cancellationToken)

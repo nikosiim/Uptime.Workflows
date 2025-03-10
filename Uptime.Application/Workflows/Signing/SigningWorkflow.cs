@@ -45,9 +45,9 @@ public class SigningWorkflow(
             string? taskDescription = payload.Storage.GetValue(GlobalConstants.TaskStorageKeys.TaskDescription);
             string? dueDays = payload.Storage.GetValue(GlobalConstants.TaskStorageKeys.TaskDueDays);
 
-            int.TryParse(dueDays, out int days);
+            _ = int.TryParse(dueDays, out int days);
 
-            WorkflowContext.SigningTask = new SigningTaskData
+            WorkflowContext.SigningTask = new UserTaskActivityData
             {
                 AssignedBy = payload.Originator,
                 AssignedTo = signer,
@@ -57,9 +57,9 @@ public class SigningWorkflow(
         }             
     }
 
-    protected override async Task OnTaskChangedAsync(WorkflowTaskContext taskContext, Dictionary<string, string?> payload, CancellationToken cancellationToken)
+    protected override async Task OnTaskChangedAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
     {
-        var taskActivity = new SigningTaskActivity(_repository, taskContext)
+        var taskActivity = new SigningTaskActivity(_repository, context)
         {
             TaskData = WorkflowContext.SigningTask
         };
@@ -86,11 +86,11 @@ public class SigningWorkflow(
     {
         if (WorkflowContext.SigningTask == null)
         {
-            await TriggerTransitionAsync(WorkflowTrigger.TaskCompleted, cancellationToken); // TODO: complete task but workflow outcome should be invalid or something
+            await TriggerTransitionAsync(WorkflowTrigger.TaskCompleted, cancellationToken);
             return;
         }
 
-        SigningTaskData taskData = WorkflowContext.SigningTask!;
+        UserTaskActivityData taskData = WorkflowContext.SigningTask!;
         var taskActivity = new SigningTaskActivity(_repository, new WorkflowTaskContext(WorkflowId, Guid.NewGuid()))
         {
             TaskData = taskData
@@ -101,5 +101,6 @@ public class SigningWorkflow(
     
     private static void OnSigningTaskCompleted()
     {
+        // TODO: implement email sending activity
     }
 }

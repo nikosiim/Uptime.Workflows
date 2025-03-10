@@ -13,6 +13,7 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
     where TContext : class, IReplicatorWorkflowContext, new()
 {
     private ReplicatorManager? _replicatorManager;
+    private readonly ILogger<WorkflowBase<TContext>> _logger = logger;
 
     protected abstract IReplicatorActivityProvider ActivityProvider { get; }
     
@@ -45,19 +46,19 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
 
         if (!WorkflowContext.ReplicatorStates.TryGetValue(Machine.CurrentState.Value, out ReplicatorState? replicatorState))
         {
-            logger.LogWarning("Workflow {WorkflowId} Replicator phase not found {phaseId}", WorkflowId, Machine.CurrentState.Value);
+            _logger.LogWarning("Workflow {WorkflowId} Replicator phase not found {phaseId}", WorkflowId, Machine.CurrentState.Value);
             return modificationContext;
         }
 
         if (replicatorState.ReplicatorType == ReplicatorType.Parallel)
         {
-            logger.LogWarning("Workflow {WorkflowId} update not allowed for parallel workflows", WorkflowId);
+            _logger.LogWarning("Workflow {WorkflowId} update not allowed for parallel workflows", WorkflowId);
             return modificationContext;
         }
 
         if (!replicatorState.HasActiveItems)
         {
-            logger.LogWarning("Workflow {WorkflowId} update not allowed in this phase", WorkflowId);
+            _logger.LogWarning("Workflow {WorkflowId} update not allowed in this phase", WorkflowId);
             return modificationContext;
         }
 

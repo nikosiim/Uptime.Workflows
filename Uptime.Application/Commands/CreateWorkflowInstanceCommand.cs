@@ -2,8 +2,6 @@
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
-using Uptime.Domain.Enums;
-using Uptime.Shared.Enums;
 
 namespace Uptime.Application.Commands;
 
@@ -17,7 +15,7 @@ public record CreateWorkflowInstanceCommand : IRequest<WorkflowId>
 public class CreateWorkflowInstanceCommandHandler(IWorkflowDbContext dbContext)
     : IRequestHandler<CreateWorkflowInstanceCommand, WorkflowId>
 {
-    public async Task<WorkflowId> Handle(CreateWorkflowInstanceCommand request, CancellationToken ct)
+    public async Task<WorkflowId> Handle(CreateWorkflowInstanceCommand request, CancellationToken cancellationToken)
     {
         var instance = new Workflow
         {
@@ -30,7 +28,7 @@ public class CreateWorkflowInstanceCommandHandler(IWorkflowDbContext dbContext)
         };
 
        dbContext.Workflows.Add(instance);
-       await dbContext.SaveChangesAsync(ct);
+       await dbContext.SaveChangesAsync(cancellationToken);
 
        return (WorkflowId)instance.Id;
     }

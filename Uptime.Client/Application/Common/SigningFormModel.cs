@@ -8,5 +8,3 @@ public class SigningFormModel : IWorkflowFormModel
     public string? Signer { get; set; }
     public int DueDays { get; set; }
 }
-
-public sealed class SigningInitFormModel : SigningFormModel;

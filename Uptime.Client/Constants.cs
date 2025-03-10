@@ -16,7 +16,7 @@ public static class Constants
         public const string ModificationContext = "ModificationContext";
     }
 
-    public static Dictionary<string, int> Libraries = new(StringComparer.OrdinalIgnoreCase)
+    public static readonly Dictionary<string, int> Libraries = new(StringComparer.OrdinalIgnoreCase)
     {
         { "Contracts", 1 }, { "Letters", 2 }
     };

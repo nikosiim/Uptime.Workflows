@@ -1,5 +1,5 @@
 ﻿@page "/signing-initiation/{templateId:int}/{documentId:int}"
-@inherits WorkflowInitForm<SigningInitFormModel>
+@inherits WorkflowInitForm<SigningFormModel>
 @inject IUserService UserService
 
 <MudPaper Class="pa-4" Elevation="0" Style="max-width:800px;">
@@ -10,9 +10,9 @@
     <MudForm @ref="Form" Spacing="1">
         <MudSelect T="string" Label="Allkirjastaja" Variant="Variant.Outlined" Placeholder="Vali allkirjastaja"
                    @bind-Value="FormModel.Signer" MultiSelection="false">
-            @foreach (User user in UserService.GetUsers())
+            @foreach (string name in UserService.GetUsers().Select(u => u.Name))
             {
-                <MudSelectItem T="string" Value="@user.Name">@user</MudSelectItem>
+                <MudSelectItem T="string" Value="@name">@name</MudSelectItem>
             }
         </MudSelect>
         <MudTextField T="string" Label="Ülesanne" Variant="Variant.Outlined" @bind-Value="FormModel.TaskDescription" Lines="4" />
@@ -30,9 +30,11 @@
 {
     private bool _isDisabled;
 
-    protected override async Task StartWorkflow()
+    private async Task StartWorkflow()
     {
-        await base.StartWorkflow();
+        await Form.Validate();
+        if (!Form.IsValid)
+            return;
 
         _isDisabled = true;
 

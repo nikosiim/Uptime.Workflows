@@ -48,7 +48,7 @@ internal static class ApprovalWorkflowDataExtractor
         }).ToList();
     }
 
-    public static List<SigningTaskData> GetSigningTasks(this IWorkflowPayload payload, WorkflowId workflowId)
+    public static List<UserTaskActivityData> GetSigningTasks(this IWorkflowPayload payload, WorkflowId workflowId)
     {
         if (!payload.Storage.TryGetValueAsList(TaskStorageKeys.TaskSigners, out List<string> signers)) 
             return [];
@@ -56,7 +56,7 @@ internal static class ApprovalWorkflowDataExtractor
         string? taskDescription = payload.Storage.GetValue(TaskStorageKeys.SignerTask);
         DateTime dueDate = payload.Storage.GetValueAsDateTime(TaskStorageKeys.TaskDueDate);
 
-        return signers.Select(signer => new SigningTaskData
+        return signers.Select(signer => new UserTaskActivityData
         {
             AssignedBy = payload.Originator,
             AssignedTo = signer,

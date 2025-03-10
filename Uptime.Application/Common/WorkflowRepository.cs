@@ -35,7 +35,9 @@ public class WorkflowRepository(IWorkflowDbContextFactory factory) : IWorkflowRe
 
     public async Task MarkWorkflowAsInvalidAsync(WorkflowId workflowId, CancellationToken cancellationToken)
     {
-        Workflow? instance = await GetWorkflowInstanceAsync(workflowId, cancellationToken);
+        using IWorkflowDbContext dbContext = factory.CreateDbContext();
+
+        Workflow? instance = await dbContext.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId.Value, cancellationToken);
         if (instance == null)
         {
             throw new InvalidOperationException($"Workflow with ID {workflowId} not found.");
@@ -46,14 +48,7 @@ public class WorkflowRepository(IWorkflowDbContextFactory factory) : IWorkflowRe
         instance.Phase = BaseState.Invalid.Value;
         instance.EndDate = DateTime.UtcNow;
         
-        using IWorkflowDbContext dbContext = factory.CreateDbContext();
         await dbContext.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task<Workflow?> GetWorkflowInstanceAsync(WorkflowId workflowId, CancellationToken cancellationToken)
-    {
-        using IWorkflowDbContext dbContext = factory.CreateDbContext();
-        return await dbContext.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId.Value, cancellationToken);
     }
     
     public async Task SaveWorkflowStateAsync<TContext>(WorkflowId workflowId, BaseState phase, TContext context, CancellationToken cancellationToken)
@@ -98,7 +93,7 @@ public class WorkflowRepository(IWorkflowDbContextFactory factory) : IWorkflowRe
 
         const WorkflowTaskStatus status = WorkflowTaskStatus.NotStarted;
         
-        var task = new WorkflowTask
+        var workflowTask = new WorkflowTask
         {
             WorkflowId = request.WorkflowId.Value,
             TaskGuid = request.TaskGuid,
@@ -112,10 +107,10 @@ public class WorkflowRepository(IWorkflowDbContextFactory factory) : IWorkflowRe
             StorageJson = JsonSerializer.Serialize(request.Storage)
         };
 
-        dbContext.WorkflowTasks.Add(task);
+        dbContext.WorkflowTasks.Add(workflowTask);
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return (TaskId)task.Id;
+        return (TaskId)workflowTask.Id;
     }
 
     public async Task CancelAllActiveTasksAsync(WorkflowId workflowId, CancellationToken cancellationToken)
@@ -169,7 +164,7 @@ public class WorkflowRepository(IWorkflowDbContextFactory factory) : IWorkflowRe
     public async Task AddWorkflowHistoryAsync(
         WorkflowId workflowId,
         WorkflowEventType eventType,
-        string? user,
+        string? author,
         string? description,
         string? comment = null,
         CancellationToken cancellationToken = default)
@@ -177,7 +172,7 @@ public class WorkflowRepository(IWorkflowDbContextFactory factory) : IWorkflowRe
         var historyEntry = new WorkflowHistory
         {
             Event = eventType,
-            User = user,
+            User = author,
             Occurred = DateTime.UtcNow,
             Description = description,
             Comment = comment,

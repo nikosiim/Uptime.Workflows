@@ -18,7 +18,7 @@ public abstract class ActivityWorkflowBase<TContext>(
         await SaveWorkflowStateAsync(cancellationToken);
     }
     
-    protected virtual Task OnTaskChangedAsync(WorkflowTaskContext taskContext, Dictionary<string, string?> payload, CancellationToken cancellationToken)
+    protected virtual Task OnTaskChangedAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
     {
         return Task.CompletedTask;
     }

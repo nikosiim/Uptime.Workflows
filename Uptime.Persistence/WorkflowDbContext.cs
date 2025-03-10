@@ -14,49 +14,49 @@ public class WorkflowDbContext(DbContextOptions options) : DbContext(options), I
     public DbSet<Workflow> Workflows { get; set; } = null!;
     public DbSet<WorkflowTemplate> WorkflowTemplates { get; set; } = null!;
     
-    protected override void OnModelCreating(ModelBuilder builder)
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(builder);
+        base.OnModelCreating(modelBuilder);
 
-        builder.HasDefaultSchema("UptimeAPI");
+        modelBuilder.HasDefaultSchema("UptimeAPI");
 
         // Library -> Documents (Cascade delete)
-        builder.Entity<Document>()
+        modelBuilder.Entity<Document>()
             .HasOne(d => d.Library)
             .WithMany(l => l.Documents)
             .HasForeignKey(d => d.LibraryId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Library -> WorkflowTemplates (Cascade delete)
-        builder.Entity<WorkflowTemplate>()
+        modelBuilder.Entity<WorkflowTemplate>()
             .HasOne(wt => wt.Library)
             .WithMany(l => l.WorkflowTemplates)
             .HasForeignKey(wt => wt.LibraryId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Document -> WorkflowInstances (Cascade delete)
-        builder.Entity<Workflow>()
+        modelBuilder.Entity<Workflow>()
             .HasOne(wi => wi.Document)
             .WithMany(d => d.Workflows)
             .HasForeignKey(wi => wi.DocumentId)
             .OnDelete(DeleteBehavior.Cascade);
 
         // WorkflowTemplate -> WorkflowInstances (No cascade delete)
-        builder.Entity<Workflow>()
+        modelBuilder.Entity<Workflow>()
             .HasOne(wi => wi.WorkflowTemplate)
             .WithMany(wt => wt.Workflows)
             .HasForeignKey(wi => wi.WorkflowTemplateId)
             .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete to avoid cycles
 
         // WorkflowInstance -> WorkflowTasks (Cascade delete)
-        builder.Entity<WorkflowTask>()
+        modelBuilder.Entity<WorkflowTask>()
             .HasOne(wt => wt.Workflow)
             .WithMany(wi => wi.WorkflowTasks)
             .HasForeignKey(wt => wt.WorkflowId)
             .OnDelete(DeleteBehavior.Cascade); // Tasks should be deleted when a workflow instance is deleted
 
         // Apply configurations
-        builder.ApplyConfiguration(new DocumentConfiguration());
-        builder.ApplyConfiguration(new LibraryConfiguration());
+        modelBuilder.ApplyConfiguration(new DocumentConfiguration());
+        modelBuilder.ApplyConfiguration(new LibraryConfiguration());
     }
 }

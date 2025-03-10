@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using System.Text.Json;
 using Uptime.Client.Application.Common;
+using Uptime.Client.Application.DTOs;
 using Uptime.Client.Application.Queries;
 
 namespace Uptime.Client.Presentation.Forms;
@@ -20,7 +21,7 @@ public class WorkflowInitForm<TFormModel> : ComponentBase where TFormModel : IWo
 
     protected override async Task OnInitializedAsync()
     {
-        var result = await Mediator.Send(new GetWorkflowTemplateQuery(TemplateId));
+        Result<WorkflowTemplate> result = await Mediator.Send(new GetWorkflowTemplateQuery(TemplateId));
         if (result.Succeeded)
         {
             FormModel = !string.IsNullOrWhiteSpace(result.Value.AssociationDataJson)
@@ -31,13 +32,6 @@ public class WorkflowInitForm<TFormModel> : ComponentBase where TFormModel : IWo
         {
             Snackbar.Add("Töövoo malli laadimine ebaõnnestus", Severity.Error);
         }
-    }
-
-    protected virtual async Task StartWorkflow()
-    {
-        await Form.Validate();
-        if (!Form.IsValid)
-            return;
     }
 
     protected void Cancel()

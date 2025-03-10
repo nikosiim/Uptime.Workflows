@@ -1,5 +1,5 @@
 ﻿@page "/approval-initiation/{templateId:int}/{documentId:int}"
-@inherits WorkflowInitForm<ApprovalInitFormModel>
+@inherits WorkflowInitForm<ApprovalFormModel>
 @inject IUserService UserService
 
 <MudPaper Class="pa-4" Elevation="0" Style="max-width:800px;">
@@ -16,18 +16,18 @@
         </MudPaper>
         <MudSelect T="string" Label="Kinnitajad" Variant="Variant.Outlined" Placeholder="Vali kinnitajad"
                    @bind-SelectedValues="FormModel.AssignedTo" MultiSelection="true">
-            @foreach (User user in UserService.GetUsers())
+            @foreach (string name in UserService.GetUsers().Select(u => u.Name))
             {
-                <MudSelectItem T="string" Value="@user.Name">@user</MudSelectItem>
+                <MudSelectItem T="string" Value="@name">@name</MudSelectItem>
             }
         </MudSelect>
         <MudTextField T="string" Label="Ülesanne" Variant="Variant.Outlined" @bind-Value="FormModel.TaskDescription" Lines="4"/>
         <MudDatePicker Label="Ülesande täitmise aeg" Variant="Variant.Outlined" @bind-Date="FormModel.DueDate" DateFormat="dd.MM.yyyy" />
         <MudSelect T="string" Label="Allkirjastaja" Variant="Variant.Outlined" Placeholder="Vali allkirjastaja"
                    @bind-Value="FormModel.Signer" MultiSelection="false">
-            @foreach (User user in UserService.GetUsers())
+            @foreach (string name in UserService.GetUsers().Select(u => u.Name))
             {
-                <MudSelectItem T="string" Value="@user.Name">@user</MudSelectItem>
+                <MudSelectItem T="string" Value="@name">@name</MudSelectItem>
             }
         </MudSelect>
     </MudForm>
@@ -43,17 +43,21 @@
     private bool _isDisabled;
     private int ReplicatorType { get; set; } = 1;
 
-    protected override async Task StartWorkflow()
+    private async Task StartWorkflow()
     {
-        await base.StartWorkflow();
+        await Form.Validate();
+        if (!Form.IsValid)
+            return;
 
         _isDisabled = true;
 
-        var storage = new Dictionary<string, string?>();
+        var storage = new Dictionary<string, string?>
+        {
+            [GlobalConstants.WorkflowStorageKeys.ReplicatorType] = ReplicatorType.ToString(),
+            [GlobalConstants.WorkflowStorageKeys.AssociationName] = FormModel.TemplateName,
+            [GlobalConstants.TaskStorageKeys.TaskDescription] = FormModel.TaskDescription
+        };
 
-        storage.SetValue(GlobalConstants.WorkflowStorageKeys.ReplicatorType, ReplicatorType.ToString());
-        storage.SetValue(GlobalConstants.WorkflowStorageKeys.AssociationName, FormModel.TemplateName);
-        storage.SetValue(GlobalConstants.TaskStorageKeys.TaskDescription, FormModel.TaskDescription);
         storage.SetValueAsDateTime(GlobalConstants.TaskStorageKeys.TaskDueDate, FormModel.DueDate);
         storage.SetValueAsList(GlobalConstants.TaskStorageKeys.TaskExecutors, FormModel.AssignedTo);
 

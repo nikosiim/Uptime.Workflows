@@ -107,7 +107,7 @@
         WorkflowDefinition definition = WorkflowState.Value.WorkflowDefinitionsQuery.Result.Value!.First(x => x.Id == workflowBaseId);
         if (definition.FormsConfiguration?.AssociationDialogType == null)
         {
-            throw new Exception($"No association dialog defined for workflow {definition.Name}");
+            throw new ArgumentNullException($"No association dialog defined for workflow {definition.Name}");
         }
 
         parameters.Add(DialogParams.WorkflowDefinition, definition);

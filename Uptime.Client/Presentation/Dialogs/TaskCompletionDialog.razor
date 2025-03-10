@@ -9,13 +9,12 @@
         @if (EventType == WorkflowEventType.TaskDelegated)
         {
             <MudSelect T="string" Label="Ülesande saaja" Variant="Variant.Outlined" Placeholder="Vali kasutaja" @bind-Value="_delegatedUser">
-                @foreach (User user in UserService.GetUsers())
+                @foreach (string name in UserService.GetUsers().Select(u => u.Name))
                 {
-                    <MudSelectItem T="string" Value="@user.Name">@user.Name</MudSelectItem>
+                    <MudSelectItem T="string" Value="@name">@name</MudSelectItem>
                 }
             </MudSelect>
         }
-
         <MudTextField T="string" Label="Kommentaar" Variant="Variant.Outlined" @bind-Value="_comment" Lines="5" />
     </DialogContent>
     <DialogActions>
@@ -40,14 +39,14 @@
         var input = new Dictionary<string, string?>();
 
         string taskEditor = User.GetNameOrSystemAccount(WorkflowState.Value.CurrentUser);
-
-        input.SetValue(GlobalConstants.TaskStorageKeys.TaskComment, _comment);
-        input.SetValue(GlobalConstants.TaskStorageKeys.TaskEditor, taskEditor);
-        input.SetValue(GlobalConstants.TaskStorageKeys.TaskResult, EventType.ToString());
+        
+        input[GlobalConstants.TaskStorageKeys.TaskComment] = _comment;
+        input[GlobalConstants.TaskStorageKeys.TaskEditor] = taskEditor;
+        input[GlobalConstants.TaskStorageKeys.TaskResult] = EventType.ToString();
 
         if (EventType == WorkflowEventType.TaskDelegated)
         {
-            input.SetValue(GlobalConstants.TaskStorageKeys.TaskDelegatedTo, _delegatedUser);
+            input[GlobalConstants.TaskStorageKeys.TaskDelegatedTo] = _delegatedUser;
         }
 
         var command = new AlterTaskCommand

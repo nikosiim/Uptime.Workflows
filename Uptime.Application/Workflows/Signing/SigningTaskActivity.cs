@@ -24,12 +24,12 @@ public class SigningTaskActivity(IWorkflowRepository repository, WorkflowTaskCon
         TaskCreatedHistoryDescription = $"Tööülesanne {AssociationName} on loodud kasutajale {TaskData.AssignedTo}";
     }
     
-    protected override async Task OnTaskChangedAsync(Dictionary<string, string?> input, CancellationToken cancellationToken)
+    protected override async Task OnTaskChangedAsync(Dictionary<string, string?> payload, CancellationToken cancellationToken)
     {
-        string? author = input.GetValue(TaskStorageKeys.TaskEditor);
-        string? comment = input.GetValue(TaskStorageKeys.TaskComment);
+        string? author = payload.GetValue(TaskStorageKeys.TaskEditor);
+        string? comment = payload.GetValue(TaskStorageKeys.TaskComment);
         
-        if (input.TryGetValueAsEnum(TaskStorageKeys.TaskResult, out WorkflowEventType workflowEvent))
+        if (payload.TryGetValueAsEnum(TaskStorageKeys.TaskResult, out WorkflowEventType workflowEvent))
         {
             string outcome;
             string description;

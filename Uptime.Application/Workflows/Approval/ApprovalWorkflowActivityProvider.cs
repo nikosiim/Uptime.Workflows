@@ -14,7 +14,7 @@ public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository) : 
         {
             return new SigningTaskActivity(Repository, context)
             {
-                TaskData = data.DeserializeTaskData<SigningTaskData>() // TODO: kas see on õige?
+                TaskData = data.DeserializeTaskData<UserTaskActivityData>()
             };
         }
 

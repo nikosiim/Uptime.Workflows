@@ -5,7 +5,7 @@ namespace Uptime.Shared.Extensions;
 
 public static class DictionaryExtensions
 {
-    public static string ListSeparator = ";#";
+    public const string ListSeparator = ";#";
 
     #region Get Values
 
@@ -24,7 +24,7 @@ public static class DictionaryExtensions
     public static DateTime GetValueAsDateTime(this Dictionary<string, string?> data, string key)
     {
         if (data.TryGetValue(key, out string? value) &&
-            DateTime.TryParse(value, null, DateTimeStyles.AdjustToUniversal, out DateTime dateTime))
+            DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out DateTime dateTime))
         {
             return dateTime;
         }
@@ -151,7 +151,7 @@ public static class DictionaryExtensions
     /// </summary>
     public static bool TryGetValueAsDateTime(this Dictionary<string, string?> data, string key, out DateTime? result)
     {
-        if (data.TryGetValue(key, out string? value) && DateTime.TryParse(value, null, DateTimeStyles.AdjustToUniversal, out DateTime dateTime))
+        if (data.TryGetValue(key, out string? value) && DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out DateTime dateTime))
         {
             result = dateTime;
             return true;

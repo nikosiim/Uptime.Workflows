@@ -1,6 +1,6 @@
 ﻿namespace Uptime.Domain.Common;
 
-public abstract class BaseState(string value) : IEquatable<BaseState>
+public abstract class BaseState(string value) : BaseStateEqualityComparer
 {
     public string Value { get; } = value;
 
@@ -44,3 +44,20 @@ public abstract class BaseState(string value) : IEquatable<BaseState>
 }
 
 internal sealed class GenericWorkflowPhase(string value) : BaseState(value);
+
+public class BaseStateEqualityComparer : IEqualityComparer<BaseState>
+{
+    public bool Equals(BaseState? x, BaseState? y)
+    {
+        if (ReferenceEquals(x, y))
+            return true;
+        if (x is null || y is null)
+            return false;
+        return string.Equals(x.Value, y.Value, StringComparison.Ordinal);
+    }
+
+    public int GetHashCode(BaseState obj)
+    {
+        return obj.Value.GetHashCode();
+    }
+}

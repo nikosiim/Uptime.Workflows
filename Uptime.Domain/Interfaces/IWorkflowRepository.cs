@@ -1,5 +1,4 @@
 ﻿using Uptime.Domain.Common;
-using Uptime.Domain.Entities;
 using Uptime.Domain.Enums;
 
 namespace Uptime.Domain.Interfaces;
@@ -10,16 +9,15 @@ public interface IWorkflowRepository
 
     Task<WorkflowId> CreateWorkflowInstanceAsync(IWorkflowPayload payload, CancellationToken cancellationToken);
     Task MarkWorkflowAsInvalidAsync(WorkflowId workflowId, CancellationToken cancellationToken);
-    Task<Workflow?> GetWorkflowInstanceAsync(WorkflowId workflowId, CancellationToken cancellationToken);
     Task SaveWorkflowStateAsync<TContext>(WorkflowId workflowId, BaseState phase, TContext context, CancellationToken cancellationToken) where TContext : IWorkflowContext, new();
     
     #endregion
 
     #region WorkflowTasks
 
-    Task<TaskId> CreateWorkflowTaskAsync(IWorkflowTask task, CancellationToken cancellationToken);
+    Task<TaskId> CreateWorkflowTaskAsync(IWorkflowTask request, CancellationToken cancellationToken);
     Task CancelAllActiveTasksAsync(WorkflowId workflowId, CancellationToken cancellationToken);
-    Task SaveWorkflowTaskAsync(IWorkflowTask task, CancellationToken cancellationToken);
+    Task SaveWorkflowTaskAsync(IWorkflowTask request, CancellationToken cancellationToken);
 
     #endregion
 

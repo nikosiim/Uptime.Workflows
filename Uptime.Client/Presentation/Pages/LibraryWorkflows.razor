@@ -51,9 +51,9 @@
     private bool _loading;
     private List<DocumentWorkflow> _workflows = [];
     private List<WorkflowTemplate>? _availableTemplates = [];
-
-    private List<DocumentWorkflow> ActiveInstances => _workflows.Where(w => w.IsActive).ToList();
-    private List<DocumentWorkflow> CompletedInstances => _workflows.Where(w => !w.IsActive).ToList();
+    
+    private IEnumerable<DocumentWorkflow> ActiveInstances => _workflows.Where(w => w.IsActive);
+    private IEnumerable<DocumentWorkflow> CompletedInstances => _workflows.Where(w => !w.IsActive);
 
     [Parameter] public int ListId { get; set; }
     [Parameter] public int DocumentId { get; set; }
@@ -85,7 +85,7 @@
         if (result.Succeeded)
         {
             List<DocumentWorkflow> activeWorkflows = _workflows.Where(w => w.IsActive).ToList();
-            _availableTemplates = result.Value.Where(t => activeWorkflows.All(w => w.TemplateId != t.Id)).ToList() ?? [];
+            _availableTemplates = result.Value.Where(t => activeWorkflows.All(w => w.TemplateId != t.Id)).ToList();
         }
     }
 }
