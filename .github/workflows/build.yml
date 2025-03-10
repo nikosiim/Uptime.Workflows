@@ -42,6 +42,9 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"nikosiim_Uptime.Workflows" /o:"nikosiim" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.exclusions="**/Migrations/**,**/wwwroot/**,**/*.html,**/profile.arm.json"
+          .\.sonar\scanner\dotnet-sonarscanner begin /k:"nikosiim_Uptime.Workflows" /o:"nikosiim" \
+          /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+          /d:sonar.host.url="https://sonarcloud.io" \
+          /d:sonar.exclusions="**/Migrations/**,**/wwwroot/**,**/*.html,**/profile.arm.json,**/Uptime/Persistence/Seeding/DocumentConfiguration.cs"
           dotnet build
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"

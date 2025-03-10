@@ -1,4 +1,5 @@
-﻿using Uptime.Client.Application.DTOs;
+﻿using System.Collections.Immutable;
+using Uptime.Client.Application.DTOs;
 using Uptime.Client.Presentation.Dialogs;
 
 namespace Uptime.Client;
@@ -16,10 +17,11 @@ public static class Constants
         public const string ModificationContext = "ModificationContext";
     }
 
-    public static readonly Dictionary<string, int> Libraries = new(StringComparer.OrdinalIgnoreCase)
-    {
-        { "Contracts", 1 }, { "Letters", 2 }
-    };
+    public static readonly ImmutableDictionary<string, int> Libraries =
+        ImmutableDictionary.CreateRange(StringComparer.OrdinalIgnoreCase, [
+            new KeyValuePair<string, int>("Contracts", 1),
+            new KeyValuePair<string, int>("Letters", 2)
+        ]);
 
     public static class PageRoutes
     {

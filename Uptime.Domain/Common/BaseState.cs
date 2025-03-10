@@ -1,63 +1,44 @@
-﻿namespace Uptime.Domain.Common;
+﻿using System.Diagnostics.CodeAnalysis;
 
-public abstract class BaseState(string value) : BaseStateEqualityComparer
+namespace Uptime.Domain.Common
 {
-    public string Value { get; } = value;
-
-    public static readonly BaseState NotStarted = new GenericWorkflowPhase("NotStarted");
-    public static readonly BaseState InProgress = new GenericWorkflowPhase("InProgress");
-    public static readonly BaseState Completed  = new GenericWorkflowPhase("Completed");
-    public static readonly BaseState Cancelled  = new GenericWorkflowPhase("Cancelled");
-    public static readonly BaseState Invalid  = new GenericWorkflowPhase("Invalid");
-    
-    public static BaseState FromString(string value)
+    [SuppressMessage("Design", "NS1000:Seal class 'BaseState' or implement 'IEqualityComparer<T>' instead.", 
+        Justification = "BaseState is abstract and only intended to be inherited by sealed classes (such as ExtendedState).")]
+    public abstract class BaseState(string value) : IEquatable<BaseState>
     {
-        return value switch
+        public string Value { get; } = value;
+
+        public static readonly BaseState NotStarted = new GenericWorkflowPhase("NotStarted");
+        public static readonly BaseState InProgress = new GenericWorkflowPhase("InProgress");
+        public static readonly BaseState Completed  = new GenericWorkflowPhase("Completed");
+        public static readonly BaseState Cancelled  = new GenericWorkflowPhase("Cancelled");
+        public static readonly BaseState Invalid    = new GenericWorkflowPhase("Invalid");
+
+        public static BaseState FromString(string value)
         {
-            "NotStarted" => NotStarted,
-            "InProgress" => InProgress,
-            "Completed" => Completed,
-            "Cancelled" => Cancelled,
-            "Invalid" => Invalid,
-            _ => new GenericWorkflowPhase(value)
-        };
-    }
-    public bool Equals(BaseState? other)
-    {
-        if (other is null)
-            return false;
-        return ReferenceEquals(this, other) || string.Equals(Value, other.Value, StringComparison.Ordinal);
-    }
+            return value switch
+            {
+                "NotStarted" => NotStarted,
+                "InProgress" => InProgress,
+                "Completed"  => Completed,
+                "Cancelled"  => Cancelled,
+                "Invalid"    => Invalid,
+                _            => new GenericWorkflowPhase(value)
+            };
+        }
 
-    public override bool Equals(object? obj) => Equals(obj as BaseState);
+        public bool Equals(BaseState? other)
+        {
+            if (other is null)
+                return false;
+            return ReferenceEquals(this, other) || 
+                   string.Equals(Value, other.Value, StringComparison.Ordinal);
+        }
 
-    public override int GetHashCode() => Value.GetHashCode();
+        public override bool Equals(object? obj) => Equals(obj as BaseState);
 
-    public static bool operator ==(BaseState? left, BaseState? right)
-    {
-        if (left is null)
-            return right is null;
-        return left.Equals(right);
+        public override int GetHashCode() => Value.GetHashCode();
     }
 
-    public static bool operator !=(BaseState? left, BaseState? right) => !(left == right);
-}
-
-internal sealed class GenericWorkflowPhase(string value) : BaseState(value);
-
-public class BaseStateEqualityComparer : IEqualityComparer<BaseState>
-{
-    public bool Equals(BaseState? x, BaseState? y)
-    {
-        if (ReferenceEquals(x, y))
-            return true;
-        if (x is null || y is null)
-            return false;
-        return string.Equals(x.Value, y.Value, StringComparison.Ordinal);
-    }
-
-    public int GetHashCode(BaseState obj)
-    {
-        return obj.Value.GetHashCode();
-    }
+    internal sealed class GenericWorkflowPhase(string value) : BaseState(value);
 }
