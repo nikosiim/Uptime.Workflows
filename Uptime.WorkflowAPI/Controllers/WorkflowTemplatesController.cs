@@ -5,6 +5,7 @@ using Uptime.Application.DTOs;
 using Uptime.Application.Queries;
 using Uptime.Domain.Common;
 using Uptime.Shared.Models.WorkflowTemplates;
+using Unit = Uptime.Domain.Common.Unit;
 
 namespace Uptime.WorkflowAPI.Controllers;
 
@@ -39,11 +40,11 @@ public class WorkflowTemplatesController(IMediator mediator) : ControllerBase
     public async Task<ActionResult> UpdateWorkflowTemplate(int templateId, [FromBody] WorkflowTemplateUpdateRequest request)
     {
         UpdateWorkflowTemplateCommand command = Mapper.MapToUpdateWorkflowTemplateCommand(request, templateId);
-        bool result = await mediator.Send(command);
+        Result<Unit> result = await mediator.Send(command);
 
-        if (!result)
+        if (!result.Succeeded)
         {
-            return NotFound($"Workflow template with ID '{templateId}' was not found.");
+            return BadRequest(result.Error);
         }
 
         return NoContent();
@@ -53,7 +54,12 @@ public class WorkflowTemplatesController(IMediator mediator) : ControllerBase
     public async Task<ActionResult> DeleteWorkflowTemplate(int templateId)
     {
         var command = new DeleteWorkflowTemplateCommand((WorkflowTemplateId)templateId);
-        await mediator.Send(command);
+        Result<Unit> result = await mediator.Send(command);
+
+        if (!result.Succeeded)
+        {
+            return BadRequest(result.Error);
+        }
 
         return NoContent();
     }

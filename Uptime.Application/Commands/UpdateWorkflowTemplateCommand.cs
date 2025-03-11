@@ -4,10 +4,11 @@ using Uptime.Application.Common;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
+using Unit = Uptime.Domain.Common.Unit;
 
 namespace Uptime.Application.Commands;
 
-public record UpdateWorkflowTemplateCommand : IRequest<bool>
+public record UpdateWorkflowTemplateCommand : IRequest<Result<Unit>>
 {
     public WorkflowTemplateId TemplateId { get; init; }
     public string TemplateName { get; init; } = null!;
@@ -17,16 +18,19 @@ public record UpdateWorkflowTemplateCommand : IRequest<bool>
 }
 
 public class UpdateWorkflowTemplateCommandHandler(IWorkflowDbContext context)
-    : IRequestHandler<UpdateWorkflowTemplateCommand, bool>
+    : IRequestHandler<UpdateWorkflowTemplateCommand, Result<Unit>>
 {
-    public async Task<bool> Handle(UpdateWorkflowTemplateCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> Handle(UpdateWorkflowTemplateCommand request, CancellationToken cancellationToken)
     {
+        if (cancellationToken.IsCancellationRequested)
+            return Result<Unit>.Cancelled();
+
         WorkflowTemplate? workflowTemplate = await context.WorkflowTemplates
             .FirstOrDefaultAsync(wt => wt.Id == request.TemplateId.Value, cancellationToken);
 
         if (workflowTemplate == null)
         {
-            throw new NotFoundException(nameof(WorkflowTemplate), request.TemplateId);
+            return Result<Unit>.Failure("WorkflowTemplate not found.");
         }
 
         workflowTemplate.TemplateName = request.TemplateName;
@@ -36,6 +40,8 @@ public class UpdateWorkflowTemplateCommandHandler(IWorkflowDbContext context)
         workflowTemplate.Modified = DateTime.UtcNow;
 
         context.WorkflowTemplates.Update(workflowTemplate);
-        return await context.SaveChangesAsync(cancellationToken) == 1;
+        await context.SaveChangesAsync(cancellationToken);
+
+        return Result<Unit>.Success(new Unit());
     }
 }

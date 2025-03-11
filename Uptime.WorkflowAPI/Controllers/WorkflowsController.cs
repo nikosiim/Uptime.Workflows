@@ -47,6 +47,7 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
         {
             return NotFound($"No tasks found for workflow ID {workflowId}.");
         }
+
         return Ok(Mapper.MapToWorkflowTasksResponse(tasks));
     }
 
