@@ -65,7 +65,7 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
         return modificationContext;
     }
     
-    protected override async Task OnTaskChangedAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
+    protected override async Task OnTaskAlteredAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
     {
         if (CreateChildActivity(context) is not { } taskActivity)
         {

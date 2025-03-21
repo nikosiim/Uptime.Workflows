@@ -1,6 +1,5 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
 using Uptime.Domain.Entities;
@@ -32,13 +31,13 @@ public class AlterTaskCommandHandler(IWorkflowDbContext dbContext, IWorkflowFact
             return Result<Unit>.Failure($"Workflow task with ID {request.TaskId.Value} not found.");
 
         IWorkflowMachine? stateMachine = workflowFactory.TryGetStateMachine(workflowTask.Workflow.WorkflowTemplate.WorkflowBaseId);
-        if (stateMachine == null) 
+        if (stateMachine is not IActivityWorkflowMachine machine) 
             return Result<Unit>.Failure("Invalid workflow machine type.");
       
-        Result<Unit> reHydrationResult = stateMachine.RehydrateAsync(workflowTask.Workflow, cancellationToken);
+        Result<Unit> reHydrationResult = machine.RehydrateAsync(workflowTask.Workflow, cancellationToken);
         if (!reHydrationResult.Succeeded)
             return Result<Unit>.Failure("Workflow state-machine reHydration failed.");
         
-        return await stateMachine.AlterTaskAsync(workflowTask, request.Payload, cancellationToken);
+        return await machine.AlterTaskAsync(workflowTask, request.Payload, cancellationToken);
     }
 }
