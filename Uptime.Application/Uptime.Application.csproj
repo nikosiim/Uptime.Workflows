@@ -71,7 +71,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Uptime.Domain\Uptime.Domain.csproj" />
-    <ProjectReference Include="..\Uptime.Shared\Uptime.Shared.csproj" />
   </ItemGroup>
 
 </Project>
