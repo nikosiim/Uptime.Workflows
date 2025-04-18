@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Uptime.Shared.Resources {
+namespace Uptime.Client.Resources {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Uptime.Shared.Resources {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Uptime.Shared.Resources.WorkflowHistoryResource", typeof(WorkflowHistoryResource).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Uptime.Client.Resources.WorkflowHistoryResource", typeof(WorkflowHistoryResource).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

@@ -2,7 +2,7 @@
 using Uptime.Application.Workflows.Signing;
 using Uptime.Domain.Common;
 using Uptime.Domain.Interfaces;
-using static Uptime.Shared.GlobalConstants;
+using static Uptime.Application.Constants;
 
 namespace Uptime.Application.Workflows.Approval;
 

@@ -7,52 +7,29 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Choices\**" />
     <Compile Remove="Dto\**" />
+    <Compile Remove="Enums\**" />
+    <Compile Remove="Extensions\**" />
+    <Compile Remove="Resources\**" />
+    <EmbeddedResource Remove="Choices\**" />
     <EmbeddedResource Remove="Dto\**" />
+    <EmbeddedResource Remove="Enums\**" />
+    <EmbeddedResource Remove="Extensions\**" />
+    <EmbeddedResource Remove="Resources\**" />
+    <None Remove="Choices\**" />
     <None Remove="Dto\**" />
+    <None Remove="Enums\**" />
+    <None Remove="Extensions\**" />
+    <None Remove="Resources\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="Enums\TaskOutcome.cs" />
-    <Compile Remove="Enums\WorkflowStatus.cs" />
-    <Compile Remove="Extensions\WorkflowHistoryEventTypeMapper.cs" />
+    <Compile Remove="GlobalConstants.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Localization.Abstractions" Version="10.0.0-preview.2.25164.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Resources\WorkflowTaskResource.Designer.cs">
-      <DependentUpon>WorkflowTaskResource.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-    </Compile>
-    <Compile Update="Resources\WorkflowHistoryResource.Designer.cs">
-      <DependentUpon>WorkflowHistoryResource.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-    </Compile>
-    <Compile Update="Resources\WorkflowResource.Designer.cs">
-      <DependentUpon>WorkflowResource.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Resources\WorkflowTaskResource.resx">
-      <LastGenOutput>WorkflowTaskResource.Designer.cs</LastGenOutput>
-      <Generator>ResXFileCodeGenerator</Generator>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\WorkflowHistoryResource.resx">
-      <LastGenOutput>WorkflowHistoryResource.Designer.cs</LastGenOutput>
-      <Generator>ResXFileCodeGenerator</Generator>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\WorkflowResource.resx">
-      <LastGenOutput>WorkflowResource.Designer.cs</LastGenOutput>
-      <Generator>ResXFileCodeGenerator</Generator>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

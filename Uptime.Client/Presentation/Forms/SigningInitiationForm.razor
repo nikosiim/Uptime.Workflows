@@ -40,12 +40,12 @@
 
         var storage = new Dictionary<string, string?>
         {
-            [GlobalConstants.WorkflowStorageKeys.AssociationName] = FormModel.TemplateName,
-            [GlobalConstants.TaskStorageKeys.TaskDescription] = FormModel.TaskDescription,
-            [GlobalConstants.TaskStorageKeys.TaskDueDays] = FormModel.DueDays.ToString()
+            [WorkflowStorageKeys.AssociationName] = FormModel.TemplateName,
+            [TaskStorageKeys.TaskDescription] = FormModel.TaskDescription,
+            [TaskStorageKeys.TaskDueDays] = FormModel.DueDays.ToString()
         };
 
-        storage.SetValueAsList(GlobalConstants.TaskStorageKeys.TaskSigners, [FormModel.Signer!]);
+        storage.SetValueAsList(TaskStorageKeys.TaskSigners, [FormModel.Signer!]);
         
         var command = new StartWorkflowCommand
         {

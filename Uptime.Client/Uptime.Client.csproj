@@ -34,4 +34,37 @@
     <ProjectReference Include="..\Uptime.Shared\Uptime.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Resources\WorkflowHistoryResource.Designer.cs">
+      <DependentUpon>WorkflowHistoryResource.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Resources\WorkflowResource.Designer.cs">
+      <DependentUpon>WorkflowResource.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Update="Resources\WorkflowTaskResource.Designer.cs">
+      <DependentUpon>WorkflowTaskResource.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\WorkflowHistoryResource.resx">
+      <LastGenOutput>WorkflowHistoryResource.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\WorkflowResource.resx">
+      <LastGenOutput>WorkflowResource.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\WorkflowTaskResource.resx">
+      <LastGenOutput>WorkflowTaskResource.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

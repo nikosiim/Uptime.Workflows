@@ -1,5 +1,4 @@
-﻿using Uptime.Shared.Enums;
-using Uptime.Shared.Extensions;
+﻿using Uptime.Client.Application.Common;
 
 namespace Uptime.Client.Application.DTOs;
 

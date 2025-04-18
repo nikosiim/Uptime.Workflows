@@ -2,7 +2,6 @@
 using Uptime.Client.Application.Common;
 using Uptime.Client.Application.DTOs;
 using Uptime.Client.StateManagement.Common;
-using Uptime.Shared.Extensions;
 using Uptime.Shared.Models.Workflows;
 
 namespace Uptime.Client.StateManagement.Workflow;
@@ -108,8 +107,8 @@ public static class WorkflowReducers
             Description = task.Description,
             DueDate = task.DueDate,
             EndDate = task.EndDate,
-            Status = WorkflowTaskResources.Get(task.Status),
-            InternalStatus = task.InternalStatus,
+            DisplayStatus = WorkflowTaskResources.Get(task.DisplayStatus),
+            InternalStatus = (WorkflowTaskStatus)task.InternalStatus,
             StorageJson = task.StorageJson,
             WorkflowId = action.WorkflowId
         }).ToList();
@@ -162,7 +161,7 @@ public static class WorkflowReducers
                 Occurred = entry.Occurred.ToLocalTime(),
                 Comment = entry.Comment,
                 User = entry.User,
-                Event = entry.Event
+                Event = Enum.TryParse(entry.Event, ignoreCase: true, out WorkflowEventType parsed) ? parsed : WorkflowEventType.None
             }).ToList();
 
         return state with

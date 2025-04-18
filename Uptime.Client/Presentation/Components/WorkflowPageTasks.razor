@@ -23,7 +23,7 @@
         <MudTd>@task.AssignedTo</MudTd>
         <MudTd><MudLink Href="@($"/workflow-task/{task.Id}")">@task.Title</MudLink></MudTd>
         <MudTd>@task.DueDate?.ToLocalTime().ToString("d")</MudTd>
-        <MudTd>@task.Status</MudTd>
+        <MudTd>@task.DisplayStatus</MudTd>
     </RowTemplate>
     <NoRecordsContent>
         @(WorkflowState.Value.WorkflowTasksQuery is { Status: QueryStatus.Loaded, Result.Succeeded: false }

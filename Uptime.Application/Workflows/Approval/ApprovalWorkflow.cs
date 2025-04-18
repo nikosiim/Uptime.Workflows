@@ -5,7 +5,6 @@ using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
 using Uptime.Domain.Interfaces;
 using Uptime.Domain.Workflows;
-using Uptime.Shared;
 
 namespace Uptime.Application.Workflows.Approval;
 
@@ -17,7 +16,7 @@ public class ApprovalWorkflow(
 {
     private readonly IWorkflowRepository _repository = repository;
 
-    private string? AssociationName => WorkflowContext.Storage.GetValueOrDefault(GlobalConstants.WorkflowStorageKeys.AssociationName);
+    private string? AssociationName => WorkflowContext.Storage.GetValueOrDefault(Constants.WorkflowStorageKeys.AssociationName);
 
     protected override IWorkflowDefinition WorkflowDefinition => new ApprovalWorkflowDefinition();
 

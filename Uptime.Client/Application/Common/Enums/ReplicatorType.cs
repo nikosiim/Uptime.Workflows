@@ -1,4 +1,4 @@
-﻿namespace Uptime.Shared.Enums;
+﻿namespace Uptime.Client.Application.Common;
 
 public enum ReplicatorType
 {

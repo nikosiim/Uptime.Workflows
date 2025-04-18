@@ -1,6 +1,6 @@
 ﻿using Uptime.Domain.Common;
 using Uptime.Domain.Interfaces;
-using Uptime.Shared.Choices;
+using static Uptime.Application.Constants;
 
 namespace Uptime.Application.Workflows.Signing;
 

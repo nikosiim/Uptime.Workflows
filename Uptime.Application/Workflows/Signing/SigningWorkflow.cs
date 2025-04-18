@@ -4,8 +4,7 @@ using Uptime.Domain.Common;
 using Uptime.Domain.Enums;
 using Uptime.Domain.Interfaces;
 using Uptime.Domain.Workflows;
-using Uptime.Shared;
-using Uptime.Shared.Extensions;
+using static Uptime.Application.Constants;
 
 namespace Uptime.Application.Workflows.Signing;
 
@@ -19,7 +18,7 @@ public class SigningWorkflow(
 
     public bool IsTaskRejected { get; private set; }
 
-    protected string? AssociationName => WorkflowContext.Storage.GetValueOrDefault(GlobalConstants.WorkflowStorageKeys.AssociationName);
+    protected string? AssociationName => WorkflowContext.Storage.GetValueOrDefault(WorkflowStorageKeys.AssociationName);
 
     protected override IWorkflowDefinition WorkflowDefinition => new SigningWorkflowDefinition();
 
@@ -40,10 +39,10 @@ public class SigningWorkflow(
     {
         WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
 
-        if (payload.Storage.TryGetValue(GlobalConstants.TaskStorageKeys.TaskSigners, out string? signer) && !string.IsNullOrWhiteSpace(signer))
+        if (payload.Storage.TryGetValue(TaskStorageKeys.TaskSigners, out string? signer) && !string.IsNullOrWhiteSpace(signer))
         {
-            string? taskDescription = payload.Storage.GetValue(GlobalConstants.TaskStorageKeys.TaskDescription);
-            string? dueDays = payload.Storage.GetValue(GlobalConstants.TaskStorageKeys.TaskDueDays);
+            string? taskDescription = payload.Storage.GetValue(TaskStorageKeys.TaskDescription);
+            string? dueDays = payload.Storage.GetValue(TaskStorageKeys.TaskDueDays);
 
             _ = int.TryParse(dueDays, out int days);
 

@@ -1,6 +1,4 @@
-﻿using Uptime.Shared.Enums;
-
-namespace Uptime.Shared.Models.Tasks;
+﻿namespace Uptime.Shared.Models.Tasks;
 
 public record WorkflowTaskResponse
 {
@@ -8,7 +6,7 @@ public record WorkflowTaskResponse
     public string? AssignedTo { get; init; }
     public string? AssignedBy { get; init; }
     public string Status { get; init; } = null!;
-    public WorkflowTaskStatus InternalStatus { get; init; }
+    public int InternalStatus { get; init; }
     public string? Description { get; init; }
     public DateTime? DueDate { get; init; }
     public DateTime? EndDate { get; init; }

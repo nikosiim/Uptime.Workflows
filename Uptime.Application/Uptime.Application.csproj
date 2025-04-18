@@ -54,6 +54,7 @@
     <Compile Remove="Interfaces\IWorkflowActivityFactory.cs" />
     <Compile Remove="Interfaces\IWorkflowContext.cs" />
     <Compile Remove="Interfaces\IWorkflowDefinition.cs" />
+    <Compile Remove="Interfaces\IWorkflowFactory.cs" />
     <Compile Remove="Interfaces\IWorkflowMachine.cs" />
     <Compile Remove="Interfaces\IWorkflowPayload.cs" />
     <Compile Remove="Interfaces\IWorkflowStateRepository.cs" />

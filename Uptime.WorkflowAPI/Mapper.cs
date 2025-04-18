@@ -1,6 +1,7 @@
 ﻿using Uptime.Application.Commands;
 using Uptime.Application.DTOs;
 using Uptime.Domain.Common;
+using Uptime.Domain.Enums;
 using Uptime.Shared.Models.Documents;
 using Uptime.Shared.Models.Libraries;
 using Uptime.Shared.Models.Tasks;
@@ -13,21 +14,11 @@ public static class Mapper
 {
     #region Enums
 
-    public static Domain.Enums.WorkflowTaskStatus? ToDomain(this Shared.Enums.WorkflowTaskStatus? status)
+    public static WorkflowTaskStatus? ToDomain(string? workflowTaskStatus)
     {
-        return status != null ? (Domain.Enums.WorkflowTaskStatus)status : null;
+        return Enum.TryParse(workflowTaskStatus, ignoreCase: true, out WorkflowTaskStatus parsed) ? parsed : null;
     }
-
-    public static Shared.Enums.WorkflowTaskStatus ToShared(this Domain.Enums.WorkflowTaskStatus status)
-    {
-        return (Shared.Enums.WorkflowTaskStatus)status;
-    }
-
-    public static Shared.Enums.WorkflowEventType ToShared(this Domain.Enums.WorkflowEventType eventType)
-    {
-        return (Shared.Enums.WorkflowEventType)eventType;
-    }
-
+    
     #endregion
 
     #region Documents
@@ -53,7 +44,7 @@ public static class Mapper
             TaskId = dto.TaskId,
             WorkflowId = dto.WorkflowId,
             AssignedTo = dto.AssignedTo,
-            Status = dto.InternalStatus.ToShared(),
+            WorkflowTaskStatus = dto.WorkflowTaskStatus.ToString(),
             TaskDescription = dto.TaskDescription,
             DueDate = dto.DueDate,
             EndDate = dto.EndDate
@@ -114,8 +105,8 @@ public static class Mapper
             Id = dto.Id,
             AssignedTo = dto.AssignedTo,
             AssignedBy = dto.AssignedBy,
-            Status = dto.Status,
-            InternalStatus = dto.InternalStatus.ToShared(),
+            DisplayStatus = dto.DisplayStatus,
+            InternalStatus = (int)dto.InternalStatus,
             Description = dto.Description,
             DueDate = dto.DueDate ?? DateTime.UtcNow, // Default to current UTC time if null
             EndDate = dto.EndDate,
@@ -177,7 +168,7 @@ public static class Mapper
             Id = source.Id,
             AssignedTo = source.AssignedTo,
             AssignedBy = source.AssignedBy,
-            InternalStatus = source.InternalStatus.ToShared(),
+            InternalStatus = (int)source.InternalStatus,
             Description = source.Description,
             DueDate = source.DueDate,
             EndDate = source.EndDate,
@@ -250,7 +241,7 @@ public static class Mapper
             Description = dto.Description,
             User = dto.User,
             Comment = dto.Comment,
-            Event = dto.Event.ToShared()
+            Event = dto.Event.ToString()
         }).ToList();
     }
 }

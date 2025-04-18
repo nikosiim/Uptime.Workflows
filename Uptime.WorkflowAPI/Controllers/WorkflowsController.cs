@@ -6,7 +6,6 @@ using Uptime.Application.Queries;
 using Uptime.Domain.Common;
 using Uptime.Shared.Models.Workflows;
 using Unit = Uptime.Domain.Common.Unit;
-using WorkflowTaskStatus = Uptime.Shared.Enums.WorkflowTaskStatus;
 
 namespace Uptime.WorkflowAPI.Controllers;
 
@@ -36,11 +35,11 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
 
         return Ok(Mapper.MapToWorkflowDetailsResponse(workflow));
     }
-
+    
     [HttpGet("{workflowId:int}/workflow-tasks")]
-    public async Task<ActionResult<IEnumerable<WorkflowTasksResponse>>> GetWorkflowTasks(int workflowId, [FromQuery] WorkflowTaskStatus? status = null)
+    public async Task<ActionResult<IEnumerable<WorkflowTasksResponse>>> GetWorkflowTasks(int workflowId, [FromQuery] string? workflowTaskStatus = null)
     {
-        var query = new GetWorkflowTasksQuery((WorkflowId)workflowId, status.ToDomain());
+        var query = new GetWorkflowTasksQuery((WorkflowId)workflowId, Mapper.ToDomain(workflowTaskStatus));
 
         List<WorkflowTaskDto> tasks = await mediator.Send(query);
         if (tasks.Count == 0)

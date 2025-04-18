@@ -8,7 +8,7 @@ public record DocumentWorkflowTaskDto
     public int WorkflowId { get; init; }
     public string? AssignedTo { get; init; }
     public string Status { get; init; } = null!;
-    public WorkflowTaskStatus InternalStatus { get; init; }
+    public WorkflowTaskStatus WorkflowTaskStatus { get; init; }
     public string? TaskDescription { get; init; }
     public DateTime? DueDate { get; init; }
     public DateTime? EndDate { get; init; }

@@ -2,7 +2,6 @@
 using Uptime.Client.Application.Common;
 using Uptime.Client.Application.DTOs;
 using Uptime.Client.Application.Services;
-using Uptime.Shared.Extensions;
 using Uptime.Shared.Models.Tasks;
 
 namespace Uptime.Client.Application.Queries;
@@ -33,7 +32,7 @@ public class GetWorkflowTaskQueryHandler(IApiService apiService)
             DueDate = task.DueDate,
             EndDate = task.EndDate,
             Status = WorkflowTaskResources.Get(task.Status),
-            InternalStatus = task.InternalStatus,
+            InternalStatus = (WorkflowTaskStatus)task.InternalStatus,
             StorageJson = task.StorageJson,
             Document = task.Document,
             WorkflowId = task.WorkflowId,

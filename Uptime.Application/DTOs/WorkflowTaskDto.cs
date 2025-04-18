@@ -7,7 +7,7 @@ public record WorkflowTaskDto
     public int Id { get; init; }
     public string? AssignedTo { get; init; }
     public string? AssignedBy { get; init; }
-    public string Status { get; init; } = null!;
+    public string DisplayStatus { get; init; } = null!;
     public WorkflowTaskStatus InternalStatus { get; init; }
     public string? Description { get; init; }
     public DateTime? DueDate { get; init; }

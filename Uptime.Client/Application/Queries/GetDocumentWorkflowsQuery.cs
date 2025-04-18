@@ -2,7 +2,6 @@
 using Uptime.Client.Application.Common;
 using Uptime.Client.Application.DTOs;
 using Uptime.Client.Application.Services;
-using Uptime.Shared.Extensions;
 using Uptime.Shared.Models.Documents;
 
 namespace Uptime.Client.Application.Queries;

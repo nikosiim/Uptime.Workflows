@@ -1,6 +1,4 @@
-﻿using Uptime.Shared.Enums;
-
-namespace Uptime.Client.Application.Common;
+﻿namespace Uptime.Client.Application.Common;
 
 public class ApprovalFormModel : IWorkflowFormModel
 {

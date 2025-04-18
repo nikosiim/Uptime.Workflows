@@ -1,7 +1,6 @@
-﻿using Uptime.Shared.Enums;
-using Uptime.Shared.Resources;
+﻿using Uptime.Client.Resources;
 
-namespace Uptime.Shared.Extensions;
+namespace Uptime.Client.Application.Common;
 
 public static class WorkflowTaskResources
 {

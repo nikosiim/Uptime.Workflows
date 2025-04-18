@@ -40,13 +40,13 @@
 
         string taskEditor = User.GetNameOrSystemAccount(WorkflowState.Value.CurrentUser);
         
-        input[GlobalConstants.TaskStorageKeys.TaskComment] = _comment;
-        input[GlobalConstants.TaskStorageKeys.TaskEditor] = taskEditor;
-        input[GlobalConstants.TaskStorageKeys.TaskResult] = EventType.ToString();
+        input[TaskStorageKeys.TaskComment] = _comment;
+        input[TaskStorageKeys.TaskEditor] = taskEditor;
+        input[TaskStorageKeys.TaskResult] = EventType.ToString();
 
         if (EventType == WorkflowEventType.TaskDelegated)
         {
-            input[GlobalConstants.TaskStorageKeys.TaskDelegatedTo] = _delegatedUser;
+            input[TaskStorageKeys.TaskDelegatedTo] = _delegatedUser;
         }
 
         var command = new AlterTaskCommand

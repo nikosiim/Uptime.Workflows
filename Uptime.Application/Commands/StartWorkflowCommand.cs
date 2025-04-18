@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Uptime.Application.Common;
 using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
+using Uptime.Domain.Interfaces;
 using Unit = Uptime.Domain.Common.Unit;
 
 namespace Uptime.Application.Commands;
