@@ -1,8 +1,8 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Uptime.Application.Common;
-using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
+using Uptime.Domain.Data;
 using Uptime.Domain.Interfaces;
 using Unit = Uptime.Domain.Common.Unit;
 
@@ -16,7 +16,7 @@ public record StartWorkflowCommand : IRequest<Result<Unit>>
     public Dictionary<string, string?> Storage { get; init; } = new();
 }
 
-public class StartWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory)
+public class StartWorkflowCommandHandler(WorkflowDbContext dbContext, IWorkflowFactory workflowFactory)
     : IRequestHandler<StartWorkflowCommand, Result<Unit>>
 {
     public async Task<Result<Unit>> Handle(StartWorkflowCommand request, CancellationToken cancellationToken)

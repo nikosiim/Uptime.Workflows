@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
+using Uptime.Domain.Data;
 using Uptime.Domain.Entities;
 using Uptime.Domain.Interfaces;
 using Unit = Uptime.Domain.Common.Unit;
@@ -14,7 +14,7 @@ public record AlterTaskCommand : IRequest<Result<Unit>>
     public Dictionary<string, string?> Payload { get; init; } = new();
 }
 
-public class AlterTaskCommandHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory) 
+public class AlterTaskCommandHandler(WorkflowDbContext dbContext, IWorkflowFactory workflowFactory) 
     : IRequestHandler<AlterTaskCommand, Result<Unit>>
 {
     public async Task<Result<Unit>> Handle(AlterTaskCommand request, CancellationToken cancellationToken)

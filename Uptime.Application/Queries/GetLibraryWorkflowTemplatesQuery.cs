@@ -1,14 +1,14 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Uptime.Application.DTOs;
-using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
+using Uptime.Domain.Data;
 
 namespace Uptime.Application.Queries;
 
 public record GetLibraryWorkflowTemplatesQuery(LibraryId ListId) : IRequest<List<LibraryWorkflowTemplateDto>>;
 
-public class GetLibraryWorkflowTemplatesQueryHandler(IWorkflowDbContext dbContext) : IRequestHandler<GetLibraryWorkflowTemplatesQuery, List<LibraryWorkflowTemplateDto>>
+public class GetLibraryWorkflowTemplatesQueryHandler(WorkflowDbContext dbContext) : IRequestHandler<GetLibraryWorkflowTemplatesQuery, List<LibraryWorkflowTemplateDto>>
 {
     public async Task<List<LibraryWorkflowTemplateDto>> Handle(GetLibraryWorkflowTemplatesQuery request, CancellationToken cancellationToken)
     {

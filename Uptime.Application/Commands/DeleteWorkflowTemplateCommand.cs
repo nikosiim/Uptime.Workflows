@@ -1,8 +1,8 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
+using Uptime.Domain.Data;
 using Uptime.Domain.Entities;
 using Unit = Uptime.Domain.Common.Unit;
 
@@ -10,7 +10,7 @@ namespace Uptime.Application.Commands;
 
 public record DeleteWorkflowTemplateCommand(WorkflowTemplateId TemplateId) : IRequest<Result<Unit>>;
 
-public class DeleteWorkflowTemplateCommandHandler(IWorkflowDbContext context, ILogger<DeleteWorkflowTemplateCommand> logger)
+public class DeleteWorkflowTemplateCommandHandler(WorkflowDbContext context, ILogger<DeleteWorkflowTemplateCommand> logger)
     : IRequestHandler<DeleteWorkflowTemplateCommand, Result<Unit>>
 {
     public async Task<Result<Unit>> Handle(DeleteWorkflowTemplateCommand request, CancellationToken cancellationToken)

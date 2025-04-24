@@ -1,18 +1,18 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Uptime.Application.Interfaces;
+using Uptime.Domain.Data;
 
-namespace Uptime.Persistence;
+namespace Uptime.Domain;
 
 public static class ConnectionStrings
 {
     public const string DefaultConnection = "UptimeDbConnection";
 }
 
-public static class PersistenceServiceRegistration
+public static class CoreServiceRegistration
 {
-    public static void AddPersistenceServices(this IServiceCollection services, IConfiguration configuration)
+    public static void AddCoreServices(this IServiceCollection services, IConfiguration configuration)
     {
         string connectionString = configuration.GetConnectionString(ConnectionStrings.DefaultConnection)!;
 
@@ -25,16 +25,7 @@ public static class PersistenceServiceRegistration
                 connectionString = azureConnectionString;
             }
         }
-
-        services.AddDbContext<WorkflowDbContext>(options =>
-            options.UseSqlServer(connectionString));
-
-        services.AddDbContextFactory<WorkflowDbContext>(
-            options => options.UseSqlServer(connectionString),
-            ServiceLifetime.Scoped
-        );
-
-        services.AddScoped<IWorkflowDbContextFactory, WorkflowDbContextFactory>();
-        services.AddScoped<IWorkflowDbContext>(provider => provider.GetRequiredService<WorkflowDbContext>());
+        
+        services.AddDbContext<WorkflowDbContext>(options => options.UseSqlServer(connectionString));
     }
 }

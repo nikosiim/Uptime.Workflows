@@ -1,8 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Uptime.Application.Common;
-using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
+using Uptime.Domain.Data;
 using Uptime.Domain.Entities;
 using Unit = Uptime.Domain.Common.Unit;
 
@@ -17,7 +16,7 @@ public record UpdateWorkflowTemplateCommand : IRequest<Result<Unit>>
     public string? AssociationDataJson { get; init; }
 }
 
-public class UpdateWorkflowTemplateCommandHandler(IWorkflowDbContext context)
+public class UpdateWorkflowTemplateCommandHandler(WorkflowDbContext context)
     : IRequestHandler<UpdateWorkflowTemplateCommand, Result<Unit>>
 {
     public async Task<Result<Unit>> Handle(UpdateWorkflowTemplateCommand request, CancellationToken cancellationToken)

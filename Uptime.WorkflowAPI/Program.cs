@@ -1,11 +1,11 @@
 using Uptime.Application;
-using Uptime.Persistence;
+using Uptime.Domain;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
-builder.Services.AddPersistenceServices(builder.Configuration);
+builder.Services.AddCoreServices(builder.Configuration);
 builder.Services.AddApplicationServices();
 builder.Services.AddControllers();
 

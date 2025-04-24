@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
-using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
 using Uptime.Domain.Interfaces;
 

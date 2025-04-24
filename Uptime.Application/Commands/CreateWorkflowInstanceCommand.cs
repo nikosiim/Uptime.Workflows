@@ -1,6 +1,6 @@
 ﻿using MediatR;
-using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
+using Uptime.Domain.Data;
 using Uptime.Domain.Entities;
 
 namespace Uptime.Application.Commands;
@@ -12,7 +12,7 @@ public record CreateWorkflowInstanceCommand : IRequest<WorkflowId>
     public string? Originator { get; init; }
 }
 
-public class CreateWorkflowInstanceCommandHandler(IWorkflowDbContext dbContext)
+public class CreateWorkflowInstanceCommandHandler(WorkflowDbContext dbContext)
     : IRequestHandler<CreateWorkflowInstanceCommand, WorkflowId>
 {
     public async Task<WorkflowId> Handle(CreateWorkflowInstanceCommand request, CancellationToken cancellationToken)

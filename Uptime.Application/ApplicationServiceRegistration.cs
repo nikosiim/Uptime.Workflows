@@ -2,7 +2,6 @@
 using System.Reflection;
 using Microsoft.Extensions.Logging;
 using Uptime.Application.Common;
-using Uptime.Application.Interfaces;
 using Uptime.Application.Workflows.Approval;
 using Uptime.Application.Workflows.Signing;
 using Uptime.Domain.Interfaces;

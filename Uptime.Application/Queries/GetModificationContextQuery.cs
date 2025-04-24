@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
+using Uptime.Domain.Data;
 using Uptime.Domain.Entities;
 using Uptime.Domain.Interfaces;
 using Unit = Uptime.Domain.Common.Unit;
@@ -10,7 +10,7 @@ namespace Uptime.Application.Queries;
 
 public record GetModificationContextQuery(WorkflowId WorkflowId) : IRequest<Result<string>>;
 
-public sealed class GetModificationContextQueryHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory)
+public sealed class GetModificationContextQueryHandler(WorkflowDbContext dbContext, IWorkflowFactory workflowFactory)
     : IRequestHandler<GetModificationContextQuery, Result<string>>
 {
     public async Task<Result<string>> Handle(GetModificationContextQuery request, CancellationToken cancellationToken)

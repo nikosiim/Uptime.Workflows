@@ -38,34 +38,11 @@
     <Compile Remove="DTOs\ModificationContext.cs" />
     <Compile Remove="DTOs\WorkflowInstanceData.cs" />
     <Compile Remove="DTOs\WorkflowStateData.cs" />
-    <Compile Remove="Interfaces\IActivityContext.cs" />
-    <Compile Remove="Interfaces\IActivityWorkflowMachine.cs" />
-    <Compile Remove="Interfaces\IAlterTaskPayload.cs" />
-    <Compile Remove="Interfaces\IReplicator.cs" />
-    <Compile Remove="Interfaces\IReplicatorItem.cs" />
-    <Compile Remove="Interfaces\IReplicatorPhaseBuilder.cs" />
-    <Compile Remove="Interfaces\IReplicatorWorkflowContext.cs" />
-    <Compile Remove="Interfaces\IStateMachine.cs" />
-    <Compile Remove="Interfaces\IUserTaskActivity.cs" />
-    <Compile Remove="Interfaces\IUserTaskActivityContext.cs" />
-    <Compile Remove="Interfaces\IUserTaskActivityData.cs" />
-    <Compile Remove="Interfaces\IWorkflow.cs" />
-    <Compile Remove="Interfaces\IWorkflowActivity.cs" />
-    <Compile Remove="Interfaces\IWorkflowActivityFactory.cs" />
-    <Compile Remove="Interfaces\IWorkflowContext.cs" />
-    <Compile Remove="Interfaces\IWorkflowDefinition.cs" />
-    <Compile Remove="Interfaces\IWorkflowFactory.cs" />
-    <Compile Remove="Interfaces\IWorkflowMachine.cs" />
-    <Compile Remove="Interfaces\IWorkflowPayload.cs" />
-    <Compile Remove="Interfaces\IWorkflowStateRepository.cs" />
-    <Compile Remove="Interfaces\IWorkflowTask.cs" />
-    <Compile Remove="Interfaces\IWorkflowTaskRepository.cs" />
     <Compile Remove="Queries\GetWorkflowTaskStorageQuery.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediatR" Version="12.4.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.3" />
+    <PackageReference Include="MediatR" Version="12.5.0" />
     <PackageReference Include="Stateless" Version="5.17.0" />
   </ItemGroup>
 

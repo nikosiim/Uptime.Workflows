@@ -1,14 +1,14 @@
-﻿using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
-using Uptime.Application.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using Uptime.Domain.Common;
+using Uptime.Domain.Data;
 using Uptime.Domain.Entities;
 using Uptime.Domain.Enums;
 using Uptime.Domain.Interfaces;
 
 namespace Uptime.Application.Common;
 
-public class WorkflowRepository(IWorkflowDbContextFactory factory) : IWorkflowRepository
+public class WorkflowRepository(WorkflowDbContext dbContext) : IWorkflowRepository
 {
     #region Workflows
 
@@ -24,9 +24,7 @@ public class WorkflowRepository(IWorkflowDbContextFactory factory) : IWorkflowRe
             DocumentId = payload.DocumentId.Value,
             WorkflowTemplateId = payload.WorkflowTemplateId.Value
         };
-
-        using IWorkflowDbContext dbContext = factory.CreateDbContext();
-
+        
         dbContext.Workflows.Add(instance);
         await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -35,8 +33,6 @@ public class WorkflowRepository(IWorkflowDbContextFactory factory) : IWorkflowRe
 
     public async Task MarkWorkflowAsInvalidAsync(WorkflowId workflowId, CancellationToken cancellationToken)
     {
-        using IWorkflowDbContext dbContext = factory.CreateDbContext();
-
         Workflow? instance = await dbContext.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId.Value, cancellationToken);
         if (instance == null)
         {
@@ -54,8 +50,6 @@ public class WorkflowRepository(IWorkflowDbContextFactory factory) : IWorkflowRe
     public async Task SaveWorkflowStateAsync<TContext>(WorkflowId workflowId, BaseState phase, TContext context, CancellationToken cancellationToken)
         where TContext : IWorkflowContext, new()
     {
-        using IWorkflowDbContext dbContext = factory.CreateDbContext();
-
         Workflow? instance =  await dbContext.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId.Value, cancellationToken);
         if (instance == null)
         {
@@ -84,7 +78,6 @@ public class WorkflowRepository(IWorkflowDbContextFactory factory) : IWorkflowRe
 
     public async Task<TaskId> CreateWorkflowTaskAsync(IWorkflowTask request, CancellationToken cancellationToken)
     {
-        using IWorkflowDbContext dbContext = factory.CreateDbContext();
         bool workflowExists = await dbContext.Workflows.AnyAsync(w => w.Id == request.WorkflowId.Value, cancellationToken: cancellationToken);
         if (!workflowExists)
         {
@@ -115,8 +108,6 @@ public class WorkflowRepository(IWorkflowDbContextFactory factory) : IWorkflowRe
 
     public async Task CancelAllActiveTasksAsync(WorkflowId workflowId, CancellationToken cancellationToken)
     {
-        using IWorkflowDbContext dbContext = factory.CreateDbContext();
-
         List<WorkflowTask> tasks = await dbContext.WorkflowTasks
             .Where(t => t.WorkflowId == workflowId.Value && t.InternalStatus != WorkflowTaskStatus.Completed && t.InternalStatus != WorkflowTaskStatus.Cancelled)
             .ToListAsync(cancellationToken);
@@ -135,7 +126,6 @@ public class WorkflowRepository(IWorkflowDbContextFactory factory) : IWorkflowRe
     
     public async Task SaveWorkflowTaskAsync(IWorkflowTask request, CancellationToken cancellationToken)
     {
-        using IWorkflowDbContext dbContext = factory.CreateDbContext();
         WorkflowTask? task = await dbContext.WorkflowTasks.FirstOrDefaultAsync(t => t.Id == request.TaskId.Value, cancellationToken);
 
         if (task == null)
@@ -178,9 +168,7 @@ public class WorkflowRepository(IWorkflowDbContextFactory factory) : IWorkflowRe
             Comment = comment,
             WorkflowId = workflowId.Value
         };
-
-        using IWorkflowDbContext dbContext = factory.CreateDbContext();
-
+        
         dbContext.WorkflowHistories.Add(historyEntry);
         await dbContext.SaveChangesAsync(cancellationToken);
     }

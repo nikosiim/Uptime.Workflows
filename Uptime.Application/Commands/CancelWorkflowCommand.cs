@@ -1,9 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Uptime.Application.Common;
-using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
+using Uptime.Domain.Data;
 using Uptime.Domain.Entities;
 using Uptime.Domain.Interfaces;
 using Unit = Uptime.Domain.Common.Unit;
@@ -12,7 +10,7 @@ namespace Uptime.Application.Commands;
 
 public record CancelWorkflowCommand(WorkflowId WorkflowId, string Executor, string Comment) : IRequest<Result<Unit>>;
 
-public class CancelWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory)
+public class CancelWorkflowCommandHandler(WorkflowDbContext dbContext, IWorkflowFactory workflowFactory)
     : IRequestHandler<CancelWorkflowCommand, Result<Unit>>
 {
     public async Task<Result<Unit>> Handle(CancelWorkflowCommand request, CancellationToken cancellationToken)

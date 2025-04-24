@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
+using Uptime.Domain.Data;
 using Uptime.Domain.Entities;
 using Uptime.Domain.Interfaces;
 using Unit = Uptime.Domain.Common.Unit;
@@ -10,7 +10,7 @@ namespace Uptime.Application.Commands;
 
 public record ModifyWorkflowCommand(WorkflowId WorkflowId, ModificationPayload Payload) : IRequest<Result<Unit>>;
 
-public class ModifyWorkflowCommandHandler(IWorkflowDbContext dbContext, IWorkflowFactory workflowFactory)
+public class ModifyWorkflowCommandHandler(WorkflowDbContext dbContext, IWorkflowFactory workflowFactory)
     : IRequestHandler<ModifyWorkflowCommand, Result<Unit>>
 {
     public async Task<Result<Unit>> Handle(ModifyWorkflowCommand request, CancellationToken cancellationToken)

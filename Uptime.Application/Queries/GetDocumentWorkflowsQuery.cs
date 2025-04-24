@@ -1,14 +1,14 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Uptime.Application.DTOs;
-using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
+using Uptime.Domain.Data;
 
 namespace Uptime.Application.Queries;
 
 public record GetDocumentWorkflowsQuery(DocumentId DocumentId) : IRequest<List<DocumentWorkflowDto>>;
 
-public class GetDocumentWorkflowsQueryHandler(IWorkflowDbContext dbContext)
+public class GetDocumentWorkflowsQueryHandler(WorkflowDbContext dbContext)
     : IRequestHandler<GetDocumentWorkflowsQuery, List<DocumentWorkflowDto>>
 {
     public async Task<List<DocumentWorkflowDto>> Handle(GetDocumentWorkflowsQuery request, CancellationToken cancellationToken)

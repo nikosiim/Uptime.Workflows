@@ -1,6 +1,6 @@
 ﻿using MediatR;
-using Uptime.Application.Interfaces;
 using Uptime.Domain.Common;
+using Uptime.Domain.Data;
 using Uptime.Domain.Entities;
 
 namespace Uptime.Application.Commands;
@@ -14,7 +14,7 @@ public record CreateWorkflowTemplateCommand : IRequest<WorkflowTemplateId>
     public required string AssociationDataJson { get; init; }
 }
 
-public class CreateWorkflowTemplateCommandHandler(IWorkflowDbContext context) 
+public class CreateWorkflowTemplateCommandHandler(WorkflowDbContext context) 
     : IRequestHandler<CreateWorkflowTemplateCommand, WorkflowTemplateId>
 {
     public async Task<WorkflowTemplateId> Handle(CreateWorkflowTemplateCommand request, CancellationToken cancellationToken)
