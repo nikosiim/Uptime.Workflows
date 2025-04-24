@@ -1,9 +1,9 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Uptime.Application.DTOs;
-using Uptime.Domain.Common;
-using Uptime.Domain.Data;
-using Uptime.Domain.Enums;
+using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Data;
+using Uptime.Workflows.Core.Enums;
 
 namespace Uptime.Application.Queries;
 

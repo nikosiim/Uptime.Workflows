@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using Uptime.Application.Common;
-using Uptime.Domain.Common;
-using Uptime.Domain.Interfaces;
+using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Interfaces;
 
 namespace Uptime.Application.Workflows.Approval;
 

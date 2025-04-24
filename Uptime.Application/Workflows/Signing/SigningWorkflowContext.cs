@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 using Uptime.Application.Common;
-using Uptime.Domain.Common;
+using Uptime.Workflows.Core.Common;
 
 namespace Uptime.Application.Workflows.Signing;
 

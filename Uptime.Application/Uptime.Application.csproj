@@ -47,7 +47,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Uptime.Domain\Uptime.Domain.csproj" />
+    <ProjectReference Include="..\Uptime.Workflows.Core\Uptime.Workflows.Core.csproj" />
   </ItemGroup>
 
 </Project>

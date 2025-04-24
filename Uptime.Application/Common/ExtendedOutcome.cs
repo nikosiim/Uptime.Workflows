@@ -1,4 +1,4 @@
-﻿using Uptime.Domain.Common;
+﻿using Uptime.Workflows.Core.Common;
 
 namespace Uptime.Application.Common;
 

@@ -1,10 +1,10 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Uptime.Domain.Common;
-using Uptime.Domain.Data;
-using Uptime.Domain.Entities;
-using Unit = Uptime.Domain.Common.Unit;
+using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Data;
+using Uptime.Workflows.Core.Entities;
+using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.Application.Commands;
 

@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
-using Uptime.Domain.Common;
-using Uptime.Domain.Data;
-using Uptime.Domain.Entities;
-using Uptime.Domain.Enums;
-using Uptime.Domain.Interfaces;
+using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Data;
+using Uptime.Workflows.Core.Entities;
+using Uptime.Workflows.Core.Enums;
+using Uptime.Workflows.Core.Interfaces;
 
 namespace Uptime.Application.Common;
 

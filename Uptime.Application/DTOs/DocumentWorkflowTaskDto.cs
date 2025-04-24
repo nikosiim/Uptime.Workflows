@@ -1,4 +1,4 @@
-﻿using Uptime.Domain.Enums;
+﻿using Uptime.Workflows.Core.Enums;
 
 namespace Uptime.Application.DTOs;
 

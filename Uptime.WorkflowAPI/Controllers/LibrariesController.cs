@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Application.DTOs;
 using Uptime.Application.Queries;
-using Uptime.Domain.Common;
+using Uptime.Workflows.Core.Common;
 using Uptime.Shared.Models.Libraries;
 
 namespace Uptime.WorkflowAPI.Controllers

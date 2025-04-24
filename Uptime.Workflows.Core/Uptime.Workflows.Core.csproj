@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AssemblyName>Uptime.Workflows.Core</AssemblyName>
+		<RootNamespace>Uptime.Workflows.Core</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="Common\ReplicatorPhaseBuilderFactory.cs" />
+		<Compile Remove="Common\StorageExtensions.cs" />
+		<Compile Remove="Common\WorkflowConfiguration.cs" />
+		<Compile Remove="Enums\TaskOutcome.cs" />
+		<Compile Remove="Enums\WorkflowPhase.cs" />
+		<Compile Remove="Interfaces\IReplicatorPhaseBuilderFactory.cs" />
+		<Compile Remove="Interfaces\IWorkflowStateRepository.cs" />
+		<Compile Remove="Interfaces\IWorkflowTaskRepository.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.4" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.4" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.4">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.4" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0-preview.2.25163.2" />
+	</ItemGroup>
+
+</Project>

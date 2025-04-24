@@ -1,7 +1,7 @@
 ﻿using Uptime.Application.Commands;
 using Uptime.Application.DTOs;
-using Uptime.Domain.Common;
-using Uptime.Domain.Enums;
+using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Enums;
 using Uptime.Shared.Models.Documents;
 using Uptime.Shared.Models.Libraries;
 using Uptime.Shared.Models.Tasks;

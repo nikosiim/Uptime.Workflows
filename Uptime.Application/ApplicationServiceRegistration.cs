@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Uptime.Application.Common;
 using Uptime.Application.Workflows.Approval;
 using Uptime.Application.Workflows.Signing;
-using Uptime.Domain.Interfaces;
+using Uptime.Workflows.Core.Interfaces;
 using Uptime.Application.Stateless;
 
 namespace Uptime.Application;

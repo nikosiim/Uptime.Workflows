@@ -1,6 +1,6 @@
 ﻿using Uptime.Application.Common;
-using Uptime.Domain.Common;
-using Uptime.Domain.Interfaces;
+using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Interfaces;
 using static Uptime.Application.Constants;
 
 namespace Uptime.Application.Workflows.Approval;

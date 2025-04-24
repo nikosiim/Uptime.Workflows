@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using Uptime.Application.Commands;
 using Uptime.Application.DTOs;
 using Uptime.Application.Queries;
-using Uptime.Domain.Common;
+using Uptime.Workflows.Core.Common;
 using Uptime.Shared.Models.WorkflowTemplates;
-using Unit = Uptime.Domain.Common.Unit;
+using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.WorkflowAPI.Controllers;
 

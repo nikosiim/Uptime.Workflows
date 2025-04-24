@@ -1,5 +1,5 @@
-﻿using Uptime.Domain.Common;
-using Uptime.Domain.Interfaces;
+﻿using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Interfaces;
 
 namespace Uptime.Application.Common;
 
