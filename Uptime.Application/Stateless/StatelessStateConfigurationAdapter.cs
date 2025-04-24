@@ -1,7 +1,7 @@
 ﻿using Stateless;
 using Uptime.Domain.Interfaces;
 
-namespace Uptime.Application.Common;
+namespace Uptime.Application.Stateless;
 
 public class StatelessStateConfigurationAdapter<TState, TTrigger>(StateMachine<TState, TTrigger>.StateConfiguration stateConfig)
     : IStateConfiguration<TState, TTrigger>

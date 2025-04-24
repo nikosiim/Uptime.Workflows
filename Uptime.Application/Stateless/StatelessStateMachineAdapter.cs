@@ -2,7 +2,7 @@
 using Uptime.Domain.Common;
 using Uptime.Domain.Interfaces;
 
-namespace Uptime.Application.Common;
+namespace Uptime.Application.Stateless;
 
 public class StatelessStateMachineAdapter<TState, TTrigger>(TState initialState) : IStateMachine<TState, TTrigger>
 {

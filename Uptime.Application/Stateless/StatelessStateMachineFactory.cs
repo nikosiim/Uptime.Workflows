@@ -1,6 +1,6 @@
 ﻿using Uptime.Domain.Interfaces;
 
-namespace Uptime.Application.Common;
+namespace Uptime.Application.Stateless;
 
 public class StatelessStateMachineFactory<TState, TTrigger> : IStateMachineFactory<TState, TTrigger>
 {
