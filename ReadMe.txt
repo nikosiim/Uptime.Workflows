@@ -1,10 +1,10 @@
 ﻿
-1. Add-Migration InitialCreate -Project Uptime.Domain -StartupProject Uptime.WorkflowAPI -OutputDir Data/Migrations
-2. Remove-Migration -Project Uptime.Domain -StartupProject Uptime.WorkflowAPI
-3. Update-Database -Project Uptime.Domain -StartupProject Uptime.WorkflowAPI
-4. Drop-Database -Project Uptime.Domain -StartupProject Uptime.WorkflowAPI
+1. Add-Migration InitialCreate -Project Uptime.Workflows.Core -StartupProject Uptime.WorkflowAPI -OutputDir Data/Migrations
+2. Remove-Migration -Project Uptime.Workflows.Core -StartupProject Uptime.WorkflowAPI
+3. Update-Database -Project Uptime.Workflows.Core -StartupProject Uptime.WorkflowAPI
+4. Drop-Database -Project Uptime.Workflows.Core -StartupProject Uptime.WorkflowAPI
 
-	- Project Uptime.Domain → Ensures migrations are added to the Domain project.
+	- Project Uptime.Workflows.Core → Ensures migrations are added to the Core project.
 	- StartupProject Uptime.API → Ensures EF Core loads the connection string from appsettings.json.
 
 

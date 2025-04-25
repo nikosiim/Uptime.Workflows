@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Uptime.Client", "Uptime.Cli
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Uptime.Workflows.Core", "Uptime.Workflows.Core\Uptime.Workflows.Core.csproj", "{935DADCD-D1DE-05F2-E37E-0A6E59263CB5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workflow.Minimized", "Workflow.Minimized\Workflow.Minimized.csproj", "{5BC661CC-B74F-45BF-9610-EE38F783837D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,6 +46,10 @@ Global
 		{935DADCD-D1DE-05F2-E37E-0A6E59263CB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{935DADCD-D1DE-05F2-E37E-0A6E59263CB5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{935DADCD-D1DE-05F2-E37E-0A6E59263CB5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5BC661CC-B74F-45BF-9610-EE38F783837D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BC661CC-B74F-45BF-9610-EE38F783837D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BC661CC-B74F-45BF-9610-EE38F783837D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BC661CC-B74F-45BF-9610-EE38F783837D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

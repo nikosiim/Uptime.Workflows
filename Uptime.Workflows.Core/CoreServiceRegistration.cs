@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Uptime.Workflows.Core.Data;
 
-namespace Uptime.Domain;
+namespace Uptime.Workflows.Core;
 
 public static class ConnectionStrings
 {

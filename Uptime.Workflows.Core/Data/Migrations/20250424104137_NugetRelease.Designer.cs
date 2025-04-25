@@ -12,8 +12,8 @@ using Uptime.Workflows.Core.Data;
 namespace Uptime.Workflows.Core.Data.Migrations
 {
     [DbContext(typeof(WorkflowDbContext))]
-    [Migration("20250424083105_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250424104137_NugetRelease")]
+    partial class NugetRelease
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -26,7 +26,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Uptime.Domain.Entities.Document", b =>
+            modelBuilder.Entity("Uptime.Workflows.Core.Entities.Document", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -165,7 +165,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Uptime.Domain.Entities.Library", b =>
+            modelBuilder.Entity("Uptime.Workflows.Core.Entities.Library", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -205,7 +205,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Uptime.Domain.Entities.Workflow", b =>
+            modelBuilder.Entity("Uptime.Workflows.Core.Entities.Workflow", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -257,7 +257,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     b.ToTable("Workflows", "UptimeAPI");
                 });
 
-            modelBuilder.Entity("Uptime.Domain.Entities.WorkflowHistory", b =>
+            modelBuilder.Entity("Uptime.Workflows.Core.Entities.WorkflowHistory", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -296,7 +296,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     b.ToTable("WorkflowHistories", "UptimeAPI");
                 });
 
-            modelBuilder.Entity("Uptime.Domain.Entities.WorkflowTask", b =>
+            modelBuilder.Entity("Uptime.Workflows.Core.Entities.WorkflowTask", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -355,7 +355,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     b.ToTable("WorkflowTasks", "UptimeAPI");
                 });
 
-            modelBuilder.Entity("Uptime.Domain.Entities.WorkflowTemplate", b =>
+            modelBuilder.Entity("Uptime.Workflows.Core.Entities.WorkflowTemplate", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -401,9 +401,9 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     b.ToTable("WorkflowTemplates", "UptimeAPI");
                 });
 
-            modelBuilder.Entity("Uptime.Domain.Entities.Document", b =>
+            modelBuilder.Entity("Uptime.Workflows.Core.Entities.Document", b =>
                 {
-                    b.HasOne("Uptime.Domain.Entities.Library", "Library")
+                    b.HasOne("Uptime.Workflows.Core.Entities.Library", "Library")
                         .WithMany("Documents")
                         .HasForeignKey("LibraryId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -412,15 +412,15 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     b.Navigation("Library");
                 });
 
-            modelBuilder.Entity("Uptime.Domain.Entities.Workflow", b =>
+            modelBuilder.Entity("Uptime.Workflows.Core.Entities.Workflow", b =>
                 {
-                    b.HasOne("Uptime.Domain.Entities.Document", "Document")
+                    b.HasOne("Uptime.Workflows.Core.Entities.Document", "Document")
                         .WithMany("Workflows")
                         .HasForeignKey("DocumentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Uptime.Domain.Entities.WorkflowTemplate", "WorkflowTemplate")
+                    b.HasOne("Uptime.Workflows.Core.Entities.WorkflowTemplate", "WorkflowTemplate")
                         .WithMany("Workflows")
                         .HasForeignKey("WorkflowTemplateId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -431,9 +431,9 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     b.Navigation("WorkflowTemplate");
                 });
 
-            modelBuilder.Entity("Uptime.Domain.Entities.WorkflowHistory", b =>
+            modelBuilder.Entity("Uptime.Workflows.Core.Entities.WorkflowHistory", b =>
                 {
-                    b.HasOne("Uptime.Domain.Entities.Workflow", "Workflow")
+                    b.HasOne("Uptime.Workflows.Core.Entities.Workflow", "Workflow")
                         .WithMany("WorkflowHistories")
                         .HasForeignKey("WorkflowId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -442,9 +442,9 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     b.Navigation("Workflow");
                 });
 
-            modelBuilder.Entity("Uptime.Domain.Entities.WorkflowTask", b =>
+            modelBuilder.Entity("Uptime.Workflows.Core.Entities.WorkflowTask", b =>
                 {
-                    b.HasOne("Uptime.Domain.Entities.Workflow", "Workflow")
+                    b.HasOne("Uptime.Workflows.Core.Entities.Workflow", "Workflow")
                         .WithMany("WorkflowTasks")
                         .HasForeignKey("WorkflowId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -453,9 +453,9 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     b.Navigation("Workflow");
                 });
 
-            modelBuilder.Entity("Uptime.Domain.Entities.WorkflowTemplate", b =>
+            modelBuilder.Entity("Uptime.Workflows.Core.Entities.WorkflowTemplate", b =>
                 {
-                    b.HasOne("Uptime.Domain.Entities.Library", "Library")
+                    b.HasOne("Uptime.Workflows.Core.Entities.Library", "Library")
                         .WithMany("WorkflowTemplates")
                         .HasForeignKey("LibraryId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -464,26 +464,26 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     b.Navigation("Library");
                 });
 
-            modelBuilder.Entity("Uptime.Domain.Entities.Document", b =>
+            modelBuilder.Entity("Uptime.Workflows.Core.Entities.Document", b =>
                 {
                     b.Navigation("Workflows");
                 });
 
-            modelBuilder.Entity("Uptime.Domain.Entities.Library", b =>
+            modelBuilder.Entity("Uptime.Workflows.Core.Entities.Library", b =>
                 {
                     b.Navigation("Documents");
 
                     b.Navigation("WorkflowTemplates");
                 });
 
-            modelBuilder.Entity("Uptime.Domain.Entities.Workflow", b =>
+            modelBuilder.Entity("Uptime.Workflows.Core.Entities.Workflow", b =>
                 {
                     b.Navigation("WorkflowHistories");
 
                     b.Navigation("WorkflowTasks");
                 });
 
-            modelBuilder.Entity("Uptime.Domain.Entities.WorkflowTemplate", b =>
+            modelBuilder.Entity("Uptime.Workflows.Core.Entities.WorkflowTemplate", b =>
                 {
                     b.Navigation("Workflows");
                 });

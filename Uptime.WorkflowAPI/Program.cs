@@ -1,5 +1,5 @@
 using Uptime.Application;
-using Uptime.Domain;
+using Uptime.Workflows.Core;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
