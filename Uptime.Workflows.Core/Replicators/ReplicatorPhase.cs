@@ -1,6 +1,6 @@
 ﻿using Uptime.Workflows.Core.Enums;
 
-namespace Uptime.Workflows.Core.Common;
+namespace Uptime.Workflows.Core;
 
 /// <summary>
 /// Tracks tasks for a specific workflow phase.

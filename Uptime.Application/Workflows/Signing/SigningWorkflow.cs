@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
 using Uptime.Application.Common;
+using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Interfaces;
-using Uptime.Workflows.Core.Workflows;
 using static Uptime.Application.Constants;
 
 namespace Uptime.Application.Workflows.Signing;

@@ -1,9 +1,10 @@
 ﻿using System.Text.Json;
+using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Entities;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Interfaces;
 
-namespace Uptime.Workflows.Core.Common;
+namespace Uptime.Workflows.Core;
 
 public class WorkflowTaskContext(WorkflowId workflowId, Guid taskGuid, string? phaseId = null)
     : IWorkflowTask

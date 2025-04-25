@@ -1,4 +1,4 @@
-﻿namespace Uptime.Workflows.Core.Common;
+﻿namespace Uptime.Workflows.Core;
 
 public record WorkflowDefinition
 {
@@ -7,12 +7,6 @@ public record WorkflowDefinition
     public required string DisplayName { get; init; }
     public IReadOnlyList<string>? Actions { get; init; }
     public IReadOnlyList<PhaseActivity>? ReplicatorActivities { get; init; }
-}
-
-public class ReplicatorConfiguration
-{
-    public IReadOnlyList<PhaseActivity> PhaseActivities { get; init; } = Array.Empty<PhaseActivity>();
-    public Dictionary<string, ReplicatorPhaseConfiguration> PhaseConfigurations { get; set; } = new();
 }
 
 public record PhaseActivity

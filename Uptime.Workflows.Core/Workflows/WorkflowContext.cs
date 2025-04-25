@@ -1,9 +1,8 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Interfaces;
 
-namespace Uptime.Application.Common;
+namespace Uptime.Workflows.Core;
 
 public class WorkflowContext : IWorkflowContext
 {

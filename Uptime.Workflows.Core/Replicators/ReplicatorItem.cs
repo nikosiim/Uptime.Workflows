@@ -1,6 +1,6 @@
 ﻿using Uptime.Workflows.Core.Enums;
 
-namespace Uptime.Workflows.Core.Common;
+namespace Uptime.Workflows.Core;
 
 public sealed class ReplicatorItem(Guid taskGuid, object data)
 {

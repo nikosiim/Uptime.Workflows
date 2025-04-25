@@ -5,6 +5,7 @@ using Uptime.Application.DTOs;
 using Uptime.Application.Queries;
 using Uptime.Workflows.Core.Common;
 using Uptime.Shared.Models.Workflows;
+using Uptime.Workflows.Core;
 using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.WorkflowAPI.Controllers;

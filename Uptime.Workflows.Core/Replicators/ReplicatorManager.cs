@@ -1,7 +1,8 @@
-﻿using Uptime.Workflows.Core.Enums;
+﻿using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Interfaces;
 
-namespace Uptime.Workflows.Core.Common;
+namespace Uptime.Workflows.Core;
 
 public class ReplicatorManager(WorkflowId workflowId, IReplicatorActivityProvider activityProvider, IWorkflowMachine workflowMachine)
 {

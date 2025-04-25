@@ -1,6 +1,7 @@
-﻿using Uptime.Workflows.Core.Interfaces;
+﻿using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Interfaces;
 
-namespace Uptime.Workflows.Core.Common;
+namespace Uptime.Workflows.Core;
 
 public class ReplicatorPhaseBuilder(Dictionary<string, ReplicatorPhaseConfiguration> phaseConfigurations)
     : IReplicatorPhaseBuilder

@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using Uptime.Application.Common;
+using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Interfaces;
-using Uptime.Workflows.Core.Workflows;
 
 namespace Uptime.Application.Workflows.Approval;
 

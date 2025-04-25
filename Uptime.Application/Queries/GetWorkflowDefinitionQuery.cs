@@ -1,5 +1,5 @@
 ﻿using MediatR;
-using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Interfaces;
 
 namespace Uptime.Application.Queries;

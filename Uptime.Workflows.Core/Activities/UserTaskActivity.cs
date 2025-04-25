@@ -1,7 +1,7 @@
 ﻿using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Interfaces;
 
-namespace Uptime.Workflows.Core.Common;
+namespace Uptime.Workflows.Core;
 
 public abstract class UserTaskActivity(IWorkflowRepository repository, WorkflowTaskContext context) : IUserTaskActivity
 {

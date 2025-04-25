@@ -1,7 +1,7 @@
 ﻿using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Interfaces;
 
-namespace Uptime.Workflows.Core.Common;
+namespace Uptime.Workflows.Core;
 
 /// <summary>
 /// Manages the execution of tasks in a workflow replicator, supporting sequential and parallel execution.

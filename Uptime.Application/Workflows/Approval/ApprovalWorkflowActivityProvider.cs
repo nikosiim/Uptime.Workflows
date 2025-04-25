@@ -1,6 +1,6 @@
 ﻿using Uptime.Application.Common;
 using Uptime.Application.Workflows.Signing;
-using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Interfaces;
 using static Uptime.Application.Constants;
 

@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using Uptime.Workflows.Core.Interfaces;
 
-namespace Uptime.Workflows.Core.Common;
+namespace Uptime.Workflows.Core;
 
 public static class WorkflowContextHelper
 {

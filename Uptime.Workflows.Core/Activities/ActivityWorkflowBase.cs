@@ -4,7 +4,7 @@ using Uptime.Workflows.Core.Entities;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Interfaces;
 
-namespace Uptime.Workflows.Core.Workflows;
+namespace Uptime.Workflows.Core;
 
 public abstract class ActivityWorkflowBase<TContext>(
     IStateMachineFactory<BaseState, WorkflowTrigger> stateMachineFactory,

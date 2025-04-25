@@ -30,7 +30,9 @@
     <Compile Remove="Common\StateTransitionQueue.cs" />
     <Compile Remove="Common\UserTaskActivity.cs" />
     <Compile Remove="Common\WorkflowBase.cs" />
+    <Compile Remove="Common\WorkflowContext.cs" />
     <Compile Remove="Common\WorkflowDefinition.cs" />
+    <Compile Remove="Common\WorkflowFactory.cs" />
     <Compile Remove="Common\WorkflowStateRepository.cs" />
     <Compile Remove="Common\WorkflowStatusMapper.cs" />
     <Compile Remove="Common\WorkflowTaskContext.cs" />
@@ -44,7 +46,10 @@
   <ItemGroup>
     <PackageReference Include="MediatR" Version="12.5.0" />
     <PackageReference Include="Stateless" Version="5.17.0" />
-    <PackageReference Include="Uptime.Workflows.Core" Version="1.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Uptime.Workflows.Core\Uptime.Workflows.Core.csproj" />
   </ItemGroup>
 
 </Project>

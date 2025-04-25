@@ -7,6 +7,7 @@ using Uptime.Shared.Models.Libraries;
 using Uptime.Shared.Models.Tasks;
 using Uptime.Shared.Models.Workflows;
 using Uptime.Shared.Models.WorkflowTemplates;
+using Uptime.Workflows.Core;
 
 namespace Uptime.WorkflowAPI;
 

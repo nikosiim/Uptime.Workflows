@@ -3,7 +3,7 @@ using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Interfaces;
 
-namespace Uptime.Workflows.Core.Workflows;
+namespace Uptime.Workflows.Core;
 
 public abstract class ReplicatorActivityWorkflowBase<TContext>(
     IStateMachineFactory<BaseState, WorkflowTrigger> stateMachineFactory,

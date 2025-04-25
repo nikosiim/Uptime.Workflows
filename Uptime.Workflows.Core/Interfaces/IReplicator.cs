@@ -1,5 +1,4 @@
-﻿using Uptime.Workflows.Core.Common;
-using Uptime.Workflows.Core.Enums;
+﻿using Uptime.Workflows.Core.Enums;
 
 namespace Uptime.Workflows.Core.Interfaces;
 
