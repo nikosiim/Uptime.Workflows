@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Uptime.Application.DTOs;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
-using Uptime.Workflows.Core.Entities;
 
 namespace Uptime.Application.Queries;
 

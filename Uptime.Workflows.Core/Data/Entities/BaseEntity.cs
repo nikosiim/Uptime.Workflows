@@ -1,4 +1,4 @@
-﻿namespace Uptime.Workflows.Core.Entities;
+﻿namespace Uptime.Workflows.Core.Data;
 
 public interface IEntity
 {

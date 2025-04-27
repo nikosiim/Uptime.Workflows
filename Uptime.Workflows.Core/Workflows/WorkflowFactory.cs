@@ -1,7 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using Microsoft.Extensions.Logging;
 using Uptime.Workflows.Core.Common;
-using Uptime.Workflows.Core.Interfaces;
 
 namespace Uptime.Workflows.Core;
 

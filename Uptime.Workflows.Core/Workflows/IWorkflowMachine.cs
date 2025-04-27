@@ -1,8 +1,8 @@
 ﻿using Uptime.Workflows.Core.Common;
-using Uptime.Workflows.Core.Entities;
+using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Enums;
 
-namespace Uptime.Workflows.Core.Interfaces;
+namespace Uptime.Workflows.Core;
 
 public interface IWorkflowMachine
 {

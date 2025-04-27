@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Uptime.Workflows.Core.Enums;
 
-namespace Uptime.Workflows.Core.Entities;
+namespace Uptime.Workflows.Core.Data;
 
 public class WorkflowTask : BaseEntity
 {

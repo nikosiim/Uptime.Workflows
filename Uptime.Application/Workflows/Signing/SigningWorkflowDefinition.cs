@@ -1,5 +1,4 @@
 ﻿using Uptime.Workflows.Core;
-using Uptime.Workflows.Core.Interfaces;
 using static Uptime.Application.Constants;
 
 namespace Uptime.Application.Workflows.Signing;

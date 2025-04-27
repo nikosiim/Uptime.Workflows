@@ -4,20 +4,22 @@ using Uptime.Application.Common;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
-using Uptime.Workflows.Core.Interfaces;
+using Uptime.Workflows.Core.Services;
 
 namespace Uptime.Application.Workflows.Approval;
 
-public class ApprovalWorkflow(IWorkflowRepository repository, ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
-    : ReplicatorActivityWorkflowBase<ApprovalWorkflowContext>(repository, logger)
+public class ApprovalWorkflow(
+    IWorkflowService workflowService, 
+    ITaskService taskService, 
+    IHistoryService historyService,
+    ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
+    : ReplicatorActivityWorkflowBase<ApprovalWorkflowContext>(workflowService, taskService, historyService, logger)
 {
-    private readonly IWorkflowRepository _repository = repository;
-
     private string? AssociationName => WorkflowContext.Storage.GetValueOrDefault(Constants.WorkflowStorageKeys.AssociationName);
 
     protected override IWorkflowDefinition WorkflowDefinition => new ApprovalWorkflowDefinition();
 
-    protected override IReplicatorActivityProvider ActivityProvider => new ApprovalWorkflowActivityProvider(_repository);
+    protected override IReplicatorActivityProvider ActivityProvider => new ApprovalWorkflowActivityProvider(taskService, historyService);
     
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {

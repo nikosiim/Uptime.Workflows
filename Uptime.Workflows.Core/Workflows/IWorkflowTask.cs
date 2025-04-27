@@ -1,7 +1,7 @@
 ﻿using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
 
-namespace Uptime.Workflows.Core.Interfaces;
+namespace Uptime.Workflows.Core;
 
 public interface IWorkflowTask
 {

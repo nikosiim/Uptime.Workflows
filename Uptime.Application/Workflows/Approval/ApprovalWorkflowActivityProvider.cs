@@ -2,24 +2,25 @@
 using Uptime.Application.Workflows.Signing;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
-using Uptime.Workflows.Core.Interfaces;
+using Uptime.Workflows.Core.Services;
 using static Uptime.Application.Constants;
 
 namespace Uptime.Application.Workflows.Approval;
 
-public class ApprovalWorkflowActivityProvider(IWorkflowRepository repository) : ReplicatorActivityProvider(repository)
+public class ApprovalWorkflowActivityProvider(ITaskService taskService, IHistoryService historyService) 
+    : ReplicatorActivityProvider
 {
     public override IWorkflowActivity CreateActivity(WorkflowTaskContext context, object data)
     {
         if (context.PhaseId == ExtendedState.Signing.Value)
         {
-            return new SigningTaskActivity(Repository, context)
+            return new SigningTaskActivity(taskService, historyService, context)
             {
                 TaskData = data.DeserializeTaskData<UserTaskActivityData>()
             };
         }
 
-        return new ApprovalTaskActivity(Repository, context)
+        return new ApprovalTaskActivity(taskService, historyService, context)
         {
             TaskData = data.DeserializeTaskData<ApprovalTaskData>()
         };

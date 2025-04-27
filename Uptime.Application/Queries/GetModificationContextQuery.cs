@@ -1,9 +1,8 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
-using Uptime.Workflows.Core.Entities;
-using Uptime.Workflows.Core.Interfaces;
 using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.Application.Queries;

@@ -39,6 +39,7 @@
     <Compile Remove="Common\WorkflowContext.cs" />
     <Compile Remove="Common\WorkflowDefinition.cs" />
     <Compile Remove="Common\WorkflowFactory.cs" />
+    <Compile Remove="Common\WorkflowRepository.cs" />
     <Compile Remove="Common\WorkflowStateRepository.cs" />
     <Compile Remove="Common\WorkflowStatusMapper.cs" />
     <Compile Remove="Common\WorkflowTaskContext.cs" />

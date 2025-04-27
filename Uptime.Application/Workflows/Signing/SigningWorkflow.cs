@@ -3,15 +3,17 @@ using Uptime.Application.Common;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
-using Uptime.Workflows.Core.Interfaces;
+using Uptime.Workflows.Core.Services;
 using static Uptime.Application.Constants;
 
 namespace Uptime.Application.Workflows.Signing;
 
-public class SigningWorkflow(IWorkflowRepository repository, ILogger<WorkflowBase<SigningWorkflowContext>> logger)
-    : ActivityWorkflowBase<SigningWorkflowContext>(repository, logger)
+public class SigningWorkflow(IWorkflowService workflowService, ITaskService taskService, IHistoryService historyService, 
+    ILogger<WorkflowBase<SigningWorkflowContext>> logger)
+    : ActivityWorkflowBase<SigningWorkflowContext>(workflowService, taskService, historyService, logger)
 {
-    private readonly IWorkflowRepository _repository = repository;
+    private readonly ITaskService _taskService = taskService;
+    private readonly IHistoryService _historyService = historyService;
 
     public bool IsTaskRejected { get; private set; }
 
@@ -55,7 +57,7 @@ public class SigningWorkflow(IWorkflowRepository repository, ILogger<WorkflowBas
 
     protected override async Task OnTaskAlteredAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
     {
-        var taskActivity = new SigningTaskActivity(_repository, context)
+        var taskActivity = new SigningTaskActivity(_taskService, _historyService, context)
         {
             TaskData = WorkflowContext.SigningTask
         };
@@ -87,7 +89,7 @@ public class SigningWorkflow(IWorkflowRepository repository, ILogger<WorkflowBas
         }
 
         UserTaskActivityData taskData = WorkflowContext.SigningTask!;
-        var taskActivity = new SigningTaskActivity(_repository, new WorkflowTaskContext(WorkflowId, Guid.NewGuid()))
+        var taskActivity = new SigningTaskActivity(_taskService, _historyService, new WorkflowTaskContext(WorkflowId, Guid.NewGuid()))
         {
             TaskData = taskData
         };

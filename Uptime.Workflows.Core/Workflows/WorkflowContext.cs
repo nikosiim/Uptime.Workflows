@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using Uptime.Workflows.Core.Interfaces;
 
 namespace Uptime.Workflows.Core;
 

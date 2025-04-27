@@ -1,15 +1,18 @@
 ﻿using Microsoft.Extensions.Logging;
 using Uptime.Workflows.Core.Common;
-using Uptime.Workflows.Core.Entities;
-using Uptime.Workflows.Core.Enums;
-using Uptime.Workflows.Core.Interfaces;
 using Stateless;
+using Uptime.Workflows.Core.Data;
+using Uptime.Workflows.Core.Enums;
+using Uptime.Workflows.Core.Services;
 
 namespace Uptime.Workflows.Core;
 
-public abstract class WorkflowBase<TContext>(IWorkflowRepository repository, ILogger<WorkflowBase<TContext>> logger)
-    : IWorkflowMachine, IWorkflow<TContext> 
-    where TContext : class, IWorkflowContext, new()
+public abstract class WorkflowBase<TContext>(
+    IWorkflowService workflowService, 
+    ITaskService taskService, 
+    IHistoryService historyService, 
+    ILogger<WorkflowBase<TContext>> logger)
+    : IWorkflowMachine, IWorkflow<TContext> where TContext : class, IWorkflowContext, new()
 {
     #region Fields & Properties
 
@@ -33,11 +36,11 @@ public abstract class WorkflowBase<TContext>(IWorkflowRepository repository, ILo
 
             InitializeStateMachine(BaseState.NotStarted, cancellationToken);
 
-            WorkflowId = await repository.CreateWorkflowInstanceAsync(payload, cancellationToken);
+            WorkflowId = await workflowService.CreateAsync(payload, cancellationToken);
 
             OnWorkflowActivatedAsync(payload, cancellationToken);
 
-            await repository.AddWorkflowHistoryAsync(
+            await historyService.CreateAsync(
                 WorkflowId,
                 WorkflowEventType.WorkflowStarted,
                 payload.Originator,
@@ -113,7 +116,7 @@ public abstract class WorkflowBase<TContext>(IWorkflowRepository repository, ILo
 
         try
         {
-            await repository.AddWorkflowHistoryAsync(
+            await historyService.CreateAsync(
                 WorkflowId,
                 WorkflowEventType.WorkflowComment,
                 executor,
@@ -195,12 +198,12 @@ public abstract class WorkflowBase<TContext>(IWorkflowRepository repository, ILo
     
     protected virtual async Task SaveWorkflowStateAsync(CancellationToken cancellationToken)
     {
-        await repository.SaveWorkflowStateAsync(WorkflowId, Machine.State, WorkflowContext, cancellationToken);
+        await workflowService.UpdateStateAsync(WorkflowId, Machine.State, WorkflowContext, cancellationToken);
     }
 
     protected virtual async Task CancelAllTasksAsync(CancellationToken cancellationToken)
     {
-        await repository.CancelAllActiveTasksAsync(WorkflowId, cancellationToken);
+        await taskService.CancelActiveTasksAsync(WorkflowId, cancellationToken);
     }
     
     #endregion
@@ -225,7 +228,7 @@ public abstract class WorkflowBase<TContext>(IWorkflowRepository repository, ILo
             if (transition.Destination.Equals(BaseState.Completed))
             {
                 await OnWorkflowCompletedAsync(cancellationToken);
-                await repository.AddWorkflowHistoryAsync(
+                await historyService.CreateAsync(
                     WorkflowId,
                     WorkflowEventType.WorkflowCompleted,
                     "System",
@@ -236,7 +239,7 @@ public abstract class WorkflowBase<TContext>(IWorkflowRepository repository, ILo
             else if (transition.Destination.Equals(BaseState.Cancelled))
             {
                 await OnWorkflowCancelledAsync(cancellationToken);
-                await repository.AddWorkflowHistoryAsync(
+                await historyService.CreateAsync(
                     WorkflowId,
                     WorkflowEventType.WorkflowCancelled,
                     "System",
@@ -253,8 +256,8 @@ public abstract class WorkflowBase<TContext>(IWorkflowRepository repository, ILo
         {
             logger.LogError(ex, "An error occurred while starting the workflow.");
             
-            await repository.MarkWorkflowAsInvalidAsync(WorkflowId, cancellationToken);
-            await repository.CancelAllActiveTasksAsync(workflowId, cancellationToken);
+            await workflowService.MarkAsInvalidAsync(WorkflowId, cancellationToken);
+            await taskService.CancelActiveTasksAsync(workflowId, cancellationToken);
         }
         catch (Exception e)
         {

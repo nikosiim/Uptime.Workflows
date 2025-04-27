@@ -1,4 +1,4 @@
-﻿namespace Uptime.Workflows.Core.Interfaces;
+﻿namespace Uptime.Workflows.Core;
 
 internal interface IUserTaskActivity : IWorkflowActivity
 {

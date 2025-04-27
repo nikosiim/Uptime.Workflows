@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using Uptime.Workflows.Core;
-using Uptime.Workflows.Core.Interfaces;
 
 namespace Uptime.Application.Workflows.Approval;
 

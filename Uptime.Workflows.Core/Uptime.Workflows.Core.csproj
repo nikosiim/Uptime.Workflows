@@ -13,11 +13,10 @@
 		<Compile Remove="Common\WorkflowConfiguration.cs" />
 		<Compile Remove="Enums\TaskOutcome.cs" />
 		<Compile Remove="Enums\WorkflowPhase.cs" />
-		<Compile Remove="Interfaces\IReplicatorPhaseBuilderFactory.cs" />
-		<Compile Remove="Interfaces\IStateMachine.cs" />
-		<Compile Remove="Interfaces\IStateMachineFactory.cs" />
-		<Compile Remove="Interfaces\IWorkflowStateRepository.cs" />
-		<Compile Remove="Interfaces\IWorkflowTaskRepository.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="Workflows\WorkflowFactory.cs~RF46b1167e.TMP" />
 	</ItemGroup>
 
 	<ItemGroup>

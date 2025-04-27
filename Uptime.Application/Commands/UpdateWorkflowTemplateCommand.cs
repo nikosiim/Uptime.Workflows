@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
-using Uptime.Workflows.Core.Entities;
 using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.Application.Commands;

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Uptime.Workflows.Core.Entities;
+namespace Uptime.Workflows.Core.Data;
 
 public class Document : BaseEntity
 {

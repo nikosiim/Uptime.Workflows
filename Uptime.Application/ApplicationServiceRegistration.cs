@@ -1,11 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 using Microsoft.Extensions.Logging;
-using Uptime.Application.Common;
+using System.Reflection;
 using Uptime.Application.Workflows.Approval;
 using Uptime.Application.Workflows.Signing;
-using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core;
+using Uptime.Workflows.Core.Services;
 
 namespace Uptime.Application;
 
@@ -18,7 +17,9 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IWorkflowMachine, ApprovalWorkflow>();
         services.AddScoped<IWorkflowMachine, SigningWorkflow>();
 
-        services.AddScoped<IWorkflowRepository, WorkflowRepository>();
+        services.AddScoped<ITaskService, TaskService>();
+        services.AddScoped<IHistoryService, HistoryService>();
+        services.AddScoped<IWorkflowService, WorkflowService>();
 
         services.AddSingleton<IWorkflowDefinition, ApprovalWorkflowDefinition>();
         services.AddSingleton<IWorkflowDefinition, SigningWorkflowDefinition>();

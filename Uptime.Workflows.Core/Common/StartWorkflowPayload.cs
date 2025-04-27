@@ -1,6 +1,4 @@
-﻿using Uptime.Workflows.Core.Interfaces;
-
-namespace Uptime.Workflows.Core.Common;
+﻿namespace Uptime.Workflows.Core.Common;
 
 public class StartWorkflowPayload : IWorkflowPayload
 {

@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using Uptime.Workflows.Core.Interfaces;
 
 namespace Uptime.Workflows.Core;
 

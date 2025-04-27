@@ -1,6 +1,6 @@
 ﻿using Uptime.Workflows.Core.Common;
 
-namespace Uptime.Workflows.Core.Interfaces;
+namespace Uptime.Workflows.Core;
 
 /// <summary>
 /// Defines a builder for creating replicator phases from a workflow payload.
