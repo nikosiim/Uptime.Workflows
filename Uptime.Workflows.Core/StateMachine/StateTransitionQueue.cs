@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace Uptime.Workflows.Core.Common;
+namespace Uptime.Workflows.Core;
 
 public class StateTransitionQueue<TState, TTrigger>(IStateMachine<TState, TTrigger> machine, ILogger logger)
 {

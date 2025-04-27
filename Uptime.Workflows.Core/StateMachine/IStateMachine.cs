@@ -1,6 +1,4 @@
-﻿using Uptime.Workflows.Core.Common;
-
-namespace Uptime.Workflows.Core;
+﻿namespace Uptime.Workflows.Core;
 
 public interface IStateMachine<TState, TTrigger>
 {

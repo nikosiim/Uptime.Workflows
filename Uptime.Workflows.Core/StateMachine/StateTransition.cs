@@ -1,4 +1,4 @@
-﻿namespace Uptime.Workflows.Core.Common;
+﻿namespace Uptime.Workflows.Core;
 
 public sealed record StateTransition<TState, TTrigger>(
     TState Source,

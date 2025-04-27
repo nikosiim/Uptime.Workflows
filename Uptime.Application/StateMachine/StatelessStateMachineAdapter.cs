@@ -1,6 +1,5 @@
 ﻿using Stateless;
 using Uptime.Workflows.Core;
-using Uptime.Workflows.Core.Common;
 
 namespace Uptime.Application.StateMachine;
 
