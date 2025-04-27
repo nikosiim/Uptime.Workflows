@@ -5,7 +5,6 @@ using Uptime.Application.Common;
 using Uptime.Application.Workflows.Approval;
 using Uptime.Application.Workflows.Signing;
 using Uptime.Workflows.Core.Interfaces;
-using Uptime.Application.Stateless;
 using Uptime.Workflows.Core;
 
 namespace Uptime.Application;
@@ -20,7 +19,6 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IWorkflowMachine, SigningWorkflow>();
 
         services.AddScoped<IWorkflowRepository, WorkflowRepository>();
-        services.AddTransient(typeof(IStateMachineFactory<,>), typeof(StatelessStateMachineFactory<,>));
 
         services.AddSingleton<IWorkflowDefinition, ApprovalWorkflowDefinition>();
         services.AddSingleton<IWorkflowDefinition, SigningWorkflowDefinition>();

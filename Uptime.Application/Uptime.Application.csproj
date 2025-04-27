@@ -8,8 +8,11 @@
 
   <ItemGroup>
     <Compile Remove="Resources\**" />
+    <Compile Remove="Stateless\**" />
     <EmbeddedResource Remove="Resources\**" />
+    <EmbeddedResource Remove="Stateless\**" />
     <None Remove="Resources\**" />
+    <None Remove="Stateless\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,7 +22,9 @@
     <Compile Remove="Common\ActivityWorkflowBase.cs" />
     <Compile Remove="Common\AlterTaskPayload.cs" />
     <Compile Remove="Common\AsyncLockHelper.cs" />
+    <Compile Remove="Common\NotFoundException.cs" />
     <Compile Remove="Common\Replicator.cs" />
+    <Compile Remove="Common\ReplicatorActivityProvider.cs" />
     <Compile Remove="Common\ReplicatorItem.cs" />
     <Compile Remove="Common\ReplicatorManager.cs" />
     <Compile Remove="Common\ReplicatorPhase.cs" />
@@ -28,6 +33,7 @@
     <Compile Remove="Common\ReplicatorState.cs" />
     <Compile Remove="Common\ReplicatorWorkflowBase.cs" />
     <Compile Remove="Common\StateTransitionQueue.cs" />
+    <Compile Remove="Common\StorageExtensions.cs" />
     <Compile Remove="Common\UserTaskActivity.cs" />
     <Compile Remove="Common\WorkflowBase.cs" />
     <Compile Remove="Common\WorkflowContext.cs" />
@@ -45,7 +51,6 @@
 
   <ItemGroup>
     <PackageReference Include="MediatR" Version="12.5.0" />
-    <PackageReference Include="Stateless" Version="5.17.0" />
   </ItemGroup>
 
   <ItemGroup>

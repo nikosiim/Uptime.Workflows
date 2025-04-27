@@ -8,11 +8,8 @@ using static Uptime.Application.Constants;
 
 namespace Uptime.Application.Workflows.Signing;
 
-public class SigningWorkflow(
-    IStateMachineFactory<BaseState, WorkflowTrigger> stateMachineFactory,
-    IWorkflowRepository repository,
-    ILogger<WorkflowBase<SigningWorkflowContext>> logger)
-    : ActivityWorkflowBase<SigningWorkflowContext>(stateMachineFactory, repository, logger)
+public class SigningWorkflow(IWorkflowRepository repository, ILogger<WorkflowBase<SigningWorkflowContext>> logger)
+    : ActivityWorkflowBase<SigningWorkflowContext>(repository, logger)
 {
     private readonly IWorkflowRepository _repository = repository;
 

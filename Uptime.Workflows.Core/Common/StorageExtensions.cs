@@ -1,8 +1,8 @@
 ﻿using System.Text.Json;
 
-namespace Uptime.Application.Common;
+namespace Uptime.Workflows.Core.Common;
 
-internal static class StorageExtensions
+public static class StorageExtensions
 {
     public static T DeserializeTaskData<T>(this object data) where T : class
     {

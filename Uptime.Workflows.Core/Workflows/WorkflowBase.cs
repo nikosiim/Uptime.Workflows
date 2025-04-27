@@ -3,18 +3,17 @@ using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Entities;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Interfaces;
+using Stateless;
 
 namespace Uptime.Workflows.Core;
 
-public abstract class WorkflowBase<TContext>(
-    IStateMachineFactory<BaseState, WorkflowTrigger> stateMachineFactory, 
-    IWorkflowRepository repository, 
-    ILogger<WorkflowBase<TContext>> logger)
-    : IWorkflowMachine, IWorkflow<TContext> where TContext : class, IWorkflowContext, new()
+public abstract class WorkflowBase<TContext>(IWorkflowRepository repository, ILogger<WorkflowBase<TContext>> logger)
+    : IWorkflowMachine, IWorkflow<TContext> 
+    where TContext : class, IWorkflowContext, new()
 {
     #region Fields & Properties
 
-    protected IStateMachine<BaseState, WorkflowTrigger> Machine = null!;
+    protected StateMachine<BaseState, WorkflowTrigger> Machine = null!;
     protected WorkflowId WorkflowId;
 
     public TContext WorkflowContext { get; private set; } = new();
@@ -106,9 +105,9 @@ public abstract class WorkflowBase<TContext>(
         if (cancellationToken.IsCancellationRequested)
             return Result<Unit>.Cancelled();
 
-        if (Machine.CurrentState.IsFinal())
+        if (Machine.State.IsFinal())
         {
-            logger.LogInformation("Workflow {WorkflowId} is already in final state '{State}'; no cancellation needed.", WorkflowId, Machine.CurrentState);
+            logger.LogInformation("Workflow {WorkflowId} is already in final state '{State}'; no cancellation needed.", WorkflowId, Machine.State);
             return Result<Unit>.Failure("Workflow is already in final state");
         }
 
@@ -196,7 +195,7 @@ public abstract class WorkflowBase<TContext>(
     
     protected virtual async Task SaveWorkflowStateAsync(CancellationToken cancellationToken)
     {
-        await repository.SaveWorkflowStateAsync(WorkflowId, Machine.CurrentState, WorkflowContext, cancellationToken);
+        await repository.SaveWorkflowStateAsync(WorkflowId, Machine.State, WorkflowContext, cancellationToken);
     }
 
     protected virtual async Task CancelAllTasksAsync(CancellationToken cancellationToken)
@@ -218,12 +217,12 @@ public abstract class WorkflowBase<TContext>(
 
     private void InitializeStateMachine(BaseState initialPhase, CancellationToken cancellationToken)
     {
-        Machine = stateMachineFactory.Create(initialPhase);
+        Machine = new StateMachine<BaseState, WorkflowTrigger>(initialPhase);
         ConfigureStateMachineAsync(cancellationToken);
 
         Machine.OnTransitionCompletedAsync(async transition =>
         {
-            if (transition.Destination == BaseState.Completed)
+            if (transition.Destination.Equals(BaseState.Completed))
             {
                 await OnWorkflowCompletedAsync(cancellationToken);
                 await repository.AddWorkflowHistoryAsync(
@@ -234,7 +233,7 @@ public abstract class WorkflowBase<TContext>(
                     cancellationToken: cancellationToken
                 );
             }
-            else if (transition.Destination == BaseState.Cancelled)
+            else if (transition.Destination.Equals(BaseState.Cancelled))
             {
                 await OnWorkflowCancelledAsync(cancellationToken);
                 await repository.AddWorkflowHistoryAsync(

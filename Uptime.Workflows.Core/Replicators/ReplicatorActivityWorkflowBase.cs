@@ -1,15 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
-using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Interfaces;
 
 namespace Uptime.Workflows.Core;
 
-public abstract class ReplicatorActivityWorkflowBase<TContext>(
-    IStateMachineFactory<BaseState, WorkflowTrigger> stateMachineFactory,
-    IWorkflowRepository repository,
-    ILogger<WorkflowBase<TContext>> logger)
-    : ActivityWorkflowBase<TContext>(stateMachineFactory, repository, logger)
+public abstract class ReplicatorActivityWorkflowBase<TContext>(IWorkflowRepository repository, ILogger<WorkflowBase<TContext>> logger)
+    : ActivityWorkflowBase<TContext>(repository, logger)
     where TContext : class, IReplicatorWorkflowContext, new()
 {
     private ReplicatorManager? _replicatorManager;
@@ -44,9 +40,9 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
     {
         var modificationContext = string.Empty;
 
-        if (!WorkflowContext.ReplicatorStates.TryGetValue(Machine.CurrentState.Value, out ReplicatorState? replicatorState))
+        if (!WorkflowContext.ReplicatorStates.TryGetValue(Machine.State.Value, out ReplicatorState? replicatorState))
         {
-            _logger.LogWarning("Workflow {WorkflowId} Replicator phase not found {phaseId}", WorkflowId, Machine.CurrentState.Value);
+            _logger.LogWarning("Workflow {WorkflowId} Replicator phase not found {phaseId}", WorkflowId, Machine.State.Value);
             return modificationContext;
         }
 
@@ -59,7 +55,6 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
         if (!replicatorState.HasActiveItems)
         {
             _logger.LogWarning("Workflow {WorkflowId} update not allowed in this phase", WorkflowId);
-            return modificationContext;
         }
 
         return modificationContext;

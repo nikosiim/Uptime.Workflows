@@ -10,11 +10,12 @@
 
 	<ItemGroup>
 		<Compile Remove="Common\ReplicatorPhaseBuilderFactory.cs" />
-		<Compile Remove="Common\StorageExtensions.cs" />
 		<Compile Remove="Common\WorkflowConfiguration.cs" />
 		<Compile Remove="Enums\TaskOutcome.cs" />
 		<Compile Remove="Enums\WorkflowPhase.cs" />
 		<Compile Remove="Interfaces\IReplicatorPhaseBuilderFactory.cs" />
+		<Compile Remove="Interfaces\IStateMachine.cs" />
+		<Compile Remove="Interfaces\IStateMachineFactory.cs" />
 		<Compile Remove="Interfaces\IWorkflowStateRepository.cs" />
 		<Compile Remove="Interfaces\IWorkflowTaskRepository.cs" />
 	</ItemGroup>
@@ -28,6 +29,7 @@
 		</PackageReference>
 		<PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.4" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0-preview.2.25163.2" />
+		<PackageReference Include="Stateless" Version="5.17.0" />
 	</ItemGroup>
 
 </Project>

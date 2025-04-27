@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
-using Uptime.Workflows.Core.Interfaces;
+using Stateless;
 
 namespace Uptime.Workflows.Core.Common;
 
-public class StateTransitionQueue<TState, TTrigger>(IStateMachine<TState, TTrigger> machine, ILogger logger)
+public class StateTransitionQueue<TState, TTrigger>(StateMachine<TState, TTrigger> machine, ILogger logger)
 {
     private bool _isProcessingQueue;
     private readonly Queue<TTrigger> _triggerQueue = new();
@@ -44,9 +44,9 @@ public class StateTransitionQueue<TState, TTrigger>(IStateMachine<TState, TTrigg
 
             await ExecuteSynchronizedAsync(async () =>
             {
-                logger.LogInformation("Processing trigger {Trigger}. Current state: {CurrentState}", currentTrigger, machine.CurrentState);
+                logger.LogInformation("Processing trigger {Trigger}. Current state: {CurrentState}", currentTrigger, machine.State);
                 await machine.FireAsync(currentTrigger);
-                logger.LogInformation("Trigger {Trigger} fired successfully. New state: {NewState}", currentTrigger, machine.CurrentState);
+                logger.LogInformation("Trigger {Trigger} fired successfully. New state: {NewState}", currentTrigger, machine.State);
 
             }, cancellationToken);
         }
