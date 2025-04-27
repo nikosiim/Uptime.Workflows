@@ -1,4 +1,4 @@
-﻿namespace Uptime.Application.Common;
+﻿namespace Uptime.Workflows.Core.Common;
 
 public class NotFoundException : Exception
 {

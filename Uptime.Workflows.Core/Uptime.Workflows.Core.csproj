@@ -10,7 +10,6 @@
 
 	<ItemGroup>
 		<Compile Remove="Common\ReplicatorPhaseBuilderFactory.cs" />
-		<Compile Remove="Common\StorageExtensions.cs" />
 		<Compile Remove="Common\WorkflowConfiguration.cs" />
 		<Compile Remove="Enums\TaskOutcome.cs" />
 		<Compile Remove="Enums\WorkflowPhase.cs" />

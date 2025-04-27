@@ -1,7 +1,6 @@
-﻿using Uptime.Workflows.Core;
-using Uptime.Workflows.Core.Interfaces;
+﻿using Uptime.Workflows.Core.Interfaces;
 
-namespace Uptime.Application.Common;
+namespace Uptime.Workflows.Core;
 
 public abstract class ReplicatorActivityProvider(IWorkflowRepository repository) : IReplicatorActivityProvider
 {
