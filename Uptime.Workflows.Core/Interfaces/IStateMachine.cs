@@ -4,7 +4,7 @@ namespace Uptime.Workflows.Core.Interfaces;
 
 public interface IStateMachine<TState, TTrigger>
 {
-    TState CurrentState { get; }
+    TState State { get; }
     void Fire(TTrigger trigger);
     Task FireAsync(TTrigger trigger);
     IStateConfiguration<TState, TTrigger> Configure(TState state);

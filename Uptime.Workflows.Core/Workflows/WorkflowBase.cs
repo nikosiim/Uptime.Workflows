@@ -106,9 +106,9 @@ public abstract class WorkflowBase<TContext>(
         if (cancellationToken.IsCancellationRequested)
             return Result<Unit>.Cancelled();
 
-        if (Machine.CurrentState.IsFinal())
+        if (Machine.State.IsFinal())
         {
-            logger.LogInformation("Workflow {WorkflowId} is already in final state '{State}'; no cancellation needed.", WorkflowId, Machine.CurrentState);
+            logger.LogInformation("Workflow {WorkflowId} is already in final state '{State}'; no cancellation needed.", WorkflowId, Machine.State);
             return Result<Unit>.Failure("Workflow is already in final state");
         }
 
@@ -196,7 +196,7 @@ public abstract class WorkflowBase<TContext>(
     
     protected virtual async Task SaveWorkflowStateAsync(CancellationToken cancellationToken)
     {
-        await repository.SaveWorkflowStateAsync(WorkflowId, Machine.CurrentState, WorkflowContext, cancellationToken);
+        await repository.SaveWorkflowStateAsync(WorkflowId, Machine.State, WorkflowContext, cancellationToken);
     }
 
     protected virtual async Task CancelAllTasksAsync(CancellationToken cancellationToken)

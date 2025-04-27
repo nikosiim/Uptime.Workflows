@@ -44,9 +44,9 @@ public class StateTransitionQueue<TState, TTrigger>(IStateMachine<TState, TTrigg
 
             await ExecuteSynchronizedAsync(async () =>
             {
-                logger.LogInformation("Processing trigger {Trigger}. Current state: {CurrentState}", currentTrigger, machine.CurrentState);
+                logger.LogInformation("Processing trigger {Trigger}. Current state: {CurrentState}", currentTrigger, machine.State);
                 await machine.FireAsync(currentTrigger);
-                logger.LogInformation("Trigger {Trigger} fired successfully. New state: {NewState}", currentTrigger, machine.CurrentState);
+                logger.LogInformation("Trigger {Trigger} fired successfully. New state: {NewState}", currentTrigger, machine.State);
 
             }, cancellationToken);
         }

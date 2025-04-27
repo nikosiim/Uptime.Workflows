@@ -17,7 +17,7 @@ public abstract class ActivityWorkflowBase<TContext>(
 
     public async Task<Result<Unit>> AlterTaskAsync(WorkflowTask workflowTask, Dictionary<string, string?> payload, CancellationToken cancellationToken)
     {
-        if (Machine.CurrentState.IsFinal())
+        if (Machine.State.IsFinal())
         {
             _logger.LogInformation("Workflow is already completed. No modifications allowed.");
             return Result<Unit>.Failure("Workflow is already completed.");

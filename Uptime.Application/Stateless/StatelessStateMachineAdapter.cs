@@ -8,7 +8,7 @@ public class StatelessStateMachineAdapter<TState, TTrigger>(TState initialState)
 {
     private readonly StateMachine<TState, TTrigger> _machine = new(initialState);
 
-    public TState CurrentState => _machine.State;
+    public TState State => _machine.State;
 
     public void Fire(TTrigger trigger)
     {

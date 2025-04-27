@@ -44,9 +44,9 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
     {
         var modificationContext = string.Empty;
 
-        if (!WorkflowContext.ReplicatorStates.TryGetValue(Machine.CurrentState.Value, out ReplicatorState? replicatorState))
+        if (!WorkflowContext.ReplicatorStates.TryGetValue(Machine.State.Value, out ReplicatorState? replicatorState))
         {
-            _logger.LogWarning("Workflow {WorkflowId} Replicator phase not found {phaseId}", WorkflowId, Machine.CurrentState.Value);
+            _logger.LogWarning("Workflow {WorkflowId} Replicator phase not found {phaseId}", WorkflowId, Machine.State.Value);
             return modificationContext;
         }
 

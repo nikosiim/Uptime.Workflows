@@ -53,7 +53,7 @@ public class ApprovalWorkflow(
     {
         base.OnWorkflowModification();
 
-        ReplicatorState replicatorState = WorkflowContext.ReplicatorStates[Machine.CurrentState.Value];
+        ReplicatorState replicatorState = WorkflowContext.ReplicatorStates[Machine.State.Value];
 
         List<ReplicatorItem> activeItems = replicatorState.Items
             .Where(i => i.Status is ReplicatorItemStatus.NotStarted or ReplicatorItemStatus.InProgress)
@@ -74,7 +74,7 @@ public class ApprovalWorkflow(
 
     protected override Task<bool> OnWorkflowModifiedAsync(ModificationPayload payload, CancellationToken cancellationToken)
     {
-        if (!WorkflowContext.ReplicatorStates.TryGetValue(Machine.CurrentState.Value, out ReplicatorState? replicatorState))
+        if (!WorkflowContext.ReplicatorStates.TryGetValue(Machine.State.Value, out ReplicatorState? replicatorState))
             return Task.FromResult(false);
         
         ReplicatorItem? inProgressItem = replicatorState.Items.FirstOrDefault(item => item.Status == ReplicatorItemStatus.InProgress);
