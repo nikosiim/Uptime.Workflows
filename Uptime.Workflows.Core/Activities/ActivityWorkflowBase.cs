@@ -1,16 +1,18 @@
 ﻿using Microsoft.Extensions.Logging;
 using Uptime.Workflows.Core.Common;
-using Uptime.Workflows.Core.Entities;
+using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Enums;
-using Uptime.Workflows.Core.Interfaces;
+using Uptime.Workflows.Core.Services;
 
 namespace Uptime.Workflows.Core;
 
 public abstract class ActivityWorkflowBase<TContext>(
     IStateMachineFactory<BaseState, WorkflowTrigger> stateMachineFactory,
-    IWorkflowRepository repository, 
+    IWorkflowService workflowService, 
+    ITaskService taskService, 
+    IHistoryService historyService, 
     ILogger<WorkflowBase<TContext>> logger)
-    : WorkflowBase<TContext>(stateMachineFactory, repository, logger: logger), IActivityWorkflowMachine
+    : WorkflowBase<TContext>(stateMachineFactory, workflowService, taskService, historyService, logger), IActivityWorkflowMachine
     where TContext : class, IWorkflowContext, new()
 {
     private readonly ILogger<WorkflowBase<TContext>> _logger = logger;

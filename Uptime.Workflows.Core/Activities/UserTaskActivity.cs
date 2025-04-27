@@ -1,9 +1,9 @@
 ﻿using Uptime.Workflows.Core.Enums;
-using Uptime.Workflows.Core.Interfaces;
+using Uptime.Workflows.Core.Services;
 
 namespace Uptime.Workflows.Core;
 
-public abstract class UserTaskActivity(IWorkflowRepository repository, WorkflowTaskContext context) : IUserTaskActivity
+public abstract class UserTaskActivity(ITaskService taskService, IHistoryService historyService, WorkflowTaskContext context) : IUserTaskActivity
 {
     public WorkflowTaskContext Context => context;
 
@@ -18,7 +18,7 @@ public abstract class UserTaskActivity(IWorkflowRepository repository, WorkflowT
         InitializeContext();
         OnExecuteTask();
 
-        await repository.AddWorkflowHistoryAsync(
+        await historyService.CreateAsync(
             context.WorkflowId,
             WorkflowEventType.TaskCreated,
             TaskData?.AssignedBy,
@@ -26,7 +26,7 @@ public abstract class UserTaskActivity(IWorkflowRepository repository, WorkflowT
             cancellationToken: cancellationToken
         );
 
-        Context.TaskId = await repository.CreateWorkflowTaskAsync(Context, cancellationToken);
+        Context.TaskId = await taskService.CreateAsync(Context, cancellationToken);
     }
 
     protected virtual void InitializeContext()
@@ -44,7 +44,7 @@ public abstract class UserTaskActivity(IWorkflowRepository repository, WorkflowT
     {
         await OnTaskChangedAsync(payload, cancellationToken);
         
-        await repository.SaveWorkflowTaskAsync(Context, cancellationToken);
+        await taskService.UpdateAsync(Context, cancellationToken);
     }
 
     protected abstract void OnExecuteTask();

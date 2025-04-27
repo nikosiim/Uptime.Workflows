@@ -1,15 +1,15 @@
 ﻿using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
-using Uptime.Workflows.Core.Interfaces;
+using Uptime.Workflows.Core.Services;
 using static Uptime.Application.Constants;
 
 namespace Uptime.Application.Workflows.Signing;
 
-public class SigningTaskActivity(IWorkflowRepository repository, WorkflowTaskContext context)
-    : UserTaskActivity(repository, context)
+public class SigningTaskActivity(ITaskService taskService, IHistoryService historyService, WorkflowTaskContext context)
+    : UserTaskActivity(taskService, historyService, context)
 {
-    private readonly IWorkflowRepository _repository = repository;
+    private readonly IHistoryService _historyService = historyService;
     private string? AssociationName => Context.Storage.GetValueOrDefault(WorkflowStorageKeys.AssociationName);
 
     public bool IsTaskRejected { get; private set; }
@@ -56,7 +56,7 @@ public class SigningTaskActivity(IWorkflowRepository repository, WorkflowTaskCon
             Context.Storage.SetValue(TaskStorageKeys.TaskComment, comment);
             Context.Storage.SetValue(TaskStorageKeys.TaskOutcome, outcome);
             
-            await _repository.AddWorkflowHistoryAsync(Context.WorkflowId, workflowEvent, author, description:description, comment:comment, cancellationToken);
+            await _historyService.CreateAsync(Context.WorkflowId, workflowEvent, author, description:description, comment:comment, cancellationToken);
         }
     }
 }

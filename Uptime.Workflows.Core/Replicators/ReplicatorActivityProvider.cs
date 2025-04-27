@@ -1,11 +1,7 @@
-﻿using Uptime.Workflows.Core.Interfaces;
+﻿namespace Uptime.Workflows.Core;
 
-namespace Uptime.Workflows.Core;
-
-public abstract class ReplicatorActivityProvider(IWorkflowRepository repository) : IReplicatorActivityProvider
+public abstract class ReplicatorActivityProvider : IReplicatorActivityProvider
 {
-    protected readonly IWorkflowRepository Repository = repository;
-
     public abstract IWorkflowActivity CreateActivity(WorkflowTaskContext context, object data);
 
     public virtual void OnChildInitialized(string phaseId, object data, IWorkflowActivity activity)

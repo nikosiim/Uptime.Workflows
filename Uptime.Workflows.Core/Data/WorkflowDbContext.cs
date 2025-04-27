@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Uptime.Workflows.Core.Data.Seeding;
-using Uptime.Workflows.Core.Entities;
 
 namespace Uptime.Workflows.Core.Data;
 

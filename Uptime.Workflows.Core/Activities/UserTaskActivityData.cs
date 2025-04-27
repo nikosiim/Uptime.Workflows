@@ -1,6 +1,4 @@
-﻿using Uptime.Workflows.Core.Interfaces;
-
-namespace Uptime.Workflows.Core;
+﻿namespace Uptime.Workflows.Core;
 
 public class UserTaskActivityData : IUserTaskActivityData
 {

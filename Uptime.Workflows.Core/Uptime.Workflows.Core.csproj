@@ -9,13 +9,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Compile Remove="Common\IWorkflowRepository.cs" />
 		<Compile Remove="Common\ReplicatorPhaseBuilderFactory.cs" />
 		<Compile Remove="Common\WorkflowConfiguration.cs" />
 		<Compile Remove="Enums\TaskOutcome.cs" />
 		<Compile Remove="Enums\WorkflowPhase.cs" />
-		<Compile Remove="Interfaces\IReplicatorPhaseBuilderFactory.cs" />
-		<Compile Remove="Interfaces\IWorkflowStateRepository.cs" />
-		<Compile Remove="Interfaces\IWorkflowTaskRepository.cs" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
-using Uptime.Workflows.Core.Entities;
 
 namespace Uptime.Application.Commands;
 

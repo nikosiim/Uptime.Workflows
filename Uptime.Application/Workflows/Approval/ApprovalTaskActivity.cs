@@ -1,15 +1,15 @@
 ﻿using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
-using Uptime.Workflows.Core.Interfaces;
+using Uptime.Workflows.Core.Services;
 using static Uptime.Application.Constants;
 
 namespace Uptime.Application.Workflows.Approval;
 
-public class ApprovalTaskActivity(IWorkflowRepository repository, WorkflowTaskContext context)
-    : UserTaskActivity(repository, context)
+public class ApprovalTaskActivity(ITaskService taskService, IHistoryService historyService, WorkflowTaskContext context)
+    : UserTaskActivity(taskService, historyService, context)
 {
-    private readonly IWorkflowRepository _repository = repository;
+    private readonly IHistoryService _historyService = historyService;
     private string? AssociationName => Context.Storage.GetValueOrDefault(WorkflowStorageKeys.AssociationName);
 
     public bool IsTaskDelegated { get; private set; }
@@ -68,7 +68,7 @@ public class ApprovalTaskActivity(IWorkflowRepository repository, WorkflowTaskCo
             Context.Storage.SetValue(TaskStorageKeys.TaskDelegatedTo, delegatedTo);
             Context.Storage.SetValue(TaskStorageKeys.TaskOutcome, outcome);
             
-            await _repository.AddWorkflowHistoryAsync(Context.WorkflowId, workflowEvent, author, description:description, comment:comment, cancellationToken);
+            await _historyService.CreateAsync(Context.WorkflowId, workflowEvent, author, description:description, comment:comment, cancellationToken);
         }
     }
 }

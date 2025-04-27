@@ -3,19 +3,19 @@ using Uptime.Application.Common;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
-using Uptime.Workflows.Core.Interfaces;
+using Uptime.Workflows.Core.Services;
 using static Uptime.Application.Constants;
 
 namespace Uptime.Application.Workflows.Signing;
 
 public class SigningWorkflow(
     IStateMachineFactory<BaseState, WorkflowTrigger> stateMachineFactory,
-    IWorkflowRepository repository,
+    IWorkflowService workflowService, 
+    ITaskService taskService, 
+    IHistoryService historyService,
     ILogger<WorkflowBase<SigningWorkflowContext>> logger)
-    : ActivityWorkflowBase<SigningWorkflowContext>(stateMachineFactory, repository, logger)
+    : ActivityWorkflowBase<SigningWorkflowContext>(stateMachineFactory, workflowService, taskService, historyService, logger)
 {
-    private readonly IWorkflowRepository _repository = repository;
-
     public bool IsTaskRejected { get; private set; }
 
     protected string? AssociationName => WorkflowContext.Storage.GetValueOrDefault(WorkflowStorageKeys.AssociationName);
@@ -58,7 +58,7 @@ public class SigningWorkflow(
 
     protected override async Task OnTaskAlteredAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
     {
-        var taskActivity = new SigningTaskActivity(_repository, context)
+        var taskActivity = new SigningTaskActivity(taskService, historyService, context)
         {
             TaskData = WorkflowContext.SigningTask
         };
@@ -90,7 +90,7 @@ public class SigningWorkflow(
         }
 
         UserTaskActivityData taskData = WorkflowContext.SigningTask!;
-        var taskActivity = new SigningTaskActivity(_repository, new WorkflowTaskContext(WorkflowId, Guid.NewGuid()))
+        var taskActivity = new SigningTaskActivity(taskService, historyService, new WorkflowTaskContext(WorkflowId, Guid.NewGuid()))
         {
             TaskData = taskData
         };

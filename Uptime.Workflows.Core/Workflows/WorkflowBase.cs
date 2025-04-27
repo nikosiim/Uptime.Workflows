@@ -1,14 +1,16 @@
 ﻿using Microsoft.Extensions.Logging;
 using Uptime.Workflows.Core.Common;
-using Uptime.Workflows.Core.Entities;
+using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Enums;
-using Uptime.Workflows.Core.Interfaces;
+using Uptime.Workflows.Core.Services;
 
 namespace Uptime.Workflows.Core;
 
 public abstract class WorkflowBase<TContext>(
     IStateMachineFactory<BaseState, WorkflowTrigger> stateMachineFactory, 
-    IWorkflowRepository repository, 
+    IWorkflowService workflowService, 
+    ITaskService taskService, 
+    IHistoryService historyService, 
     ILogger<WorkflowBase<TContext>> logger)
     : IWorkflowMachine, IWorkflow<TContext> where TContext : class, IWorkflowContext, new()
 {
@@ -34,11 +36,11 @@ public abstract class WorkflowBase<TContext>(
 
             InitializeStateMachine(BaseState.NotStarted, cancellationToken);
 
-            WorkflowId = await repository.CreateWorkflowInstanceAsync(payload, cancellationToken);
+            WorkflowId = await workflowService.CreateAsync(payload, cancellationToken);
 
             OnWorkflowActivatedAsync(payload, cancellationToken);
 
-            await repository.AddWorkflowHistoryAsync(
+            await historyService.CreateAsync(
                 WorkflowId,
                 WorkflowEventType.WorkflowStarted,
                 payload.Originator,
@@ -114,7 +116,7 @@ public abstract class WorkflowBase<TContext>(
 
         try
         {
-            await repository.AddWorkflowHistoryAsync(
+            await historyService.CreateAsync(
                 WorkflowId,
                 WorkflowEventType.WorkflowComment,
                 executor,
@@ -196,12 +198,12 @@ public abstract class WorkflowBase<TContext>(
     
     protected virtual async Task SaveWorkflowStateAsync(CancellationToken cancellationToken)
     {
-        await repository.SaveWorkflowStateAsync(WorkflowId, Machine.State, WorkflowContext, cancellationToken);
+        await workflowService.UpdateStateAsync(WorkflowId, Machine.State, WorkflowContext, cancellationToken);
     }
 
     protected virtual async Task CancelAllTasksAsync(CancellationToken cancellationToken)
     {
-        await repository.CancelAllActiveTasksAsync(WorkflowId, cancellationToken);
+        await taskService.CancelActiveTasksAsync(WorkflowId, cancellationToken);
     }
     
     #endregion
@@ -223,10 +225,10 @@ public abstract class WorkflowBase<TContext>(
 
         Machine.OnTransitionCompletedAsync(async transition =>
         {
-            if (transition.Destination == BaseState.Completed)
+            if (transition.Destination.Equals(BaseState.Completed))
             {
                 await OnWorkflowCompletedAsync(cancellationToken);
-                await repository.AddWorkflowHistoryAsync(
+                await historyService.CreateAsync(
                     WorkflowId,
                     WorkflowEventType.WorkflowCompleted,
                     "System",
@@ -234,10 +236,10 @@ public abstract class WorkflowBase<TContext>(
                     cancellationToken: cancellationToken
                 );
             }
-            else if (transition.Destination == BaseState.Cancelled)
+            else if (transition.Destination.Equals(BaseState.Cancelled))
             {
                 await OnWorkflowCancelledAsync(cancellationToken);
-                await repository.AddWorkflowHistoryAsync(
+                await historyService.CreateAsync(
                     WorkflowId,
                     WorkflowEventType.WorkflowCancelled,
                     "System",
@@ -254,8 +256,8 @@ public abstract class WorkflowBase<TContext>(
         {
             logger.LogError(ex, "An error occurred while starting the workflow.");
             
-            await repository.MarkWorkflowAsInvalidAsync(WorkflowId, cancellationToken);
-            await repository.CancelAllActiveTasksAsync(workflowId, cancellationToken);
+            await workflowService.MarkAsInvalidAsync(WorkflowId, cancellationToken);
+            await taskService.CancelActiveTasksAsync(workflowId, cancellationToken);
         }
         catch (Exception e)
         {
