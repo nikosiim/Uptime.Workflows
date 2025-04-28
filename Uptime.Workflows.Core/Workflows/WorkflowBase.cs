@@ -29,7 +29,7 @@ public abstract class WorkflowBase<TContext>(
     {
         if (cancellationToken.IsCancellationRequested)
             return Result<Unit>.Cancelled();
-
+        
         try
         {
             WorkflowContext.Storage.MergeWith(payload.Storage);
@@ -39,6 +39,8 @@ public abstract class WorkflowBase<TContext>(
             WorkflowId = await workflowService.CreateAsync(payload, cancellationToken);
 
             OnWorkflowActivatedAsync(payload, cancellationToken);
+            
+            logger.LogStarted(WorkflowDefinition, WorkflowId, AssociationName);
 
             await historyService.CreateAsync(
                 WorkflowId,
@@ -72,6 +74,8 @@ public abstract class WorkflowBase<TContext>(
             {
                 await SaveWorkflowStateAsync(cancellationToken);
             }
+            
+            logger.LogModified(WorkflowDefinition, WorkflowId, AssociationName);
         }
         catch (Exception ex)
         {
@@ -93,11 +97,13 @@ public abstract class WorkflowBase<TContext>(
             WorkflowId = (WorkflowId)instance.Id;
 
             InitializeStateMachine(BaseState.FromString(instance.Phase), cancellationToken);
+            
+            logger.LogRehydrated(WorkflowDefinition, WorkflowId, AssociationName);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to rehydrate workflow with ID {WorkflowId}", instance.Id);
-            return Result<Unit>.Failure("Workflow rehydration failed");
+            return Result<Unit>.Failure("Workflow reHydration failed");
         }
 
         return Result<Unit>.Success(new Unit());
@@ -110,7 +116,8 @@ public abstract class WorkflowBase<TContext>(
 
         if (Machine.State.IsFinal())
         {
-            logger.LogInformation("Workflow {WorkflowId} is already in final state '{State}'; no cancellation needed.", WorkflowId, Machine.State);
+            logger.LogFinalStateCancellation(WorkflowDefinition, WorkflowId, Machine.State);
+
             return Result<Unit>.Failure("Workflow is already in final state");
         }
 
@@ -134,7 +141,6 @@ public abstract class WorkflowBase<TContext>(
             return Result<Unit>.Failure("An error occurred while cancelling the workflow");
         }
 
-        logger.LogInformation("Successfully cancelled workflow {WorkflowId}.", WorkflowId);
         return Result<Unit>.Success(new Unit());
     }
     
@@ -168,6 +174,7 @@ public abstract class WorkflowBase<TContext>(
 
     protected virtual string? WorkflowStartedHistoryDescription { get; set; }
     protected virtual string? WorkflowCompletedHistoryDescription { get; set; }
+    protected virtual string? AssociationName => WorkflowContext.Storage.GetValueOrDefault(WorkflowStorageKeys.AssociationName);
 
     protected virtual Task OnWorkflowStartedAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
@@ -235,6 +242,8 @@ public abstract class WorkflowBase<TContext>(
                     description: WorkflowCompletedHistoryDescription,
                     cancellationToken: cancellationToken
                 );
+
+                logger.LogCompleted(WorkflowDefinition, WorkflowId, AssociationName);
             }
             else if (transition.Destination.Equals(BaseState.Cancelled))
             {
@@ -246,6 +255,8 @@ public abstract class WorkflowBase<TContext>(
                     description: string.Empty,
                     cancellationToken: cancellationToken
                 );
+
+                logger.LogCancelled(WorkflowDefinition, WorkflowId, AssociationName);
             }
         });
     }

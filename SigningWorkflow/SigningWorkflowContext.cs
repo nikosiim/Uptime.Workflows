@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using Uptime.Workflows.Core;
 
-namespace Uptime.Application.Workflows.Signing;
+namespace SigningWorkflow;
 
 public class SigningWorkflowContext : WorkflowContext
 {

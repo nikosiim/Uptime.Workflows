@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using Uptime.Workflows.Core;
 
-namespace Uptime.Application.Workflows.Approval;
+namespace ApprovalWorkflow;
 
 public sealed class ApprovalWorkflowContext : WorkflowContext, IReplicatorWorkflowContext
 {

@@ -1,8 +1,8 @@
 ﻿using Uptime.Workflows.Core.Common;
 
-namespace Uptime.Application.Common;
+namespace ApprovalWorkflow;
 
-public sealed class ExtendedState : BaseState
+internal sealed class ExtendedState : BaseState
 {
     private ExtendedState(string value) : base(value) { }
 

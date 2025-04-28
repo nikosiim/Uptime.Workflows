@@ -21,8 +21,8 @@ public class DeleteWorkflowCommandHandler(WorkflowDbContext dbContext, ILogger<D
         {
             dbContext.Workflows.Remove(workflow);
             await dbContext.SaveChangesAsync(cancellationToken);
-
-            logger.LogInformation("Workflow with ID {WorkflowId} deleted.", request.WorkflowId);
+            
+            logger.LogInformation("Workflow [{WorkflowId}] - Workflow deleted.", request.WorkflowId);
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using Uptime.Workflows.Core;
-using static Uptime.Application.Constants;
+using static SigningWorkflow.Constants;
 
-namespace Uptime.Application.Workflows.Signing;
+namespace SigningWorkflow;
 
 public sealed class SigningWorkflowDefinition : IWorkflowDefinition
 {

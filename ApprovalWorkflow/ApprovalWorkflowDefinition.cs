@@ -1,8 +1,7 @@
-﻿using Uptime.Application.Common;
-using Uptime.Workflows.Core;
-using static Uptime.Application.Constants;
+﻿using Uptime.Workflows.Core;
+using static ApprovalWorkflow.Constants;
 
-namespace Uptime.Application.Workflows.Approval;
+namespace ApprovalWorkflow;
 
 public sealed class ApprovalWorkflowDefinition : IWorkflowDefinition
 {

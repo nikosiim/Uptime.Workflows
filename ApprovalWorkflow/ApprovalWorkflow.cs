@@ -1,12 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using Uptime.Application.Common;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Services;
 
-namespace Uptime.Application.Workflows.Approval;
+namespace ApprovalWorkflow;
 
 public class ApprovalWorkflow(
     IWorkflowService workflowService, 
@@ -15,11 +14,12 @@ public class ApprovalWorkflow(
     ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
     : ReplicatorActivityWorkflowBase<ApprovalWorkflowContext>(workflowService, taskService, historyService, logger)
 {
-    private string? AssociationName => WorkflowContext.Storage.GetValueOrDefault(Constants.WorkflowStorageKeys.AssociationName);
-
+    private readonly ITaskService _taskService = taskService;
+    private readonly IHistoryService _historyService = historyService;
+    
     protected override IWorkflowDefinition WorkflowDefinition => new ApprovalWorkflowDefinition();
 
-    protected override IReplicatorActivityProvider ActivityProvider => new ApprovalWorkflowActivityProvider(taskService, historyService);
+    protected override IReplicatorActivityProvider ActivityProvider => new ApprovalWorkflowActivityProvider(_taskService, _historyService);
     
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {

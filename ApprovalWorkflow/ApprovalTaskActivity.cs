@@ -2,9 +2,9 @@
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Services;
-using static Uptime.Application.Constants;
+using static ApprovalWorkflow.Constants;
 
-namespace Uptime.Application.Workflows.Approval;
+namespace ApprovalWorkflow;
 
 public class ApprovalTaskActivity(ITaskService taskService, IHistoryService historyService, 
     WorkflowTaskContext context) : UserTaskActivity(taskService, historyService, context)

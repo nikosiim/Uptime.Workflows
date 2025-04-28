@@ -8,9 +8,13 @@
 	- StartupProject Uptime.API → Ensures EF Core loads the connection string from appsettings.json.
 
 
-Küsimused:
-----------
-1. Kuidas implementeerida ülesannete ringid?
-2. Kas tööülesande sisendi peaks saatma töövoogu ikka Dictionary objektiga 
-või hoopis json-na, mis vastavas töövoos cast-ks õigeks objektiks
-3. TaskData tüüp on objekt ja see salvestatakse baasi JsonElement objektina, kas see on ok nii jätta?.
+Workflows:
+
+I. Each workflow must have:
+	1. workflow definition implementation
+	2. state machine configuration implementation
+
+II. Workflow context is a data object that contains all the data needed to run a workflow after reHydration.
+	Context data is stored into database.
+
+III. The services for communicating with the workflow data layer are implemented in the core library but are replaceable.

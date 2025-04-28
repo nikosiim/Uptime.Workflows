@@ -1,4 +1,4 @@
-﻿namespace Uptime.Application.Workflows.Approval;
+﻿namespace ApprovalWorkflow;
 
 public record ApprovalModificationContext
 {

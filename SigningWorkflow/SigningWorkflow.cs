@@ -1,12 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
-using Uptime.Application.Common;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Services;
-using static Uptime.Application.Constants;
+using static SigningWorkflow.Constants;
 
-namespace Uptime.Application.Workflows.Signing;
+namespace SigningWorkflow;
 
 public class SigningWorkflow(IWorkflowService workflowService, ITaskService taskService, IHistoryService historyService, 
     ILogger<WorkflowBase<SigningWorkflowContext>> logger)
@@ -14,11 +13,10 @@ public class SigningWorkflow(IWorkflowService workflowService, ITaskService task
 {
     private readonly ITaskService _taskService = taskService;
     private readonly IHistoryService _historyService = historyService;
+    private readonly ILogger<WorkflowBase<SigningWorkflowContext>> _logger = logger;
 
     public bool IsTaskRejected { get; private set; }
-
-    protected string? AssociationName => WorkflowContext.Storage.GetValueOrDefault(WorkflowStorageKeys.AssociationName);
-
+    
     protected override IWorkflowDefinition WorkflowDefinition => new SigningWorkflowDefinition();
 
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
@@ -52,7 +50,7 @@ public class SigningWorkflow(IWorkflowService workflowService, ITaskService task
                 TaskDescription = taskDescription,
                 DueDate = DateTime.Now.AddDays(days)
             };
-        }             
+        }
     }
 
     protected override async Task OnTaskAlteredAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
@@ -82,6 +80,8 @@ public class SigningWorkflow(IWorkflowService workflowService, ITaskService task
 
     private async Task StartSigningTask(CancellationToken cancellationToken)
     {
+        _logger.LogSigningTaskCreated(WorkflowDefinition, WorkflowId, AssociationName);
+
         if (WorkflowContext.SigningTask == null)
         {
             await TriggerTransitionAsync(WorkflowTrigger.TaskCompleted, cancellationToken);
@@ -97,8 +97,8 @@ public class SigningWorkflow(IWorkflowService workflowService, ITaskService task
         await taskActivity.ExecuteAsync(cancellationToken);
     }
     
-    private static void OnSigningTaskCompleted()
+    private void OnSigningTaskCompleted()
     {
-        // TODO: implement email sending activity
+        _logger.LogSigningTaskCompleted(WorkflowDefinition, WorkflowId, AssociationName);
     }
 }

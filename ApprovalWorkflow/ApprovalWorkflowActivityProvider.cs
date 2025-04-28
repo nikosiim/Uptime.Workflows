@@ -1,11 +1,10 @@
-﻿using Uptime.Application.Common;
-using Uptime.Application.Workflows.Signing;
+﻿using SigningWorkflow;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Services;
-using static Uptime.Application.Constants;
+using static ApprovalWorkflow.Constants;
 
-namespace Uptime.Application.Workflows.Approval;
+namespace ApprovalWorkflow;
 
 public class ApprovalWorkflowActivityProvider(ITaskService taskService, IHistoryService historyService) 
     : ReplicatorActivityProvider

@@ -7,43 +7,24 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Common\**" />
     <Compile Remove="Resources\**" />
     <Compile Remove="Stateless\**" />
+    <Compile Remove="Workflows\**" />
+    <EmbeddedResource Remove="Common\**" />
     <EmbeddedResource Remove="Resources\**" />
     <EmbeddedResource Remove="Stateless\**" />
+    <EmbeddedResource Remove="Workflows\**" />
+    <None Remove="Common\**" />
     <None Remove="Resources\**" />
     <None Remove="Stateless\**" />
+    <None Remove="Workflows\**" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Remove="Commands\CreateUserTaskCommand.cs" />
     <Compile Remove="Commands\UpdateUserTaskCommand.cs" />
     <Compile Remove="Commands\UpdateWorkflowStateCommand.cs" />
-    <Compile Remove="Common\ActivityWorkflowBase.cs" />
-    <Compile Remove="Common\AlterTaskPayload.cs" />
-    <Compile Remove="Common\AsyncLockHelper.cs" />
-    <Compile Remove="Common\NotFoundException.cs" />
-    <Compile Remove="Common\Replicator.cs" />
-    <Compile Remove="Common\ReplicatorActivityProvider.cs" />
-    <Compile Remove="Common\ReplicatorItem.cs" />
-    <Compile Remove="Common\ReplicatorManager.cs" />
-    <Compile Remove="Common\ReplicatorPhase.cs" />
-    <Compile Remove="Common\ReplicatorPhaseBuilder.cs" />
-    <Compile Remove="Common\ReplicatorPhases.cs" />
-    <Compile Remove="Common\ReplicatorState.cs" />
-    <Compile Remove="Common\ReplicatorWorkflowBase.cs" />
-    <Compile Remove="Common\StateTransitionQueue.cs" />
-    <Compile Remove="Common\StorageExtensions.cs" />
-    <Compile Remove="Common\UserTaskActivity.cs" />
-    <Compile Remove="Common\WorkflowBase.cs" />
-    <Compile Remove="Common\WorkflowContext.cs" />
-    <Compile Remove="Common\WorkflowDefinition.cs" />
-    <Compile Remove="Common\WorkflowFactory.cs" />
-    <Compile Remove="Common\WorkflowRepository.cs" />
-    <Compile Remove="Common\WorkflowStateRepository.cs" />
-    <Compile Remove="Common\WorkflowStatusMapper.cs" />
-    <Compile Remove="Common\WorkflowTaskContext.cs" />
-    <Compile Remove="Common\WorkflowTaskRepository.cs" />
     <Compile Remove="DTOs\ModificationContext.cs" />
     <Compile Remove="DTOs\WorkflowInstanceData.cs" />
     <Compile Remove="DTOs\WorkflowStateData.cs" />
@@ -55,6 +36,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ApprovalWorkflow\ApprovalWorkflow.csproj" />
+    <ProjectReference Include="..\SigningWorkflow\SigningWorkflow.csproj" />
     <ProjectReference Include="..\Uptime.Workflows.Core\Uptime.Workflows.Core.csproj" />
   </ItemGroup>
 

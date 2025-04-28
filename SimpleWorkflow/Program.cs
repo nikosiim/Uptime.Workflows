@@ -1,20 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Services;
 
-namespace Workflow.Minimized;
+namespace SimpleWorkflow;
 
 internal class Program
 {
@@ -32,7 +27,7 @@ internal class Program
                 services.AddScoped<IHistoryService, HistoryService>();
                 services.AddScoped<IWorkflowService, WorkflowService>();
 
-                services.AddScoped<IWorkflowMachine, HelloWorkflow>();
+                services.AddScoped<IWorkflowMachine, SimpleWorkflow>();
                 services.AddSingleton<IWorkflowDefinition, HelloWorkflowDefinition>();
             })
             .Build();
@@ -49,16 +44,20 @@ internal class Program
 
     private static async Task RunDemoAsync(IServiceProvider sp)
     {
+        // 1. Load services
         var ts    = sp.GetRequiredService<ITaskService>();
         var hs    = sp.GetRequiredService<IHistoryService>();
         var ws    = sp.GetRequiredService<IWorkflowService>();
-        var logger  = sp.GetRequiredService<ILogger<WorkflowBase<HelloContext>>>();
+        var logger  = sp.GetRequiredService<ILogger<WorkflowBase<SimpleWorkflowContext>>>();
         var definition = sp.GetRequiredService<IWorkflowDefinition>();
 
+        // 2. Populate data
         (int documentId, WorkflowTemplate template) = await DbSeed.EnsureInitialDataAsync(sp, definition);
 
-        var hello = new HelloWorkflow(ws, ts, hs, logger);
+        // 3. Create state machine
+        var workflow = new SimpleWorkflow(ws, ts, hs, logger);
 
+        // 4. Start workflow
         var startPayload = new StartWorkflowPayload
         {
             WorkflowBaseId     = new Guid(template.WorkflowBaseId),
@@ -69,14 +68,13 @@ internal class Program
             {
                 ["ReplicatorType"] = "1", // Jadamisi
                 ["AssociationName"] = template.TemplateName,
-                ["TaskDescription"] = "Please approve",
-                ["TaskDueDate"] =  DateTime.UtcNow.AddDays(1).ToUniversalTime().ToString("o", CultureInfo.InvariantCulture),
-                ["TaskExecutors"] = string.Join(";#", new List<string?>{ "Mr.Musk" }),
-                ["TaskSigners"] = string.Join(";#", new List<string?>{ "Mr.Trump" })
+                ["Description"] = "Just a simple task",
+                ["DueDays"] =  "1",
+                ["AssignedTo"] = string.Join(";#", new List<string?>{ "Mr.Musk" })
             }
         };
-
-        Result<Unit> startResult = await hello.StartAsync(startPayload, CancellationToken.None);
+        
+        Result<Unit> startResult = await workflow.StartAsync(startPayload, CancellationToken.None);
         if (!startResult.Succeeded)
         {
             Console.ForegroundColor = ConsoleColor.Red;
@@ -85,23 +83,28 @@ internal class Program
             return;
         }
 
-        await hello.TriggerTransitionAsync(WorkflowTrigger.AllTasksCompleted, CancellationToken.None);
+        // 5. End workflow
+        await workflow.TriggerTransitionAsync(WorkflowTrigger.AllTasksCompleted, CancellationToken.None);
     }
 }
 
+/// <summary>
+/// Each workflow must have a definition.
+/// </summary>
 internal sealed class HelloWorkflowDefinition : IWorkflowDefinition
 {
-    public Type Type            => typeof(HelloWorkflow);
-    public Type ContextType     => typeof(HelloContext);
+    public Type Type            => typeof(SimpleWorkflow);
+    public Type ContextType     => typeof(SimpleWorkflowContext);
     public string Name          => Type.Name;
-    public string DisplayName   => "Hello-World Workflow";
+    public string DisplayName   => "Simple Workflow";
     public string Id            => "6ad97055-1b6a-4e4f-92d7-097203cb24aa";
 
     public WorkflowDefinition GetDefinition() => new()
     {
         Id   = Id,
         Name = Name,
-        DisplayName = DisplayName
+        DisplayName = DisplayName,
+        Actions = ["Complete", "Reject"]
     };
 
     // no replicator phases for this tiny workflow
@@ -117,7 +120,7 @@ internal static class DbSeed
         var library = new Library { Name = "Test Library", Created = DateTime.UtcNow };
         db.Libraries.Add(library);
 
-        var document = new Document
+        var document = new Uptime.Workflows.Core.Data.Document
         {
             Title       = "Contract",
             CreatedBy   = "John Doe",
@@ -143,13 +146,22 @@ internal static class DbSeed
     }
 }
 
-internal class HelloContext : WorkflowContext
+/// <summary>
+/// Workflow context is a data object that contains all the data needed to run a workflow after reHydration.
+/// Context data is stored into database.
+/// </summary>
+internal class SimpleWorkflowContext : WorkflowContext
 {
-    public UserTaskActivityData? HelloTask { get; set; }
-    
+    public UserTaskActivityData? ActivityData { get; set; }
+
+    /// <summary>
+    /// Each workflow context may contains different data objects.
+    /// For that we need to provide particular deserialization implementation.
+    /// </summary>
+    /// <param name="json"></param>
     public override void Deserialize(string json)
     {
-        var obj = JsonSerializer.Deserialize<HelloContext>(json);
+        var obj = JsonSerializer.Deserialize<SimpleWorkflowContext>(json);
         if (obj != null)
         {
             Storage = obj.Storage;
@@ -157,8 +169,12 @@ internal class HelloContext : WorkflowContext
     }
 }
 
-internal sealed class HelloWorkflow(IWorkflowService workflowService, ITaskService taskService, IHistoryService historyService, ILogger<WorkflowBase<HelloContext>> logger)
-    : WorkflowBase<HelloContext>(workflowService, taskService, historyService, logger)
+/// Each workflow must have:
+/// 1. workflow definition implementation
+/// 2. state machine configuration implementation
+/// The services for communicating with the workflow data layer are implemented in the core library but are replaceable.
+internal sealed class SimpleWorkflow(IWorkflowService workflowService, ITaskService taskService, IHistoryService historyService, ILogger<WorkflowBase<SimpleWorkflowContext>> logger)
+    : WorkflowBase<SimpleWorkflowContext>(workflowService, taskService, historyService, logger)
 {
     protected override IWorkflowDefinition WorkflowDefinition => new HelloWorkflowDefinition();
 
@@ -170,17 +186,35 @@ internal sealed class HelloWorkflow(IWorkflowService workflowService, ITaskServi
             .Permit(WorkflowTrigger.AllTasksCompleted, BaseState.Completed);
     }
 
-    protected override void OnWorkflowActivatedAsync(IWorkflowPayload _, CancellationToken __)
+    protected override void OnWorkflowActivatedAsync(IWorkflowPayload payload, CancellationToken __)
     {
-        Console.ForegroundColor = ConsoleColor.Blue;
-        Console.WriteLine($"Workflow {WorkflowDefinition.DisplayName} Activated");
+        if (payload.Storage.TryGetValue("AssignedTo", out string? assignedTo))
+        {
+            string? taskDescription = payload.Storage.GetValue("Description");
+            string? dueDays = payload.Storage.GetValue("DueDays");
+
+            _ = int.TryParse(dueDays, out int days);
+
+            WorkflowContext.ActivityData = new UserTaskActivityData
+            {
+                AssignedBy = payload.Originator,
+                AssignedTo = assignedTo!,
+                TaskDescription = taskDescription,
+                DueDate = DateTime.Now.AddDays(days)
+            };
+        }
+
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+        Console.WriteLine($"'{WorkflowDefinition.DisplayName}' started");
+        Console.WriteLine($"Task created to '{WorkflowContext.ActivityData!.AssignedTo}' by {WorkflowContext.ActivityData!.AssignedBy}");
+        Console.WriteLine($"Description: '{WorkflowContext.ActivityData!.TaskDescription}', DeadLine: {WorkflowContext.ActivityData.DueDate}");
         Console.ForegroundColor = ConsoleColor.White;
     }
 
     protected override Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)
     {
-        Console.ForegroundColor = ConsoleColor.Blue;
-        Console.WriteLine($"Workflow {WorkflowDefinition.DisplayName} Completed");
+        Console.ForegroundColor = ConsoleColor.DarkYellow;
+        Console.WriteLine($"{WorkflowDefinition.DisplayName} completed");
         Console.ForegroundColor = ConsoleColor.White;
 
         return Task.CompletedTask;

@@ -29,6 +29,7 @@ public class DeleteWorkflowTemplateCommandHandler(WorkflowDbContext context, ILo
         await context.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Workflow template with ID {TemplateId} deleted.", request.TemplateId);
+        
         return Result<Unit>.Success(new Unit());
     }
 }

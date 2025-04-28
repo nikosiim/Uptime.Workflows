@@ -2,9 +2,9 @@
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Services;
-using static Uptime.Application.Constants;
+using static SigningWorkflow.Constants;
 
-namespace Uptime.Application.Workflows.Signing;
+namespace SigningWorkflow;
 
 public class SigningTaskActivity(ITaskService taskService, IHistoryService historyService, WorkflowTaskContext context)
     : UserTaskActivity(taskService, historyService, context)
