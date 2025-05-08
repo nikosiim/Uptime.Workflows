@@ -1,11 +1,11 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Uptime.Application.DTOs;
+using Uptime.Workflows.Application.DTOs;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Enums;
 
-namespace Uptime.Application.Queries;
+namespace Uptime.Workflows.Application.Queries;
 
 public record GetWorkflowTasksQuery(WorkflowId WorkflowId, WorkflowTaskStatus? Status) : IRequest<List<WorkflowTaskDto>>;
 

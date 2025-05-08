@@ -4,11 +4,11 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
-using Uptime.WorkflowAPI.Authentication;
+using Uptime.Workflows.Api.Authentication;
 using Uptime.Workflows.Core.Services;
-using static Uptime.WorkflowAPI.Constants;
+using static Uptime.Workflows.Api.Constants;
 
-namespace Uptime.WorkflowAPI.Configuration;
+namespace Uptime.Workflows.Api.Configuration;
 
 internal static class ServiceExtensions
 {

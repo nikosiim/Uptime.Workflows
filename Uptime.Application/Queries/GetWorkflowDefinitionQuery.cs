@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Uptime.Workflows.Core;
 
-namespace Uptime.Application.Queries;
+namespace Uptime.Workflows.Application.Queries;
 
 public record GetWorkflowDefinitionQuery : IRequest<List<WorkflowDefinition>>;
 

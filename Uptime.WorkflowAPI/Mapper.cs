@@ -1,16 +1,16 @@
-﻿using Uptime.Application.Commands;
-using Uptime.Application.DTOs;
-using Uptime.Shared.Models.Documents;
+﻿using Uptime.Shared.Models.Documents;
 using Uptime.Shared.Models.Libraries;
 using Uptime.Shared.Models.Tasks;
 using Uptime.Shared.Models.Workflows;
 using Uptime.Shared.Models.WorkflowTemplates;
+using Uptime.Workflows.Application.Commands;
+using Uptime.Workflows.Application.DTOs;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Models;
 
-namespace Uptime.WorkflowAPI;
+namespace Uptime.Workflows.Api;
 
 public static class Mapper
 {

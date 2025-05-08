@@ -5,14 +5,14 @@ VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Uptime.Shared", "Uptime.Shared\Uptime.Shared.csproj", "{889C934B-1E76-414C-8A77-C8A85B13FD36}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Uptime.WorkflowAPI", "Uptime.WorkflowAPI\Uptime.WorkflowAPI.csproj", "{A54AB85B-2FE1-4187-9C08-15B8C5ED96C2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Uptime.Workflows.Api", "Uptime.WorkflowAPI\Uptime.Workflows.Api.csproj", "{A54AB85B-2FE1-4187-9C08-15B8C5ED96C2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Assets", "Assets", "{08C8025D-F282-488C-989F-DCDFBE21B2D6}"
 	ProjectSection(SolutionItems) = preProject
 		ReadMe.txt = ReadMe.txt
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Uptime.Application", "Uptime.Application\Uptime.Application.csproj", "{F05D2EF8-A466-4112-80B3-4C0785658735}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Uptime.Workflows.Application", "Uptime.Application\Uptime.Workflows.Application.csproj", "{F05D2EF8-A466-4112-80B3-4C0785658735}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Uptime.Client", "Uptime.Client\Uptime.Client.csproj", "{B28D6076-0C3C-4FB2-BDF3-1153B9FAB5BF}"
 EndProject

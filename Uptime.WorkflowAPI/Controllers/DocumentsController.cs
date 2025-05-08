@@ -1,11 +1,11 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Uptime.Application.DTOs;
-using Uptime.Application.Queries;
 using Uptime.Shared.Models.Documents;
+using Uptime.Workflows.Application.DTOs;
+using Uptime.Workflows.Application.Queries;
 using Uptime.Workflows.Core.Common;
 
-namespace Uptime.WorkflowAPI.Controllers;
+namespace Uptime.Workflows.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]/{documentId:int}")]

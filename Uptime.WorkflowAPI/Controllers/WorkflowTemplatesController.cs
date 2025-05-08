@@ -1,13 +1,13 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Uptime.Application.Commands;
-using Uptime.Application.DTOs;
-using Uptime.Application.Queries;
 using Uptime.Shared.Models.WorkflowTemplates;
-using Unit = Uptime.Workflows.Core.Common.Unit;
+using Uptime.Workflows.Application.Commands;
+using Uptime.Workflows.Application.DTOs;
+using Uptime.Workflows.Application.Queries;
 using Uptime.Workflows.Core.Common;
+using Unit = Uptime.Workflows.Core.Common.Unit;
 
-namespace Uptime.WorkflowAPI.Controllers;
+namespace Uptime.Workflows.Api.Controllers;
 
 [ApiController]
 [Route("api/workflow-templates")]

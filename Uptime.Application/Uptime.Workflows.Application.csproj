@@ -1,12 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AssemblyName>Uptime.Workflows.Application</AssemblyName>
+		<RootNamespace>Uptime.Workflows.Application</RootNamespace>
+	</PropertyGroup>
 
-  <ItemGroup>
+	<ItemGroup>
     <Compile Remove="Common\**" />
     <Compile Remove="Resources\**" />
     <Compile Remove="Stateless\**" />

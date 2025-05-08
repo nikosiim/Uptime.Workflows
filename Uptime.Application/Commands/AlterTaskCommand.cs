@@ -1,12 +1,12 @@
-﻿using MediatR;
+﻿using System.Security.Claims;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 using Unit = Uptime.Workflows.Core.Common.Unit;
 
-namespace Uptime.Application.Commands;
+namespace Uptime.Workflows.Application.Commands;
 
 public record AlterTaskCommand(ClaimsPrincipal User, TaskId TaskId, Dictionary<string, string?> Payload)
     : IRequest<Result<Unit>>;

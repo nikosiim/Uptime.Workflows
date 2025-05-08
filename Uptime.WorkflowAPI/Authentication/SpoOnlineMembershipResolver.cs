@@ -1,14 +1,12 @@
-﻿using Azure.Core;
-using Azure.Identity;
-using System.Security.Claims;
-using Microsoft.SharePoint.Client;
+﻿using System.Security.Claims;
 using Microsoft.Extensions.Options;
-using Uptime.WorkflowAPI.Configuration;
+using Microsoft.SharePoint.Client;
+using Uptime.Workflows.Api.Configuration;
 using Uptime.Workflows.Core.Models;
 using Uptime.Workflows.Core.Services;
-using static Uptime.WorkflowAPI.Constants;
+using static Uptime.Workflows.Api.Constants;
 
-namespace Uptime.WorkflowAPI.Authentication;
+namespace Uptime.Workflows.Api.Authentication;
 
 public sealed class SpoOnlineMembershipResolver(IOptions<SpoOnlineOptions> opt, ILogger<SpoOnlineMembershipResolver> log)
     : IMembershipResolver
@@ -25,10 +23,10 @@ public sealed class SpoOnlineMembershipResolver(IOptions<SpoOnlineOptions> opt, 
         using ClientContext ctx = AuthHelper.CreateSpoContext(
             _opt.SiteUrl, _opt.TenantId, _opt.ClientId, _opt.CertThumbprint);
 
-        if (a.Kind is PrincipalKind.User)
-            return upn.Equals(a.IdOrName, StringComparison.OrdinalIgnoreCase);
+        if (a.Type is PrincipalKind.User)
+            return upn.Equals(a.Id, StringComparison.OrdinalIgnoreCase);
 
-        Group g = ctx.Web.SiteGroups.GetByName(a.IdOrName);
+        Group g = ctx.Web.SiteGroups.GetByName(a.Id);
         ctx.Load(g, gg => gg.Users);
         await ctx.ExecuteQueryAsync();
 

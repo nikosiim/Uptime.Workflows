@@ -1,10 +1,10 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Uptime.Application.DTOs;
+using Uptime.Workflows.Application.DTOs;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 
-namespace Uptime.Application.Queries;
+namespace Uptime.Workflows.Application.Queries;
 
 public record GetDocumentWorkflowsQuery(DocumentId DocumentId) : IRequest<List<DocumentWorkflowDto>>;
 

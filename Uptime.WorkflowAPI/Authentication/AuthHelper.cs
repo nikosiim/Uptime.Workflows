@@ -1,9 +1,9 @@
-﻿using Azure.Core;
+﻿using System.Security.Cryptography.X509Certificates;
+using Azure.Core;
 using Azure.Identity;
 using Microsoft.SharePoint.Client;
-using System.Security.Cryptography.X509Certificates;
 
-namespace Uptime.WorkflowAPI.Authentication;
+namespace Uptime.Workflows.Api.Authentication;
 
 /// <summary>
 /// Creates a <see cref="ClientContext"/> that authenticates to SharePoint

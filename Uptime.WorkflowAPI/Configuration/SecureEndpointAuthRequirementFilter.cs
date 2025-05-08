@@ -2,7 +2,7 @@
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace Uptime.WorkflowAPI.Configuration;
+namespace Uptime.Workflows.Api.Configuration;
 
 internal class SecureEndpointAuthRequirementFilter : IOperationFilter
 {

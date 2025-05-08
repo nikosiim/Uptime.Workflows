@@ -5,7 +5,7 @@ using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 using Unit = Uptime.Workflows.Core.Common.Unit;
 
-namespace Uptime.Application.Queries;
+namespace Uptime.Workflows.Application.Queries;
 
 public record GetModificationContextQuery(WorkflowId WorkflowId) : IRequest<Result<string>>;
 

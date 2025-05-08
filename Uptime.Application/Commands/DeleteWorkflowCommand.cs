@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 
-namespace Uptime.Application.Commands;
+namespace Uptime.Workflows.Application.Commands;
 
 public record DeleteWorkflowCommand(WorkflowId WorkflowId) : IRequest;
 

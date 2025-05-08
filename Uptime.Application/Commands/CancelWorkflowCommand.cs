@@ -5,7 +5,7 @@ using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 using Unit = Uptime.Workflows.Core.Common.Unit;
 
-namespace Uptime.Application.Commands;
+namespace Uptime.Workflows.Application.Commands;
 
 public record CancelWorkflowCommand(WorkflowId WorkflowId, string Executor, string Comment) : IRequest<Result<Unit>>;
 

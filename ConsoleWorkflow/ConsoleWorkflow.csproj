@@ -13,7 +13,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Uptime.Application\Uptime.Application.csproj" />
+	  <ProjectReference Include="..\Uptime.Application\Uptime.Workflows.Application.csproj" />
 	  <ProjectReference Include="..\Uptime.Workflows.Core\Uptime.Workflows.Core.csproj" />
 	</ItemGroup>
 

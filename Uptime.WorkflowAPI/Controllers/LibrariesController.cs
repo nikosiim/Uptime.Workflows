@@ -1,12 +1,12 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Uptime.Application.DTOs;
-using Uptime.Application.Queries;
 using Uptime.Shared.Models.Libraries;
+using Uptime.Workflows.Application.DTOs;
+using Uptime.Workflows.Application.Queries;
 using Uptime.Workflows.Core.Common;
 
-namespace Uptime.WorkflowAPI.Controllers
+namespace Uptime.Workflows.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]/{libraryId:int}")]

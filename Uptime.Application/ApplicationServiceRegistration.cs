@@ -1,14 +1,14 @@
-﻿using ApprovalWorkflow;
+﻿using System.Reflection;
+using ApprovalWorkflow;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SigningWorkflow;
-using System.Reflection;
-using Uptime.Application.Authentication;
+using Uptime.Workflows.Application.Authentication;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Services;
 
-namespace Uptime.Application;
+namespace Uptime.Workflows.Application;
 
 public static class ApplicationServiceRegistration
 {

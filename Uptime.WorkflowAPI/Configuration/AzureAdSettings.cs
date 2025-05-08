@@ -1,4 +1,4 @@
-﻿namespace Uptime.WorkflowAPI.Configuration;
+﻿namespace Uptime.Workflows.Api.Configuration;
 
 internal record AzureAdSettings
 {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 
-namespace Uptime.WorkflowAPI;
+namespace Uptime.Workflows.Api;
 
 internal static class Constants
 {

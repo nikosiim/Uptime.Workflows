@@ -1,6 +1,6 @@
 ﻿using Uptime.Workflows.Core.Enums;
 
-namespace Uptime.Application.DTOs;
+namespace Uptime.Workflows.Application.DTOs;
 
 public class WorkflowHistoryDto
 {
