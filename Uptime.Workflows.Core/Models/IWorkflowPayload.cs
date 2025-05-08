@@ -1,4 +1,6 @@
-﻿namespace Uptime.Workflows.Core.Common;
+﻿using Uptime.Workflows.Core.Common;
+
+namespace Uptime.Workflows.Core.Models;
 
 public interface IWorkflowPayload
 {

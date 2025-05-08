@@ -3,6 +3,7 @@ using System.Text.Json;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
+using Uptime.Workflows.Core.Models;
 using Uptime.Workflows.Core.Services;
 
 namespace ApprovalWorkflow;

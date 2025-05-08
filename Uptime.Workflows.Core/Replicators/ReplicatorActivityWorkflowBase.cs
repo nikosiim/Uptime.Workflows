@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
+using Uptime.Workflows.Core.Models;
 using Uptime.Workflows.Core.Services;
 
 namespace Uptime.Workflows.Core;

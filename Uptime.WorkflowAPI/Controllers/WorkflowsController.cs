@@ -7,6 +7,7 @@ using Uptime.Shared.Models.Workflows;
 using Uptime.Workflows.Core;
 using Unit = Uptime.Workflows.Core.Common.Unit;
 using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Models;
 
 namespace Uptime.WorkflowAPI.Controllers;
 

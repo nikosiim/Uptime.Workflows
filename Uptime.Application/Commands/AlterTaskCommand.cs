@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
@@ -7,11 +8,8 @@ using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.Application.Commands;
 
-public record AlterTaskCommand : IRequest<Result<Unit>>
-{
-    public TaskId TaskId { get; init; }
-    public Dictionary<string, string?> Payload { get; init; } = new();
-}
+public record AlterTaskCommand(ClaimsPrincipal User, TaskId TaskId, Dictionary<string, string?> Payload)
+    : IRequest<Result<Unit>>;
 
 public class AlterTaskCommandHandler(WorkflowDbContext dbContext, IWorkflowFactory workflowFactory) 
     : IRequestHandler<AlterTaskCommand, Result<Unit>>

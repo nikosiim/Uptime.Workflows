@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Application.DTOs;
 using Uptime.Application.Queries;
@@ -26,6 +27,7 @@ namespace Uptime.WorkflowAPI.Controllers
         }
 
         [HttpGet("documents")]
+        [Authorize(Policy = "ApiAdminAccess")]
         public async Task<ActionResult<List<LibraryDocumentResponse>>> GetDocuments(int libraryId)
         {
             var query = new GetLibraryDocumentsQuery((LibraryId)libraryId);
@@ -35,6 +37,7 @@ namespace Uptime.WorkflowAPI.Controllers
         }
 
         [HttpGet("workflow-templates")]
+        [Authorize]
         public async Task<ActionResult<List<LibraryWorkflowTemplateResponse>>> GetWorkflowTemplates(int libraryId)
         {
             var query = new GetLibraryWorkflowTemplatesQuery((LibraryId)libraryId);

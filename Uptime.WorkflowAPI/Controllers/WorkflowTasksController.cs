@@ -4,8 +4,8 @@ using Uptime.Application.Commands;
 using Uptime.Application.DTOs;
 using Uptime.Application.Queries;
 using Uptime.Shared.Models.Tasks;
-using Unit = Uptime.Workflows.Core.Common.Unit;
 using Uptime.Workflows.Core.Common;
+using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.WorkflowAPI.Controllers;
 
@@ -28,8 +28,8 @@ public class WorkflowTasksController(IMediator mediator) : ControllerBase
     [HttpPost("update")]
     public async Task<ActionResult> AlterTask(int taskId, [FromBody] AlterTaskRequest request)
     {
-        AlterTaskCommand command = Mapper.MapToAlterTaskCommand(request, taskId);
-        Result<Unit> result = await mediator.Send(command);
+        var cmd = new AlterTaskCommand(User, (TaskId)taskId, request.Input);
+        Result<Unit> result = await mediator.Send(cmd);
 
         if (!result.Succeeded)
         {

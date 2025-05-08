@@ -8,6 +8,7 @@ using Uptime.Shared.Models.WorkflowTemplates;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
+using Uptime.Workflows.Core.Models;
 
 namespace Uptime.WorkflowAPI;
 
@@ -178,15 +179,6 @@ public static class Mapper
             WorkflowId = source.WorkflowId,
             PhaseId = source.PhaseId,
             WorkflowBaseId = source.WorkflowBaseId
-        };
-    }
-
-    public static AlterTaskCommand MapToAlterTaskCommand(AlterTaskRequest request, int taskId)
-    {
-        return new AlterTaskCommand
-        {
-            TaskId = (TaskId)taskId,
-            Payload = request.Input
         };
     }
 

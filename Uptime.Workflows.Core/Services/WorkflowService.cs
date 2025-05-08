@@ -2,6 +2,7 @@
 using System.Text.Json;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
+using Uptime.Workflows.Core.Models;
 
 namespace Uptime.Workflows.Core.Services;
 

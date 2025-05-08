@@ -1,4 +1,5 @@
 using Uptime.Application;
+using Uptime.WorkflowAPI.Configuration;
 using Uptime.Workflows.Core;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -7,12 +8,9 @@ builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
 builder.Services.AddCoreServices(builder.Configuration);
 builder.Services.AddApplicationServices();
+builder.Services.AddWorkflowAuthentication(builder.Configuration, builder.Environment);
 builder.Services.AddControllers();
-
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Workflow API", Version = "v1" });
-});
+builder.Services.AddWorkflowSwagger();
 
 builder.Services.AddCors(options =>
 {
@@ -35,7 +33,10 @@ app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Workflow AP
 
 app.UseHttpsRedirection();
 app.UseCors("AllowBlazorClient");
-app.UseRouting();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 
 app.MapGet("/", context =>

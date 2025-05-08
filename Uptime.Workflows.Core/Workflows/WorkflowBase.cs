@@ -4,6 +4,7 @@ using Stateless;
 using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Services;
+using Uptime.Workflows.Core.Models;
 
 namespace Uptime.Workflows.Core;
 
