@@ -22,6 +22,10 @@ internal static class Constants
     {
         public const string ApiPrefix = "Api:";
         public const string AADSection = $"{ApiPrefix}AAD";
+
+        public const string SharePointOnPrem = "SharePoint";
+        public const string SharePointOnline = "SharePointOnline";
+        public const string MembershipService = "MembershipValidationService";
     }
 
     internal static class ClaimNames

@@ -17,16 +17,17 @@ internal static class ServiceExtensions
 
     public static IServiceCollection AddWorkflowAuthentication(this IServiceCollection services, IConfiguration cfg, IHostEnvironment env)
     {
-        // ① Bind typed options
-        services.Configure<OnPremSharePointOptions>(cfg.GetSection("SharePoint"));
-        services.Configure<SpoOnlineOptions>(cfg.GetSection("SharePointOnline"));
+        // Bind typed options
+        services.Configure<OnPremSharePointOptions>(cfg.GetSection(ConfigurationKeys.SharePointOnPrem));
+        services.Configure<SpoOnlineOptions>(cfg.GetSection(ConfigurationKeys.SharePointOnline));
+        services.Configure<MembershipValidationServiceOptions>(cfg.GetSection(ConfigurationKeys.MembershipService)); 
 
         AzureAdSettings ad = cfg.GetSection(ConfigurationKeys.AADSection).Get<AzureAdSettings>()
             ?? throw new InvalidOperationException("Api:AAD section missing.");
 
         bool inAzure = env.IsRunningInAzure();
 
-        // ② ONE AddAuthentication call – set DefaultScheme immediately
+        // ONE AddAuthentication call – set DefaultScheme immediately
         AuthenticationBuilder auth = services.AddAuthentication(options =>
         {
             options.DefaultScheme = inAzure
@@ -34,7 +35,7 @@ internal static class ServiceExtensions
                 : AuthSchemes.Combined;       // dev/on-prem  = Negotiate or Bearer
         });
 
-        // ③ Hybrid only: Negotiate + policy scheme
+        // Hybrid only: Negotiate + policy scheme
         if (!inAzure)
         {
             auth.AddPolicyScheme(AuthSchemes.Combined, "Negotiate/Bearer", o =>
@@ -48,7 +49,7 @@ internal static class ServiceExtensions
                 .AddNegotiate();
         }
 
-        // ④ Always add JWT Bearer
+        // Always add JWT Bearer
         auth.AddJwtBearer(AuthSchemes.Bearer, o =>
         {
             o.Authority = ad.Authority;
@@ -59,22 +60,27 @@ internal static class ServiceExtensions
                 ValidateIssuer   = true,
                 ValidIssuer      = ad.Authority,
                 ValidateAudience = true,
-                ValidAudience    = ad.ApiClientId
+                ValidAudience    = ad.ApiClientId,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true
             };
         });
-
-        // ⑤ One resolver registration – choose at runtime
-        if (inAzure)
-        {
-            services.AddSingleton<IMembershipResolver, SpoOnlineMembershipResolver>();
-        }
-        else
-        {
-            services.AddSingleton<IMembershipResolver, OnPremMembershipResolver>();
-        }
-
+ 
         services.ConfigureOptions<AuthorizationSetup>();
         services.AddHttpClient("sp");
+
+        // client for the custom membership-validation web-service
+        services.AddHttpClient("MembershipValidationServiceClient")
+            .ConfigureHttpClient((sp, c) =>
+            {
+                MembershipValidationServiceOptions opt = sp.GetRequiredService<IOptions<MembershipValidationServiceOptions>>().Value;
+                c.BaseAddress = new Uri(opt.BaseUrl);
+                c.Timeout     = opt.Timeout;
+                if (!string.IsNullOrEmpty(opt.ApiKey))
+                    c.DefaultRequestHeaders.Add("x-api-key", opt.ApiKey);
+            });
+        services.AddSingleton<IMembershipResolver, MembershipValidationResolver>();
+
         return services;
     }
 
