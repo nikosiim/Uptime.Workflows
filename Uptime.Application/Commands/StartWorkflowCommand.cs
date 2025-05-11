@@ -16,18 +16,18 @@ public record StartWorkflowCommand : IRequest<Result<Unit>>
     public Dictionary<string, string?> Storage { get; init; } = new();
 }
 
-public class StartWorkflowCommandHandler(WorkflowDbContext dbContext, IWorkflowFactory workflowFactory)
+public class StartWorkflowCommandHandler(WorkflowDbContext db, IWorkflowFactory factory)
     : IRequestHandler<StartWorkflowCommand, Result<Unit>>
 {
-    public async Task<Result<Unit>> Handle(StartWorkflowCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> Handle(StartWorkflowCommand request, CancellationToken ct)
     {
-        if (cancellationToken.IsCancellationRequested)
+        if (ct.IsCancellationRequested)
             return Result<Unit>.Cancelled();
 
-        string workflowBaseIdString = await dbContext.WorkflowTemplates
+        string workflowBaseIdString = await db.WorkflowTemplates
             .Where(wt => wt.Id == request.WorkflowTemplateId.Value)
             .Select(wt => wt.WorkflowBaseId)
-            .FirstAsync(cancellationToken);
+            .FirstAsync(ct);
 
         var payload = new StartWorkflowPayload
         {
@@ -38,6 +38,6 @@ public class StartWorkflowCommandHandler(WorkflowDbContext dbContext, IWorkflowF
             Storage = request.Storage
         };
 
-        return await workflowFactory.StartWorkflowAsync(payload, cancellationToken);
+        return await factory.StartWorkflowAsync(payload, ct);
     }
 }

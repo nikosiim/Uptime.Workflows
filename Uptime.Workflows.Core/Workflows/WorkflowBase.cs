@@ -58,7 +58,7 @@ public abstract class WorkflowBase<TContext>(
         catch (Exception ex)
         {
             await HandleWorkflowExceptionAsync(ex, WorkflowId, cancellationToken);
-            return Result<Unit>.Failure("An error occurred while starting the workflow.");
+            return Result<Unit>.Failure(ErrorCode.Unexpected);
         }
 
         return Result<Unit>.Success(new Unit());
@@ -81,13 +81,13 @@ public abstract class WorkflowBase<TContext>(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to modify workflow with ID {WorkflowId}", WorkflowId.Value);
-            return Result<Unit>.Failure("Workflow update failed");
+            return Result<Unit>.Failure(ErrorCode.Unexpected);
         }
 
         return Result<Unit>.Success(new Unit());
     }
 
-    public Result<Unit> RehydrateAsync(Workflow instance, CancellationToken cancellationToken)
+    public Result<Unit> Rehydrate(Workflow instance, CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
             return Result<Unit>.Cancelled();
@@ -104,7 +104,7 @@ public abstract class WorkflowBase<TContext>(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to rehydrate workflow with ID {WorkflowId}", instance.Id);
-            return Result<Unit>.Failure("Workflow reHydration failed");
+            return Result<Unit>.Failure(ErrorCode.Unexpected);
         }
 
         return Result<Unit>.Success(new Unit());
@@ -118,8 +118,7 @@ public abstract class WorkflowBase<TContext>(
         if (Machine.State.IsFinal())
         {
             logger.LogFinalStateCancellation(WorkflowDefinition, WorkflowId, Machine.State);
-
-            return Result<Unit>.Failure("Workflow is already in final state");
+            return Result<Unit>.Failure(ErrorCode.Conflict);
         }
 
         try
@@ -139,7 +138,7 @@ public abstract class WorkflowBase<TContext>(
         catch (Exception ex)
         {
             logger.LogError(ex, "An error occurred while cancelling the workflow.");
-            return Result<Unit>.Failure("An error occurred while cancelling the workflow");
+            return Result<Unit>.Failure(ErrorCode.Unexpected);
         }
 
         return Result<Unit>.Success(new Unit());
@@ -163,7 +162,7 @@ public abstract class WorkflowBase<TContext>(
         if (string.IsNullOrWhiteSpace(modificationContext))
         {
             logger.LogWarning("No valid modification context available for workflow {WorkflowId}.", WorkflowId);
-            return Result<string>.Failure("No modification context available.");
+            return Result<string>.Failure(ErrorCode.ValidationFailed);
         }
 
         return Result<string>.Success(modificationContext);

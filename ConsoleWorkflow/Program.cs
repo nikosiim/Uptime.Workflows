@@ -107,7 +107,7 @@ internal class Program
             .ThenInclude(w => w.WorkflowTemplate)
             .FirstAsync();
 
-        Result<Unit> rehydrateResult = workflow.RehydrateAsync(workflowTask.Workflow, CancellationToken.None);
+        Result<Unit> rehydrateResult = workflow.Rehydrate(workflowTask.Workflow, CancellationToken.None);
         if (!rehydrateResult.Succeeded)
         {
             PrintMessage($"⚠️ Rehydration failed: {rehydrateResult.Error}", ConsoleColor.Red);

@@ -7,14 +7,17 @@ using Uptime.Workflows.Core.Enums;
 
 namespace Uptime.Workflows.Application.Queries;
 
-public record GetWorkflowTasksQuery(WorkflowId WorkflowId, WorkflowTaskStatus? Status) : IRequest<List<WorkflowTaskDto>>;
+public record GetWorkflowTasksQuery(WorkflowId WorkflowId, WorkflowTaskStatus? Status) : IRequest<Result<List<WorkflowTaskDto>>>;
 
-public class GetWorkflowTasksQueryHandler(WorkflowDbContext dbContext)
-    : IRequestHandler<GetWorkflowTasksQuery, List<WorkflowTaskDto>>
+public class GetWorkflowTasksQueryHandler(WorkflowDbContext db)
+    : IRequestHandler<GetWorkflowTasksQuery, Result<List<WorkflowTaskDto>>>
 {
-    public async Task<List<WorkflowTaskDto>> Handle(GetWorkflowTasksQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<WorkflowTaskDto>>> Handle(GetWorkflowTasksQuery request, CancellationToken ct)
     {
-        return await dbContext.WorkflowTasks.AsNoTracking()
+        if (ct.IsCancellationRequested)
+            return Result<List<WorkflowTaskDto>>.Cancelled();
+
+        List<WorkflowTaskDto> dtos = await db.WorkflowTasks.AsNoTracking()
             .Where(task => task.WorkflowId == request.WorkflowId.Value && (request.Status == null || task.InternalStatus == request.Status))
             .Select(task => new WorkflowTaskDto
             {
@@ -28,6 +31,10 @@ public class GetWorkflowTasksQueryHandler(WorkflowDbContext dbContext)
                 EndDate = task.EndDate,
                 StorageJson = task.StorageJson
             })
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
+
+        return dtos.Count > 0
+            ? Result<List<WorkflowTaskDto>>.Success(dtos)
+            : Result<List<WorkflowTaskDto>>.Failure(ErrorCode.NotFound);
     }
 }

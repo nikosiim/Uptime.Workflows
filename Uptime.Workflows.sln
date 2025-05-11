@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SigningWorkflow", "SigningW
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApprovalWorkflow", "ApprovalWorkflow\ApprovalWorkflow.csproj", "{B4A9E273-121F-49E9-B966-5E13D5A8DB80}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MembershipValidationService", "MembershipValidationService\MembershipValidationService.csproj", "{3D4624D6-CBD5-4411-9B95-26C186C6E857}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -64,6 +66,10 @@ Global
 		{B4A9E273-121F-49E9-B966-5E13D5A8DB80}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B4A9E273-121F-49E9-B966-5E13D5A8DB80}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B4A9E273-121F-49E9-B966-5E13D5A8DB80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D4624D6-CBD5-4411-9B95-26C186C6E857}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D4624D6-CBD5-4411-9B95-26C186C6E857}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D4624D6-CBD5-4411-9B95-26C186C6E857}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D4624D6-CBD5-4411-9B95-26C186C6E857}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

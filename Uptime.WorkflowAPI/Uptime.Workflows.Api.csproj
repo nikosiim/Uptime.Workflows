@@ -10,10 +10,6 @@
 	</PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Authentication\GraphMembershipResolver.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.13.2" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="9.0.4" />
@@ -27,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Uptime.Application\Uptime.Workflows.Application.csproj" />
+    <ProjectReference Include="..\Uptime.Client\Uptime.Client.csproj" />
     <ProjectReference Include="..\Uptime.Shared\Uptime.Shared.csproj" />
   </ItemGroup>
 

@@ -8,11 +8,12 @@ namespace Uptime.Workflows.Application.Queries;
 
 public record GetWorkflowHistoryQuery(WorkflowId WorkflowId) : IRequest<List<WorkflowHistoryDto>>;
 
-public class GetWorkflowHistoryQueryHandler(WorkflowDbContext dbContext) : IRequestHandler<GetWorkflowHistoryQuery, List<WorkflowHistoryDto>>
+public class GetWorkflowHistoryQueryHandler(WorkflowDbContext db) 
+    : IRequestHandler<GetWorkflowHistoryQuery, List<WorkflowHistoryDto>>
 {
-    public async Task<List<WorkflowHistoryDto>> Handle(GetWorkflowHistoryQuery request, CancellationToken cancellationToken)
+    public async Task<List<WorkflowHistoryDto>> Handle(GetWorkflowHistoryQuery request, CancellationToken ct)
     {
-        return await dbContext.WorkflowHistories.AsNoTracking()
+        return await db.WorkflowHistories.AsNoTracking()
             .Where(x => x.WorkflowId == request.WorkflowId.Value)
             .Select(history => new WorkflowHistoryDto
             {
@@ -24,6 +25,6 @@ public class GetWorkflowHistoryQueryHandler(WorkflowDbContext dbContext) : IRequ
                 Comment = history.Comment,
                 User = history.User
             })
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
     }
 }

@@ -1,10 +1,12 @@
-﻿using System.Reflection;
-using ApprovalWorkflow;
+﻿using ApprovalWorkflow;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SigningWorkflow;
+using System.Reflection;
 using Uptime.Workflows.Application.Authentication;
+using Uptime.Workflows.Application.Behaviors;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Services;
 
@@ -15,6 +17,8 @@ public static class ApplicationServiceRegistration
     public static void AddApplicationServices(this IServiceCollection services)
     {
         services.AddMediatR(config => config.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly()));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuthorizeTaskBehavior<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ExceptionHandlingBehavior<,>));
 
         services.AddSingleton<IAuthorizationHandler, TaskAccessHandler>();
 

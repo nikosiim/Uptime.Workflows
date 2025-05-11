@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Shared.Models.Workflows;
+using Uptime.Workflows.Api.Extensions;
 using Uptime.Workflows.Application.Commands;
 using Uptime.Workflows.Application.DTOs;
 using Uptime.Workflows.Application.Queries;
@@ -16,47 +17,37 @@ namespace Uptime.Workflows.Api.Controllers;
 public class WorkflowsController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<WorkflowDefinitionResponse>>> GetDefinitions()
+    public async Task<ActionResult<IEnumerable<WorkflowDefinitionResponse>>> GetDefinitions(CancellationToken ct)
     {
         var query = new GetWorkflowDefinitionQuery();
-        List<WorkflowDefinition> definitions = await mediator.Send(query);
+        List<WorkflowDefinition> definitions = await mediator.Send(query, ct);
 
         return Ok(Mapper.MapToWorkflowDefinitionResponse(definitions));
     }
 
     [HttpGet("{workflowId:int}")]
-    public async Task<ActionResult<WorkflowDetailsResponse>> GetWorkflow(int workflowId)
+    public async Task<ActionResult<WorkflowDetailsResponse>> GetWorkflow(int workflowId, CancellationToken ct)
     {
         var query = new GetWorkflowDetailsQuery((WorkflowId)workflowId);
-        WorkflowDetailsDto? workflow = await mediator.Send(query);
-        
-        if (workflow == null)
-        {
-            return NotFound($"No workflow found for ID {workflowId}.");
-        }
-
-        return Ok(Mapper.MapToWorkflowDetailsResponse(workflow));
+        Result<WorkflowDetailsDto> result = await mediator.Send(query, ct);
+      
+        return this.ToActionResult(result, Mapper.MapToWorkflowDetailsResponse);
     }
     
     [HttpGet("{workflowId:int}/workflow-tasks")]
-    public async Task<ActionResult<IEnumerable<WorkflowTasksResponse>>> GetWorkflowTasks(int workflowId, [FromQuery] string? workflowTaskStatus = null)
+    public async Task<ActionResult<IEnumerable<WorkflowTasksResponse>>> GetWorkflowTasks(int workflowId, CancellationToken ct, [FromQuery] string? workflowTaskStatus = null)
     {
         var query = new GetWorkflowTasksQuery((WorkflowId)workflowId, Mapper.ToDomain(workflowTaskStatus));
+        Result<List<WorkflowTaskDto>> result = await mediator.Send(query, ct);
 
-        List<WorkflowTaskDto> tasks = await mediator.Send(query);
-        if (tasks.Count == 0)
-        {
-            return NotFound($"No tasks found for workflow ID {workflowId}.");
-        }
-
-        return Ok(Mapper.MapToWorkflowTasksResponse(tasks));
+        return this.ToActionResult(result, Mapper.MapToWorkflowTasksResponse);
     }
 
     [HttpGet("{workflowId:int}/workflow-histories")]
-    public async Task<ActionResult<IEnumerable<WorkflowHistoryResponse>>> GetWorkflowHistory(int workflowId)
+    public async Task<ActionResult<IEnumerable<WorkflowHistoryResponse>>> GetWorkflowHistory(int workflowId, CancellationToken ct)
     {
         var query = new GetWorkflowHistoryQuery((WorkflowId)workflowId);
-        List<WorkflowHistoryDto> items = await mediator.Send(query);
+        List<WorkflowHistoryDto> items = await mediator.Send(query, ct);
       
         return Ok(Mapper.MapToWorkflowHistoryResponse(items));
     }
@@ -67,63 +58,43 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
         var query = new GetModificationContextQuery((WorkflowId)workflowId);
         Result<string> result = await mediator.Send(query);
 
-        if (!result.Succeeded)
-        {
-            return BadRequest(result.Error);
-        }
-
-        return Ok(result.Value);
+        return this.ToActionResult(result);
     }
     
     [HttpPost("start-workflow")]
-    public async Task<ActionResult> StartWorkflow([FromBody] StartWorkflowRequest request)
+    public async Task<ActionResult> StartWorkflow([FromBody] StartWorkflowRequest request, CancellationToken ct)
     {
         StartWorkflowCommand cmd = Mapper.MapToStartWorkflowCommand(request);
-        Result<Unit> result = await mediator.Send(cmd);
+        Result<Unit> result = await mediator.Send(cmd, ct);
 
-        if (!result.Succeeded)
-        {
-            return BadRequest(result.Error);
-        }
-
-        return NoContent();
+        return this.ToActionResult(result);
     }
 
     [HttpPost("{workflowId:int}/modify-workflow")]
-    public async Task<ActionResult> ModifyWorkflow(int workflowId, [FromBody] ModifyWorkflowRequest request)
+    public async Task<ActionResult> ModifyWorkflow(int workflowId, [FromBody] ModifyWorkflowRequest request, CancellationToken ct)
     {
         ModificationPayload payload = Mapper.MapToModificationPayload(request);
 
         var cmd = new ModifyWorkflowCommand((WorkflowId)workflowId, payload);
-        Result<Unit> result = await mediator.Send(cmd);
+        Result<Unit> result = await mediator.Send(cmd, ct);
 
-        if (!result.Succeeded)
-        {
-            return BadRequest(result.Error);
-        }
-
-        return NoContent();
+        return this.ToActionResult(result);
     }
 
     [HttpPost("{workflowId:int}/cancel-workflow")]
-    public async Task<ActionResult> CancelWorkflow(int workflowId, [FromBody] CancelWorkflowRequest request)
+    public async Task<ActionResult> CancelWorkflow(int workflowId, [FromBody] CancelWorkflowRequest request, CancellationToken ct)
     {
         var cmd = new CancelWorkflowCommand((WorkflowId)workflowId, request.Executor, request.Comment);
-        Result<Unit> result = await mediator.Send(cmd);
+        Result<Unit> result = await mediator.Send(cmd, ct);
 
-        if (!result.Succeeded)
-        {
-            return BadRequest(result.Error);
-        }
-
-        return NoContent();
+        return this.ToActionResult(result);
     }
 
     [HttpDelete("{workflowId:int}/delete-workflow")]
-    public async Task<ActionResult> DeleteWorkflow(int workflowId)
+    public async Task<ActionResult> DeleteWorkflow(int workflowId, CancellationToken ct)
     {
         var cmd = new DeleteWorkflowCommand((WorkflowId)workflowId);
-        await mediator.Send(cmd);
+        await mediator.Send(cmd, ct);
 
         return NoContent();
     }

@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
@@ -9,29 +10,31 @@ namespace Uptime.Workflows.Application.Queries;
 
 public record GetModificationContextQuery(WorkflowId WorkflowId) : IRequest<Result<string>>;
 
-public sealed class GetModificationContextQueryHandler(WorkflowDbContext dbContext, IWorkflowFactory workflowFactory)
+public sealed class GetModificationContextQueryHandler(WorkflowDbContext db, IWorkflowFactory factory, ILogger<GetModificationContextQuery> log)
     : IRequestHandler<GetModificationContextQuery, Result<string>>
 {
-    public async Task<Result<string>> Handle(GetModificationContextQuery request, CancellationToken cancellationToken)
+    public async Task<Result<string>> Handle(GetModificationContextQuery request, CancellationToken ct)
     {
-        if (cancellationToken.IsCancellationRequested)
+        if (ct.IsCancellationRequested)
             return Result<string>.Cancelled();
 
-        Workflow? workflow = await dbContext.Workflows.AsNoTracking()
+        Workflow? workflow = await db.Workflows.AsNoTracking()
             .Include(w => w.WorkflowTemplate)
-            .FirstOrDefaultAsync(w => w.Id == request.WorkflowId.Value, cancellationToken);
+            .FirstOrDefaultAsync(w => w.Id == request.WorkflowId.Value, ct);
 
-        if (workflow == null)
-            return Result<string>.Failure($"Workflow with ID {request.WorkflowId.Value} not found.");
-        
-        IWorkflowMachine? stateMachine = workflowFactory.TryGetStateMachine(workflow.WorkflowTemplate.WorkflowBaseId);
-        if (stateMachine == null) 
-            return Result<string>.Failure("Invalid workflow machine type.");
+        if (workflow is null)
+            return Result<string>.Failure(ErrorCode.NotFound);
 
-        Result<Unit> reHydrationResult = stateMachine.RehydrateAsync(workflow, cancellationToken);
+        IWorkflowMachine? machine = factory.TryGetStateMachine(workflow.WorkflowTemplate.WorkflowBaseId);
+        if (machine is null)
+        {
+            log.LogError("State-machine not found {WorkflowBaseId}", workflow.WorkflowTemplate.WorkflowBaseId);
+            return Result<string>.Failure(ErrorCode.Unexpected);
+        }
 
-        return !reHydrationResult.Succeeded
-            ? Result<string>.Failure("Workflow state-machine reHydration failed.")
-            : stateMachine.GetModificationContext();
+        Result<Unit> rehydrationResult = machine.Rehydrate(workflow, ct);
+        return !rehydrationResult.Succeeded 
+            ? Result<string>.Failure(rehydrationResult.Code!.Value, rehydrationResult.Details) 
+            : machine.GetModificationContext();
     }
 }

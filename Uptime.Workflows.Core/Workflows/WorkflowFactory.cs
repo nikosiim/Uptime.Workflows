@@ -117,7 +117,7 @@ public class WorkflowFactory : IWorkflowFactory
             return await machine.StartAsync(payload, cancellationToken);
         }
 
-        _logger.LogWarning("No workflow machine found for baseId: {WorkflowBaseId}", payload.WorkflowBaseId);
-        return Result<Unit>.Failure("Workflow machine not found");
+        _logger.LogWarning("State-machine not found for baseId: {WorkflowBaseId}", payload.WorkflowBaseId);
+        return Result<Unit>.Failure(ErrorCode.NotFound);
     }
 }

@@ -11,6 +11,6 @@ public interface IWorkflowMachine
     Result<string> GetModificationContext(); 
     Task<Result<Unit>> ModifyAsync(ModificationPayload payload, CancellationToken cancellationToken);
     Task<Result<Unit>> CancelAsync(string executor, string comment, CancellationToken cancellationToken);
-    Result<Unit> RehydrateAsync(Workflow instance, CancellationToken cancellationToken);
+    Result<Unit> Rehydrate(Workflow instance, CancellationToken cancellationToken);
     Task TriggerTransitionAsync(WorkflowTrigger trigger, CancellationToken cancellationToken, bool autoCommit = true);
 }

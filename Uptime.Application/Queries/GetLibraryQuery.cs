@@ -6,15 +6,23 @@ using Uptime.Workflows.Core.Data;
 
 namespace Uptime.Workflows.Application.Queries;
 
-public record GetLibraryQuery(LibraryId LibraryId) : IRequest<LibraryDto?>;
+public record GetLibraryQuery(LibraryId LibraryId) : IRequest<Result<LibraryDto>>;
 
-public class GetLibraryQueryHandler(WorkflowDbContext context) : IRequestHandler<GetLibraryQuery, LibraryDto?>
+public class GetLibraryQueryHandler(WorkflowDbContext db) 
+    : IRequestHandler<GetLibraryQuery, Result<LibraryDto>>
 {
-    public async Task<LibraryDto?> Handle(GetLibraryQuery request, CancellationToken cancellationToken)
+    public async Task<Result<LibraryDto>> Handle(GetLibraryQuery request, CancellationToken ct)
     {
-        return await context.Libraries.AsNoTracking()
+        if (ct.IsCancellationRequested)
+            return Result<LibraryDto>.Cancelled();
+
+        LibraryDto? dto = await db.Libraries.AsNoTracking()
             .Where(l => l.Id == request.LibraryId.Value && !l.IsDeleted)
             .Select(l => new LibraryDto(l.Id, l.Name))
-            .FirstOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(ct);
+
+        return dto is not null
+            ? Result<LibraryDto>.Success(dto)
+            : Result<LibraryDto>.Failure(ErrorCode.NotFound);
     }
 }

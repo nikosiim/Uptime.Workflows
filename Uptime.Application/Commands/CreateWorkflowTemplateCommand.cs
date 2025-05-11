@@ -13,10 +13,10 @@ public record CreateWorkflowTemplateCommand : IRequest<WorkflowTemplateId>
     public required string AssociationDataJson { get; init; }
 }
 
-public class CreateWorkflowTemplateCommandHandler(WorkflowDbContext context) 
+public class CreateWorkflowTemplateCommandHandler(WorkflowDbContext db) 
     : IRequestHandler<CreateWorkflowTemplateCommand, WorkflowTemplateId>
 {
-    public async Task<WorkflowTemplateId> Handle(CreateWorkflowTemplateCommand request, CancellationToken cancellationToken)
+    public async Task<WorkflowTemplateId> Handle(CreateWorkflowTemplateCommand request, CancellationToken ct)
     {
         var template = new WorkflowTemplate
         {
@@ -29,8 +29,8 @@ public class CreateWorkflowTemplateCommandHandler(WorkflowDbContext context)
             LibraryId = request.LibraryId.Value
         };
 
-        context.WorkflowTemplates.Add(template);
-        await context.SaveChangesAsync(cancellationToken);
+        db.WorkflowTemplates.Add(template);
+        await db.SaveChangesAsync(ct);
 
         return (WorkflowTemplateId)template.Id;
     }

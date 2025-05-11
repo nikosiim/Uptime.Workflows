@@ -11,10 +11,10 @@ public record CreateWorkflowInstanceCommand : IRequest<WorkflowId>
     public string? Originator { get; init; }
 }
 
-public class CreateWorkflowInstanceCommandHandler(WorkflowDbContext dbContext)
+public class CreateWorkflowInstanceCommandHandler(WorkflowDbContext db)
     : IRequestHandler<CreateWorkflowInstanceCommand, WorkflowId>
 {
-    public async Task<WorkflowId> Handle(CreateWorkflowInstanceCommand request, CancellationToken cancellationToken)
+    public async Task<WorkflowId> Handle(CreateWorkflowInstanceCommand request, CancellationToken ct)
     {
         var instance = new Workflow
         {
@@ -26,8 +26,8 @@ public class CreateWorkflowInstanceCommandHandler(WorkflowDbContext dbContext)
             WorkflowTemplateId = request.WorkflowTemplateId.Value
         };
 
-       dbContext.Workflows.Add(instance);
-       await dbContext.SaveChangesAsync(cancellationToken);
+       db.Workflows.Add(instance);
+       await db.SaveChangesAsync(ct);
 
        return (WorkflowId)instance.Id;
     }

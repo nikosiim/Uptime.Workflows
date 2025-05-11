@@ -22,7 +22,7 @@ public abstract class ActivityWorkflowBase<TContext>(
         if (Machine.State.IsFinal())
         {
             _logger.LogAlreadyCompletedNoModification(WorkflowDefinition, WorkflowId);
-            return Result<Unit>.Failure("Workflow is already completed.");
+            return Result<Unit>.Failure(ErrorCode.Conflict);
         }
 
         try
@@ -35,7 +35,7 @@ public abstract class ActivityWorkflowBase<TContext>(
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to alter workflow with ID {WorkflowId} task", WorkflowId.Value);
-            return Result<Unit>.Failure("Task update failed");
+            return Result<Unit>.Failure(ErrorCode.Unexpected);
         }
         
         return Result<Unit>.Success(new Unit());

@@ -1,6 +1,8 @@
-﻿using Uptime.Workflows.Core.Services;
+﻿using System.Net.Http.Json;
+using Microsoft.Extensions.Logging;
+using Uptime.Workflows.Core.Services;
 
-namespace Uptime.Workflows.Api.Authentication;
+namespace Uptime.Workflows.Application.Authentication;
 
 public sealed class MembershipValidationResolver(IHttpClientFactory clientFactory, ILogger<MembershipValidationResolver> log)
     : IMembershipResolver

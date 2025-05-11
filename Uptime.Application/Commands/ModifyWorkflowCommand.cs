@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
@@ -10,30 +11,33 @@ namespace Uptime.Workflows.Application.Commands;
 
 public record ModifyWorkflowCommand(WorkflowId WorkflowId, ModificationPayload Payload) : IRequest<Result<Unit>>;
 
-public class ModifyWorkflowCommandHandler(WorkflowDbContext dbContext, IWorkflowFactory workflowFactory)
+public class ModifyWorkflowCommandHandler(WorkflowDbContext db, IWorkflowFactory factory, ILogger<ModifyWorkflowCommand> log)
     : IRequestHandler<ModifyWorkflowCommand, Result<Unit>>
 {
-    public async Task<Result<Unit>> Handle(ModifyWorkflowCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> Handle(ModifyWorkflowCommand request, CancellationToken ct)
     {
-        if (cancellationToken.IsCancellationRequested)
+        if (ct.IsCancellationRequested)
             return Result<Unit>.Cancelled();
         
-        Workflow? workflow = await dbContext.Workflows
+        Workflow? workflow = await db.Workflows
             .Include(w => w.WorkflowTemplate)
             .Where(x => x.Id == request.WorkflowId.Value)
-            .FirstOrDefaultAsync(cancellationToken: cancellationToken);
+            .FirstOrDefaultAsync(cancellationToken: ct);
         
-        if (workflow == null)
-            return Result<Unit>.Failure($"Workflow with ID {request.WorkflowId.Value} not found.");
-        
-        IWorkflowMachine? stateMachine = workflowFactory.TryGetStateMachine(workflow.WorkflowTemplate.WorkflowBaseId);
-        if (stateMachine == null) 
-            return Result<Unit>.Failure("Invalid workflow machine type.");
-        
-        Result<Unit> reHydrationResult = stateMachine.RehydrateAsync(workflow, cancellationToken);
-        if (!reHydrationResult.Succeeded)
-            return Result<Unit>.Failure("Workflow state-machine reHydration failed.");
-        
-        return await stateMachine.ModifyAsync(request.Payload, cancellationToken);
+        if (workflow is null)
+            return Result<Unit>.Failure(ErrorCode.NotFound);
+
+        IWorkflowMachine? machine = factory.TryGetStateMachine(workflow.WorkflowTemplate.WorkflowBaseId);
+        if (machine is null)
+        {
+            log.LogError("State-machine not found {WorkflowBaseId}", workflow.WorkflowTemplate.WorkflowBaseId);
+            return Result<Unit>.Failure(ErrorCode.Unexpected);
+        }
+
+        Result<Unit> rehydrationResult = machine.Rehydrate(workflow, ct);
+        if (!rehydrationResult.Succeeded)
+            return rehydrationResult;
+
+        return await machine.ModifyAsync(request.Payload, ct);
     }
 }

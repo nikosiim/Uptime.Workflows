@@ -8,11 +8,12 @@ namespace Uptime.Workflows.Application.Queries;
 
 public record GetLibraryWorkflowTemplatesQuery(LibraryId ListId) : IRequest<List<LibraryWorkflowTemplateDto>>;
 
-public class GetLibraryWorkflowTemplatesQueryHandler(WorkflowDbContext dbContext) : IRequestHandler<GetLibraryWorkflowTemplatesQuery, List<LibraryWorkflowTemplateDto>>
+public class GetLibraryWorkflowTemplatesQueryHandler(WorkflowDbContext db) 
+    : IRequestHandler<GetLibraryWorkflowTemplatesQuery, List<LibraryWorkflowTemplateDto>>
 {
-    public async Task<List<LibraryWorkflowTemplateDto>> Handle(GetLibraryWorkflowTemplatesQuery request, CancellationToken cancellationToken)
+    public async Task<List<LibraryWorkflowTemplateDto>> Handle(GetLibraryWorkflowTemplatesQuery request, CancellationToken ct)
     {
-        return await dbContext.WorkflowTemplates.AsNoTracking()
+        return await db.WorkflowTemplates.AsNoTracking()
             .Where(w => w.LibraryId == request.ListId.Value && !w.IsDeleted)
             .Select(w => new LibraryWorkflowTemplateDto
             {
@@ -22,6 +23,6 @@ public class GetLibraryWorkflowTemplatesQueryHandler(WorkflowDbContext dbContext
                 AssociationDataJson = w.AssociationDataJson,
                 Created = w.Created
             })
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
     }
 }

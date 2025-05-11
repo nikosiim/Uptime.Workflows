@@ -15,21 +15,19 @@ public record UpdateWorkflowTemplateCommand : IRequest<Result<Unit>>
     public string? AssociationDataJson { get; init; }
 }
 
-public class UpdateWorkflowTemplateCommandHandler(WorkflowDbContext context)
+public class UpdateWorkflowTemplateCommandHandler(WorkflowDbContext db)
     : IRequestHandler<UpdateWorkflowTemplateCommand, Result<Unit>>
 {
-    public async Task<Result<Unit>> Handle(UpdateWorkflowTemplateCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> Handle(UpdateWorkflowTemplateCommand request, CancellationToken ct)
     {
-        if (cancellationToken.IsCancellationRequested)
+        if (ct.IsCancellationRequested)
             return Result<Unit>.Cancelled();
 
-        WorkflowTemplate? workflowTemplate = await context.WorkflowTemplates
-            .FirstOrDefaultAsync(wt => wt.Id == request.TemplateId.Value, cancellationToken);
+        WorkflowTemplate? workflowTemplate = await db.WorkflowTemplates
+            .FirstOrDefaultAsync(wt => wt.Id == request.TemplateId.Value, ct);
 
-        if (workflowTemplate == null)
-        {
-            return Result<Unit>.Failure("WorkflowTemplate not found.");
-        }
+        if (workflowTemplate is null)
+            return Result<Unit>.Failure(ErrorCode.NotFound);
 
         workflowTemplate.TemplateName = request.TemplateName;
         workflowTemplate.WorkflowName = request.WorkflowName;
@@ -37,8 +35,8 @@ public class UpdateWorkflowTemplateCommandHandler(WorkflowDbContext context)
         workflowTemplate.AssociationDataJson = request.AssociationDataJson;
         workflowTemplate.Modified = DateTime.UtcNow;
 
-        context.WorkflowTemplates.Update(workflowTemplate);
-        await context.SaveChangesAsync(cancellationToken);
+        db.WorkflowTemplates.Update(workflowTemplate);
+        await db.SaveChangesAsync(ct);
 
         return Result<Unit>.Success(new Unit());
     }

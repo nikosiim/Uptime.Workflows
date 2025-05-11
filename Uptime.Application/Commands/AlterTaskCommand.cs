@@ -1,6 +1,8 @@
-﻿using System.Security.Claims;
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System.Security.Claims;
+using Uptime.Workflows.Application.Authentication;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
@@ -8,33 +10,36 @@ using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.Workflows.Application.Commands;
 
-public record AlterTaskCommand(ClaimsPrincipal User, TaskId TaskId, Dictionary<string, string?> Payload)
-    : IRequest<Result<Unit>>;
+public record AlterTaskCommand(ClaimsPrincipal Caller, TaskId TaskId, Dictionary<string, string?> Payload)
+    : IRequest<Result<Unit>>, ITaskAuthorizationRequest;
 
-public class AlterTaskCommandHandler(WorkflowDbContext dbContext, IWorkflowFactory workflowFactory) 
+public sealed class AlterTaskCommandHandler(WorkflowDbContext db, IWorkflowFactory workflowFactory, ILogger<AlterTaskCommandHandler> log)
     : IRequestHandler<AlterTaskCommand, Result<Unit>>
 {
-    public async Task<Result<Unit>> Handle(AlterTaskCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> Handle(AlterTaskCommand request, CancellationToken ct)
     {
-        if (cancellationToken.IsCancellationRequested)
+        if (ct.IsCancellationRequested)
             return Result<Unit>.Cancelled();
 
-        WorkflowTask? workflowTask = await dbContext.WorkflowTasks
+        WorkflowTask? task = await db.WorkflowTasks
             .Include(x => x.Workflow)
             .ThenInclude(w => w.WorkflowTemplate)
-            .FirstOrDefaultAsync(task => task.Id == request.TaskId.Value, cancellationToken);
+            .FirstOrDefaultAsync(task => task.Id == request.TaskId.Value, ct);
 
-        if (workflowTask == null)
-            return Result<Unit>.Failure($"Workflow task with ID {request.TaskId.Value} not found.");
+        if (task is null)
+            return Result<Unit>.Failure(ErrorCode.NotFound);
 
-        IWorkflowMachine? stateMachine = workflowFactory.TryGetStateMachine(workflowTask.Workflow.WorkflowTemplate.WorkflowBaseId);
-        if (stateMachine is not IActivityWorkflowMachine machine) 
-            return Result<Unit>.Failure("Invalid workflow machine type.");
+        IWorkflowMachine? sm = workflowFactory.TryGetStateMachine(task.Workflow.WorkflowTemplate.WorkflowBaseId);
+        if (sm is not IActivityWorkflowMachine machine)
+        {
+            log.LogError("Invalid state-machine type {StateMachineType}", sm?.GetType());
+            return Result<Unit>.Failure(ErrorCode.Unsupported);
+        }
       
-        Result<Unit> reHydrationResult = machine.RehydrateAsync(workflowTask.Workflow, cancellationToken);
-        if (!reHydrationResult.Succeeded)
-            return Result<Unit>.Failure("Workflow state-machine reHydration failed.");
+        Result<Unit> rehydrationResult = machine.Rehydrate(task.Workflow, ct);
+        if (!rehydrationResult.Succeeded)
+            return rehydrationResult;
         
-        return await machine.AlterTaskAsync(workflowTask, request.Payload, cancellationToken);
+        return await machine.AlterTaskAsync(task, request.Payload, ct);
     }
 }

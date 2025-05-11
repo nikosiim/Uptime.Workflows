@@ -9,16 +9,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-    <Compile Remove="Common\**" />
-    <Compile Remove="Resources\**" />
     <Compile Remove="Stateless\**" />
     <Compile Remove="Workflows\**" />
-    <EmbeddedResource Remove="Common\**" />
-    <EmbeddedResource Remove="Resources\**" />
     <EmbeddedResource Remove="Stateless\**" />
     <EmbeddedResource Remove="Workflows\**" />
-    <None Remove="Common\**" />
-    <None Remove="Resources\**" />
     <None Remove="Stateless\**" />
     <None Remove="Workflows\**" />
   </ItemGroup>
@@ -36,6 +30,7 @@
   <ItemGroup>
     <PackageReference Include="MediatR" Version="12.5.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.4" />
   </ItemGroup>
 
   <ItemGroup>

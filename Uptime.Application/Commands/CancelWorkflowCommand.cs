@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
@@ -9,29 +10,32 @@ namespace Uptime.Workflows.Application.Commands;
 
 public record CancelWorkflowCommand(WorkflowId WorkflowId, string Executor, string Comment) : IRequest<Result<Unit>>;
 
-public class CancelWorkflowCommandHandler(WorkflowDbContext dbContext, IWorkflowFactory workflowFactory)
+public class CancelWorkflowCommandHandler(WorkflowDbContext db, IWorkflowFactory factory, ILogger<CancelWorkflowCommand> log)
     : IRequestHandler<CancelWorkflowCommand, Result<Unit>>
 {
-    public async Task<Result<Unit>> Handle(CancelWorkflowCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> Handle(CancelWorkflowCommand request, CancellationToken ct)
     {
-        if (cancellationToken.IsCancellationRequested)
+        if (ct.IsCancellationRequested)
             return Result<Unit>.Cancelled();
 
-        Workflow? workflow = await dbContext.Workflows
+        Workflow? workflow = await db.Workflows
             .Include(w => w.WorkflowTemplate)
-            .FirstOrDefaultAsync(w => w.Id == request.WorkflowId.Value, cancellationToken);
+            .FirstOrDefaultAsync(w => w.Id == request.WorkflowId.Value, ct);
         
         if (workflow == null)
-            return Result<Unit>.Failure($"Workflow with ID {request.WorkflowId.Value} not found.");
+            return Result<Unit>.Failure(ErrorCode.NotFound);
         
-        IWorkflowMachine? stateMachine = workflowFactory.TryGetStateMachine(workflow.WorkflowTemplate.WorkflowBaseId);
-        if (stateMachine == null) 
-            return Result<Unit>.Failure("Invalid workflow machine type.");
+        IWorkflowMachine? machine = factory.TryGetStateMachine(workflow.WorkflowTemplate.WorkflowBaseId);
+        if (machine == null)
+        {
+            log.LogError("State-machine not found {WorkflowBaseId}", workflow.WorkflowTemplate.WorkflowBaseId);
+            return Result<Unit>.Failure(ErrorCode.Unexpected);
+        }
         
-        Result<Unit> reHydrationResult = stateMachine.RehydrateAsync(workflow, cancellationToken);
-        if (!reHydrationResult.Succeeded)
-            return Result<Unit>.Failure("Workflow state-machine reHydration failed.");
+        Result<Unit> rehydrationResult = machine.Rehydrate(workflow, ct);
+        if (!rehydrationResult.Succeeded)
+            return rehydrationResult;
 
-        return await stateMachine.CancelAsync(request.Executor, request.Comment, cancellationToken);
+        return await machine.CancelAsync(request.Executor, request.Comment, ct);
     }
 }

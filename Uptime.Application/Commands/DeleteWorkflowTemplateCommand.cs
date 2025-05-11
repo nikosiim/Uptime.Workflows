@@ -9,26 +9,26 @@ namespace Uptime.Workflows.Application.Commands;
 
 public record DeleteWorkflowTemplateCommand(WorkflowTemplateId TemplateId) : IRequest<Result<Unit>>;
 
-public class DeleteWorkflowTemplateCommandHandler(WorkflowDbContext context, ILogger<DeleteWorkflowTemplateCommand> logger)
+public class DeleteWorkflowTemplateCommandHandler(WorkflowDbContext db, ILogger<DeleteWorkflowTemplateCommand> logger)
     : IRequestHandler<DeleteWorkflowTemplateCommand, Result<Unit>>
 {
-    public async Task<Result<Unit>> Handle(DeleteWorkflowTemplateCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> Handle(DeleteWorkflowTemplateCommand request, CancellationToken ct)
     {
-        if (cancellationToken.IsCancellationRequested)
+        if (ct.IsCancellationRequested)
             return Result<Unit>.Cancelled();
 
-        WorkflowTemplate? template = await context.WorkflowTemplates.FirstOrDefaultAsync(t => t.Id == request.TemplateId.Value, cancellationToken);
-        if (template == null) 
-            return Result<Unit>.Failure($"WorkflowTemplate with ID {request.TemplateId.Value} not found.");
+        WorkflowTemplate? template = await db.WorkflowTemplates.FirstOrDefaultAsync(t => t.Id == request.TemplateId.Value, ct);
+        if (template == null)
+            return Result<Unit>.Failure(ErrorCode.NotFound);
         
-        bool hasWorkflows = await context.Workflows.AnyAsync(w => w.WorkflowTemplateId == request.TemplateId.Value, cancellationToken: cancellationToken);
-        if (hasWorkflows)
-            return Result<Unit>.Failure("Cannot delete the template as it is being used by existing workflows.");
+        bool inUse = await db.Workflows.AnyAsync(w => w.WorkflowTemplateId == request.TemplateId.Value, cancellationToken: ct);
+        if (inUse)
+            return Result<Unit>.Failure(ErrorCode.ValidationFailed, "Cannot delete template: it’s used by existing workflows.");
 
         template.IsDeleted = true;
-        await context.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(ct);
 
-        logger.LogInformation("Workflow template with ID {TemplateId} deleted.", request.TemplateId);
+        logger.LogInformation("Workflow template with ID {TemplateId} deleted.", request.TemplateId.Value);
         
         return Result<Unit>.Success(new Unit());
     }

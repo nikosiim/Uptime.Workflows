@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
-using Uptime.Workflows.Api.Authentication;
+using Uptime.Workflows.Application.Authentication;
 using Uptime.Workflows.Core.Services;
 using static Uptime.Workflows.Api.Constants;
 

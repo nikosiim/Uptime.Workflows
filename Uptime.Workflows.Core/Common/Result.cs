@@ -1,33 +1,39 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿namespace Uptime.Workflows.Core.Common;
 
-namespace Uptime.Workflows.Core.Common;
+public enum ErrorCode
+{
+    // 400s – client / validation errors
+    ValidationFailed,   // 400 Bad Request
+    Forbidden,          // 403 Forbidden
+    NotFound,           // 404 Not Found
+    Unsupported,        // 405 Method Not Allowed
+    Conflict,           // 409 Conflict
+
+    // other application‐specific
+    Cancelled,          // e.g. client‐cancellation
+
+    // 500s – server / unexpected errors
+    Unexpected          // 500 Internal Server Error
+}
 
 public readonly record struct Unit;
+
 public readonly record struct Result<TValue>
 {
-    [MemberNotNullWhen(true, nameof(Value))]
-    [MemberNotNullWhen(false, nameof(Error))]
     public bool Succeeded { get; }
     public TValue? Value { get; }
-    public string Error { get; }
-
-    private Result(TValue? value, string error, bool succeeded)
+    public ErrorCode? Code { get; }
+    public string? Details { get; }
+    
+    private Result(bool succeeded, TValue? value, ErrorCode? code = null, string? details = null)
     {
-        Value = value;
-        Error = error;
         Succeeded = succeeded;
+        Value = value;
+        Code = code;
+        Details = details;
     }
 
-    public bool TryGetValue(out TValue? value, out string error)
-    {
-        value = Value;
-        error = Error;
-
-        return Succeeded;
-    }
-
-    public static Result<TValue> Success(TValue? value) => new(value, null!, true);
-    public static Result<TValue> Failure(string error) => new(default!, error, false);
-    public static Result<TValue> Failure(IEnumerable<string> errors) => new(default!, string.Join("\n", errors), false);
-    public static Result<TValue> Cancelled() => new(default!, "Operation cancelled", false);
+    public static Result<TValue> Success(TValue? value) => new(true, value);
+    public static Result<TValue> Failure(ErrorCode code, string? details = null) => new(false, default, code, details);
+    public static Result<TValue> Cancelled() => Failure(ErrorCode.Cancelled);
 }

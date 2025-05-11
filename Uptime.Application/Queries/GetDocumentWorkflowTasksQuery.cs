@@ -6,14 +6,17 @@ using Uptime.Workflows.Core.Data;
 
 namespace Uptime.Workflows.Application.Queries;
 
-public record GetDocumentWorkflowTasksQuery(DocumentId DocumentId) : IRequest<List<DocumentWorkflowTaskDto>>;
+public record GetDocumentWorkflowTasksQuery(DocumentId DocumentId) : IRequest<Result<List<DocumentWorkflowTaskDto>>>;
 
-public class GetDocumentWorkflowTasksQueryHandler(WorkflowDbContext dbContext)
-    : IRequestHandler<GetDocumentWorkflowTasksQuery, List<DocumentWorkflowTaskDto>>
+public class GetDocumentWorkflowTasksQueryHandler(WorkflowDbContext db)
+    : IRequestHandler<GetDocumentWorkflowTasksQuery, Result<List<DocumentWorkflowTaskDto>>>
 {
-    public async Task<List<DocumentWorkflowTaskDto>> Handle(GetDocumentWorkflowTasksQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<DocumentWorkflowTaskDto>>> Handle(GetDocumentWorkflowTasksQuery request, CancellationToken ct)
     {
-        return await dbContext.Workflows.AsNoTracking()
+        if (ct.IsCancellationRequested)
+            return Result<List<DocumentWorkflowTaskDto>>.Cancelled();
+
+        List<DocumentWorkflowTaskDto> dtos = await db.Workflows.AsNoTracking()
             .Where(wi => wi.DocumentId == request.DocumentId.Value)
             .SelectMany(wi => wi.WorkflowTasks ?? new List<WorkflowTask>())
             .Select(task => new DocumentWorkflowTaskDto
@@ -27,6 +30,10 @@ public class GetDocumentWorkflowTasksQueryHandler(WorkflowDbContext dbContext)
                 DueDate = task.DueDate,
                 EndDate = task.EndDate
             })
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
+
+        return dtos.Count > 0
+            ? Result<List<DocumentWorkflowTaskDto>>.Success(dtos)
+            : Result<List<DocumentWorkflowTaskDto>>.Failure(ErrorCode.NotFound);
     }
 }

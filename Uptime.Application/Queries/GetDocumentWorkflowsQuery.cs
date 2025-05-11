@@ -8,12 +8,12 @@ namespace Uptime.Workflows.Application.Queries;
 
 public record GetDocumentWorkflowsQuery(DocumentId DocumentId) : IRequest<List<DocumentWorkflowDto>>;
 
-public class GetDocumentWorkflowsQueryHandler(WorkflowDbContext dbContext)
+public class GetDocumentWorkflowsQueryHandler(WorkflowDbContext db)
     : IRequestHandler<GetDocumentWorkflowsQuery, List<DocumentWorkflowDto>>
 {
-    public async Task<List<DocumentWorkflowDto>> Handle(GetDocumentWorkflowsQuery request, CancellationToken cancellationToken)
+    public async Task<List<DocumentWorkflowDto>> Handle(GetDocumentWorkflowsQuery request, CancellationToken ct)
     {
-        return await dbContext.Workflows.AsNoTracking()
+        return await db.Workflows.AsNoTracking()
             .Where(w => w.DocumentId == request.DocumentId.Value && !w.IsDeleted)
             .Select(w => new DocumentWorkflowDto
             {
@@ -25,6 +25,6 @@ public class GetDocumentWorkflowsQueryHandler(WorkflowDbContext dbContext)
                 Outcome = w.Outcome,
                 IsActive = w.IsActive
             })
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
     }
 }

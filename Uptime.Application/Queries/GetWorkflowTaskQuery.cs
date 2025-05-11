@@ -6,15 +6,19 @@ using Uptime.Workflows.Core.Data;
 
 namespace Uptime.Workflows.Application.Queries;
 
-public record GetWorkflowTaskQuery(TaskId TaskId) : IRequest<WorkflowTaskDetailsDto?>;
+public record GetWorkflowTaskQuery(TaskId TaskId) : IRequest<Result<WorkflowTaskDetailsDto>>;
 
-public class GetWorkflowTaskQueryHandler(WorkflowDbContext dbContext) : IRequestHandler<GetWorkflowTaskQuery, WorkflowTaskDetailsDto?>
+public class GetWorkflowTaskQueryHandler(WorkflowDbContext db)
+    : IRequestHandler<GetWorkflowTaskQuery, Result<WorkflowTaskDetailsDto>>
 {
-    public Task<WorkflowTaskDetailsDto?> Handle(GetWorkflowTaskQuery request, CancellationToken cancellationToken)
+    public async Task<Result<WorkflowTaskDetailsDto>> Handle(GetWorkflowTaskQuery request, CancellationToken ct)
     {
-        return dbContext.WorkflowTasks
+        if (ct.IsCancellationRequested)
+            return Result<WorkflowTaskDetailsDto>.Cancelled();
+
+        WorkflowTaskDetailsDto? dto = await db.WorkflowTasks
             .AsNoTracking()
-            .Where(task => task.Id == request.TaskId.Value)
+            .Where(t => t.Id == request.TaskId.Value)
             .Select(task => new WorkflowTaskDetailsDto
             {
                 Id = task.Id,
@@ -32,7 +36,10 @@ public class GetWorkflowTaskQueryHandler(WorkflowDbContext dbContext) : IRequest
                 PhaseId = task.PhaseId,
                 WorkflowBaseId = task.Workflow.WorkflowTemplate.WorkflowBaseId
             })
-            .FirstOrDefaultAsync(cancellationToken);
-    }
+            .FirstOrDefaultAsync(ct);
 
+        return dto is not null 
+            ? Result<WorkflowTaskDetailsDto>.Success(dto) 
+            : Result<WorkflowTaskDetailsDto>.Failure(ErrorCode.NotFound);
+    }
 }

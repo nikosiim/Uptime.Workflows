@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Shared.Models.WorkflowTemplates;
+using Uptime.Workflows.Api.Extensions;
 using Uptime.Workflows.Application.Commands;
 using Uptime.Workflows.Application.DTOs;
 using Uptime.Workflows.Application.Queries;
@@ -14,53 +15,36 @@ namespace Uptime.Workflows.Api.Controllers;
 public class WorkflowTemplatesController(IMediator mediator) : ControllerBase
 {
     [HttpGet("{templateId:int}")]
-    public async Task<ActionResult<WorkflowTemplateResponse>> GetWorkflowTemplate(int templateId)
+    public async Task<ActionResult<WorkflowTemplateResponse>> GetWorkflowTemplate(int templateId, CancellationToken ct)
     {
-        var query = new GetWorkflowTemplateQuery((WorkflowTemplateId)templateId);
-        WorkflowTemplateDto? template = await mediator.Send(query);
-
-        if (template == null || template.Id == 0) 
-        {
-            return NotFound($"Workflow template with ID '{templateId}' was not found.");
-        }
-
-        return Ok(Mapper.MapToWorkflowTemplateResponse(template));
+        Result<WorkflowTemplateDto> result = await mediator.Send(new GetWorkflowTemplateQuery((WorkflowTemplateId)templateId), ct);
+        return this.ToActionResult(result, Mapper.MapToWorkflowTemplateResponse);
     }
 
     [HttpPost("")]
-    public async Task<ActionResult<CreateWorkflowTemplateResponse>> CreateWorkflowTemplate([FromBody] WorkflowTemplateCreateRequest request)
+    public async Task<ActionResult<CreateWorkflowTemplateResponse>> CreateWorkflowTemplate([FromBody] WorkflowTemplateCreateRequest request, CancellationToken ct)
     {
-        CreateWorkflowTemplateCommand command = Mapper.MapToCreateWorkflowTemplateCommand(request);
-        WorkflowTemplateId templateId = await mediator.Send(command);
+        CreateWorkflowTemplateCommand cmd = Mapper.MapToCreateWorkflowTemplateCommand(request);
+        WorkflowTemplateId templateId = await mediator.Send(cmd, ct);
 
         return CreatedAtAction(nameof(CreateWorkflowTemplate), new CreateWorkflowTemplateResponse(templateId.Value));
     }
 
     [HttpPost("{templateId:int}")]
-    public async Task<ActionResult> UpdateWorkflowTemplate(int templateId, [FromBody] WorkflowTemplateUpdateRequest request)
+    public async Task<ActionResult> UpdateWorkflowTemplate(int templateId, [FromBody] WorkflowTemplateUpdateRequest request, CancellationToken ct)
     {
-        UpdateWorkflowTemplateCommand command = Mapper.MapToUpdateWorkflowTemplateCommand(request, templateId);
-        Result<Unit> result = await mediator.Send(command);
+        UpdateWorkflowTemplateCommand cmd = Mapper.MapToUpdateWorkflowTemplateCommand(request, templateId);
+        Result<Unit> result = await mediator.Send(cmd, ct);
 
-        if (!result.Succeeded)
-        {
-            return BadRequest(result.Error);
-        }
-
-        return NoContent();
+        return this.ToActionResult(result);
     }
 
     [HttpDelete("{templateId:int}")]
-    public async Task<ActionResult> DeleteWorkflowTemplate(int templateId)
+    public async Task<ActionResult> DeleteWorkflowTemplate(int templateId, CancellationToken ct)
     {
-        var command = new DeleteWorkflowTemplateCommand((WorkflowTemplateId)templateId);
-        Result<Unit> result = await mediator.Send(command);
+        var cmd = new DeleteWorkflowTemplateCommand((WorkflowTemplateId)templateId);
+        Result<Unit> result = await mediator.Send(cmd, ct);
 
-        if (!result.Succeeded)
-        {
-            return BadRequest(result.Error);
-        }
-
-        return NoContent();
+        return this.ToActionResult(result);
     }
 }

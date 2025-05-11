@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-using System.Text.Json;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
@@ -15,7 +13,7 @@ public sealed class TaskAccessHandler(IMembershipResolver resolver, ILogger<Task
     : AuthorizationHandler<TaskAccessRequirement, WorkflowTask>
 {
     // the “admin” group that may always finish a task
-    private const string AdminGroupName = "WF_Admins";   // ← move to config if you wish
+    private const string AdminGroupName = "WF_Admins";
 
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, TaskAccessRequirement requirement, WorkflowTask task)
     {
@@ -26,7 +24,7 @@ public sealed class TaskAccessHandler(IMembershipResolver resolver, ILogger<Task
         if (caller is null)
         {
             log.LogWarning("Unable to identify caller for task {TaskId}", task.Id);
-            return; // → requirement fails
+            return;
         }
 
         // 2) The assigner may always complete
