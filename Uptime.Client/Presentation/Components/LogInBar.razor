@@ -1,6 +1,19 @@
 ﻿@inherits FluxorComponent
 @inject IDialogService DialogService
 @inject IState<WorkflowState> WorkflowState
+@inject NavigationManager Navigation
+
+<AuthorizeView>
+    <Authorized>
+        <span>Hello, @context.User.Identity?.Name</span>
+        <MudIconButton Icon="@Icons.Material.Filled.Logout" Disabled="@_isSaving" OnClick="BeginLogOut" />
+    </Authorized>
+    <NotAuthorized>
+        <a href="authentication/login">Log in</a>
+    </NotAuthorized>
+</AuthorizeView>
+
+<br />
 
 <MudText Typo="Typo.body1" Class="px-2" Color="@(WorkflowState.Value.CurrentUser.IsAdmin ? Color.Warning : Color.Default)">
     @WorkflowState.Value.CurrentUser.Name
@@ -8,7 +21,12 @@
 <MudIconButton Icon="@Icons.Material.Filled.Logout" Disabled="@_isSaving" OnClick="OpenUserPickerDialog" />
 
 @code {
-    private bool _isSaving = false;
+    private bool _isSaving;
+
+    private void BeginLogOut()
+    {
+        Navigation.NavigateToLogout("authentication/logout");
+    }
 
     private async Task OpenUserPickerDialog()
     {

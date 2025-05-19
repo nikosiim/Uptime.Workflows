@@ -16,6 +16,15 @@ public static class Constants
         public const string Termination = "Termination";
     }
 
+    public static class ConfigurationKeys
+    {
+        public const string ClientPrefix = "Client:";
+        public const string AADSection = $"{ClientPrefix}AAD";
+        public const string DefaultScope = $"{AADSection}:DefaultScope";
+        public const string ApiPrefix = "ApiSettings:";
+        public const string WorkflowApiUrl = $"{ApiPrefix}WorkflowApiUrl";
+    }
+
     public static class DialogParams
     {
         public const string Document = "Document";

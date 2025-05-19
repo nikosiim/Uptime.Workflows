@@ -11,6 +11,7 @@ namespace Uptime.Workflows.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]/{libraryId:int}")]
+    [Authorize]
     public class LibrariesController(IMediator mediator) : ControllerBase
     {
         [HttpGet("")]
@@ -23,7 +24,6 @@ namespace Uptime.Workflows.Api.Controllers
         }
 
         [HttpGet("documents")]
-        [Authorize(Policy = "ApiAdminAccess")]
         public async Task<ActionResult<List<LibraryDocumentResponse>>> GetDocuments(int libraryId, CancellationToken ct)
         {
             var query = new GetLibraryDocumentsQuery((LibraryId)libraryId);
@@ -33,7 +33,6 @@ namespace Uptime.Workflows.Api.Controllers
         }
 
         [HttpGet("workflow-templates")]
-        [Authorize]
         public async Task<ActionResult<List<LibraryWorkflowTemplateResponse>>> GetWorkflowTemplates(int libraryId, CancellationToken ct)
         {
             var query = new GetLibraryWorkflowTemplatesQuery((LibraryId)libraryId);

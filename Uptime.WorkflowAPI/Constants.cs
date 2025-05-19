@@ -13,9 +13,8 @@ internal static class Constants
 
     internal static class AuthenticationScopes
     {
-        public const string Start = "Workflow.Start";
-        public const string Modify = "Workflow.Modify";
-        public const string Cancel = "Workflow.Cancel";
+        public const string AdminAccess = "access_as_admin";
+        public const string UsersAccess = "access_as_user";
     }
 
     internal static class ConfigurationKeys
@@ -38,8 +37,7 @@ internal static class Constants
 
     internal static class Policies
     {
-        public const string Admin = "ApiAdminAccess";
-        public const string Start = "ApiStartAccess";
-        public const string Modify = "ApiModifyAccess";
+        public const string AdminPolicy = "AdminPolicy";
+        public const string UsersPolicy = "UsersPolicy";
     }
 }

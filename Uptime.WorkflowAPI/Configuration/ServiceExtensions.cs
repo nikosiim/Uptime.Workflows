@@ -107,11 +107,9 @@ file sealed class AuthorizationSetup : IConfigureOptions<AuthorizationOptions>
 {
     public void Configure(AuthorizationOptions options)
     {
-        options.AddPolicy(Policies.Admin,
-            p => p.RequireClaim("scp", AuthenticationScopes.Cancel));
-        options.AddPolicy(Policies.Start,
-            p => p.RequireClaim("scp", AuthenticationScopes.Start));
-        options.AddPolicy(Policies.Modify,
-            p => p.RequireClaim("scp", AuthenticationScopes.Modify));
+        options.AddPolicy(Policies.AdminPolicy,
+            p => p.RequireClaim("scp", AuthenticationScopes.AdminAccess));
+        options.AddPolicy(Policies.UsersPolicy,
+            p => p.RequireClaim("scp", AuthenticationScopes.UsersAccess));
     }
 }
