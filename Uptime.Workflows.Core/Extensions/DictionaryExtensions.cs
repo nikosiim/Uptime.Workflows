@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace Uptime.Workflows.Core.Common;
+namespace Uptime.Workflows.Core.Extensions;
 
 public static class DictionaryExtensions
 {

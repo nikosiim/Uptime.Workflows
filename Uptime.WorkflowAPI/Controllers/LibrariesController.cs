@@ -11,7 +11,7 @@ namespace Uptime.Workflows.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]/{libraryId:int}")]
-    [Authorize]
+    [Authorize(Policy = "UserOrAdmin")]
     public class LibrariesController(IMediator mediator) : ControllerBase
     {
         [HttpGet("")]

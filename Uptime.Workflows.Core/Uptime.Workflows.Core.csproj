@@ -13,9 +13,11 @@
 		<Compile Remove="Common\WorkflowConfiguration.cs" />
 		<Compile Remove="Enums\TaskOutcome.cs" />
 		<Compile Remove="Enums\WorkflowPhase.cs" />
+		<Compile Remove="Workflows\WorkflowPayloadExtensions.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Replicators\ReadMe.txt" />
 	  <None Remove="Workflows\WorkflowFactory.cs~RF46b1167e.TMP" />
 	</ItemGroup>
 

@@ -4,11 +4,21 @@ using Microsoft.Extensions.Logging;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
+using Uptime.Workflows.Core.Interfaces;
+using Uptime.Workflows.Core.Models;
 using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.Workflows.Application.Commands;
 
-public record CancelWorkflowCommand(WorkflowId WorkflowId, string Executor, string Comment) : IRequest<Result<Unit>>;
+public record CancelWorkflowCommand : IRequest<Result<Unit>>, IPrincipalRequest
+{
+    public required string CallerSid { get; init; }
+    public required WorkflowId WorkflowId { get; init; }
+    public required string Comment { get; init; }
+
+    // Will be populated by pipeline
+    public Principal? Caller { get; set; } 
+};
 
 public class CancelWorkflowCommandHandler(WorkflowDbContext db, IWorkflowFactory factory, ILogger<CancelWorkflowCommand> log)
     : IRequestHandler<CancelWorkflowCommand, Result<Unit>>
@@ -23,7 +33,7 @@ public class CancelWorkflowCommandHandler(WorkflowDbContext db, IWorkflowFactory
             .FirstOrDefaultAsync(w => w.Id == request.WorkflowId.Value, ct);
         
         if (workflow == null)
-            return Result<Unit>.Failure(ErrorCode.NotFound);
+            return Result<Unit>.Failure(ErrorCode.NotFound, $"Workflow with ID {request.WorkflowId.Value} not found.");
         
         IWorkflowMachine? machine = factory.TryGetStateMachine(workflow.WorkflowTemplate.WorkflowBaseId);
         if (machine == null)
@@ -36,6 +46,8 @@ public class CancelWorkflowCommandHandler(WorkflowDbContext db, IWorkflowFactory
         if (!rehydrationResult.Succeeded)
             return rehydrationResult;
 
-        return await machine.CancelAsync(request.Executor, request.Comment, ct);
+        Principal principal = request.Caller!;
+        
+        return await machine.CancelAsync(principal.Id, request.Comment, ct);
     }
 }

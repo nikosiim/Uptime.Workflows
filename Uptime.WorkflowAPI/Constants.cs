@@ -39,5 +39,6 @@ internal static class Constants
     {
         public const string AdminPolicy = "AdminPolicy";
         public const string UsersPolicy = "UsersPolicy";
+        public const string UserOrAdmin = "UserOrAdmin";
     }
 }

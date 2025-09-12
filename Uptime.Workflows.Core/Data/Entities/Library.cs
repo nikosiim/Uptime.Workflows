@@ -8,6 +8,8 @@ public class Library : BaseEntity
     public required string Name { get; set; }
     public DateTime Created { get; set; }
     public bool IsDeleted { get; set; }
+
+    // Navigation properties
     public virtual ICollection<Document>? Documents { get; set; }
     public virtual ICollection<WorkflowTemplate>? WorkflowTemplates { get; set; }
 }

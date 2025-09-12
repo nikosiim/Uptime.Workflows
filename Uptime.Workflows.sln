@@ -10,6 +10,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Assets", "Assets", "{08C8025D-F282-488C-989F-DCDFBE21B2D6}"
 	ProjectSection(SolutionItems) = preProject
 		ReadMe.txt = ReadMe.txt
+		Where to put logic.txt = Where to put logic.txt
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Uptime.Workflows.Application", "Uptime.Application\Uptime.Workflows.Application.csproj", "{F05D2EF8-A466-4112-80B3-4C0785658735}"

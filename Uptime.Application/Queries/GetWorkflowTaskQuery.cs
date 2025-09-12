@@ -23,8 +23,8 @@ public class GetWorkflowTaskQueryHandler(WorkflowDbContext db)
             {
                 Id = task.Id,
                 TaskGuid = task.TaskGuid,
-                AssignedTo = task.AssignedTo,
-                AssignedBy = task.AssignedBy,
+                AssignedTo = (PrincipalId)task.AssignedToPrincipalId,
+                AssignedBy = (PrincipalId)task.AssignedByPrincipalId,
                 Status = task.Status,
                 InternalStatus = task.InternalStatus,
                 Description = task.Description,

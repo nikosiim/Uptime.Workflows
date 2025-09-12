@@ -3,7 +3,7 @@
 public enum ErrorCode
 {
     // 400s – client / validation errors
-    ValidationFailed,   // 400 Bad Request
+    Validation,   // 400 Bad Request
     Forbidden,          // 403 Forbidden
     NotFound,           // 404 Not Found
     Unsupported,        // 405 Method Not Allowed

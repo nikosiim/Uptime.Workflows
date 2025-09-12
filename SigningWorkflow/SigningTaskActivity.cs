@@ -1,6 +1,7 @@
 ﻿using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
+using Uptime.Workflows.Core.Extensions;
 using Uptime.Workflows.Core.Services;
 using static SigningWorkflow.Constants;
 
@@ -21,12 +22,11 @@ public class SigningTaskActivity(ITaskService taskService, IHistoryService histo
         Context.Storage.SetValue(TaskStorageKeys.TaskTitle, "Allkirjastamine");
         Context.Storage.SetValue(TaskStorageKeys.TaskOutcome, "Ootel");
 
-        TaskCreatedHistoryDescription = $"Tööülesanne {AssociationName} on loodud kasutajale {TaskData.AssignedTo}";
+        TaskCreatedHistoryDescription = $"Tööülesanne {AssociationName} on loodud kasutajale {TaskData.AssignedToPrincipalId}";
     }
     
-    protected override async Task OnTaskChangedAsync(Dictionary<string, string?> payload, CancellationToken cancellationToken)
+    protected override async Task OnTaskChangedAsync(PrincipalId executorId, Dictionary<string, string?> payload, CancellationToken cancellationToken)
     {
-        string? author = payload.GetValue(TaskStorageKeys.TaskEditor);
         string? comment = payload.GetValue(TaskStorageKeys.TaskComment);
         
         if (payload.TryGetValueAsEnum(TaskStorageKeys.TaskResult, out WorkflowEventType workflowEvent))
@@ -39,11 +39,11 @@ public class SigningTaskActivity(ITaskService taskService, IHistoryService histo
                 case WorkflowEventType.TaskRejected:
                     IsTaskRejected = true;
                     outcome = "Tagasilükatud";
-                    description = $"Kasutaja {TaskData?.AssignedTo} on tööülesande {AssociationName} tagasilükanud.";
+                    description = $"Kasutaja {TaskData?.AssignedToPrincipalId} on tööülesande {AssociationName} tagasilükanud.";
                     break;
                 case WorkflowEventType.TaskCompleted:
                     outcome = "Allkirjastatud";
-                    description = $"Kasutajale {TaskData?.AssignedTo} määratud tööülesanne on edukalt lõpetatud.";
+                    description = $"Kasutajale {TaskData?.AssignedToPrincipalId} määratud tööülesanne on edukalt lõpetatud.";
                     break;
                 default:
                     return;
@@ -51,12 +51,10 @@ public class SigningTaskActivity(ITaskService taskService, IHistoryService histo
             
             IsCompleted = true;
             Context.TaskStatus = WorkflowTaskStatus.Completed;
-
-            Context.Storage.SetValue(TaskStorageKeys.TaskEditor, author);
             Context.Storage.SetValue(TaskStorageKeys.TaskComment, comment);
             Context.Storage.SetValue(TaskStorageKeys.TaskOutcome, outcome);
             
-            await _historyService.CreateAsync(Context.WorkflowId, workflowEvent, author, description:description, comment:comment, cancellationToken);
+            await _historyService.CreateAsync(Context.WorkflowId, workflowEvent, executorId, description:description, comment:comment, cancellationToken);
         }
     }
 }

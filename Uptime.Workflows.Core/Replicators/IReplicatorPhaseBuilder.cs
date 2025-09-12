@@ -1,18 +1,15 @@
-﻿using Uptime.Workflows.Core.Common;
-using Uptime.Workflows.Core.Models;
-
-namespace Uptime.Workflows.Core;
+﻿namespace Uptime.Workflows.Core;
 
 /// <summary>
-/// Defines a builder for creating replicator phases from a workflow payload.
+/// Interface for a builder that constructs all replicator phases (and their tasks) for a given workflow instance.
+/// <para>
+/// <b>Why do we need this?</b><br/>
+/// Workflows define their possible phases and how tasks are generated/configured for each phase.
+/// At runtime, when a workflow is activated, we need to build the actual set of phases/tasks using the *current* workflow context data.
+/// This interface provides the API for that logic.
+/// </para>
 /// </summary>
 public interface IReplicatorPhaseBuilder
 {
-    /// <summary>
-    /// Builds a list of replicator phases based on the given payload and workflow ID.
-    /// </summary>
-    /// <param name="payload">The workflow payload containing task data.</param>
-    /// <param name="workflowId">The workflow ID for contextual data lookup.</param>
-    /// <returns>A list of replicator phases.</returns>
-    List<ReplicatorPhase> BuildPhases(IWorkflowPayload payload, WorkflowId workflowId);
+    List<ReplicatorPhase> BuildPhases(IWorkflowContext context);
 }

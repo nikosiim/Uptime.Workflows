@@ -4,8 +4,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
-using Uptime.Workflows.Application.Authentication;
-using Uptime.Workflows.Core.Services;
 using static Uptime.Workflows.Api.Constants;
 
 namespace Uptime.Workflows.Api.Configuration;
@@ -79,7 +77,6 @@ internal static class ServiceExtensions
                 if (!string.IsNullOrEmpty(opt.ApiKey))
                     c.DefaultRequestHeaders.Add("x-api-key", opt.ApiKey);
             });
-        services.AddSingleton<IMembershipResolver, MembershipValidationResolver>();
 
         return services;
     }
@@ -111,5 +108,7 @@ file sealed class AuthorizationSetup : IConfigureOptions<AuthorizationOptions>
             p => p.RequireClaim("scp", AuthenticationScopes.AdminAccess));
         options.AddPolicy(Policies.UsersPolicy,
             p => p.RequireClaim("scp", AuthenticationScopes.UsersAccess));
+        options.AddPolicy(Policies.UserOrAdmin, p => p.RequireAssertion(ctx =>
+            ctx.User.HasClaim("scp", AuthenticationScopes.UsersAccess) || ctx.User.HasClaim("scp", AuthenticationScopes.AdminAccess)));
     }
 }

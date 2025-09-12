@@ -43,23 +43,6 @@ public sealed class ApprovalWorkflowDefinition : IWorkflowDefinition
                 SupportsParallel = false,
                 Actions = [ButtonAction.Signing, ButtonAction.Rejection]
             }
-        ],
-        PhaseConfigurations = new Dictionary<string, ReplicatorPhaseConfiguration>
-        {
-            {
-                ExtendedState.Approval.Value, new ReplicatorPhaseConfiguration
-                {
-                    ActivityData = (payload, workflowId) => payload.GetApprovalTasks(workflowId),
-                    ReplicatorType = payload => payload.GetReplicatorType(ExtendedState.Approval.Value)
-                }
-            },
-            {
-                ExtendedState.Signing.Value, new ReplicatorPhaseConfiguration
-                {
-                    ActivityData = (payload, workflowId) => payload.GetSigningTasks(workflowId),
-                    ReplicatorType = payload => payload.GetReplicatorType(ExtendedState.Signing.Value)
-                }
-            }
-        }
+        ]
     };
 }

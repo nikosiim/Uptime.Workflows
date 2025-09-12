@@ -1,6 +1,6 @@
 ﻿using SigningWorkflow;
 using Uptime.Workflows.Core;
-using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Extensions;
 using Uptime.Workflows.Core.Services;
 using static ApprovalWorkflow.Constants;
 
@@ -55,7 +55,7 @@ public class ApprovalWorkflowActivityProvider(ITaskService taskService, IHistory
         {
             if (activity.IsTaskDelegated)
             {
-                string assignedTo = activity.Context.Storage.GetValueOrDefault(TaskStorageKeys.TaskDelegatedTo)!;
+                string assignedTo = activity.Context.Storage.GetValueOrDefault(TaskStorageKeys.TaskDelegatedToSid)!;
                 ApprovalTaskData data = ApprovalTaskData.Copy(activity.TaskData!, assignedTo);
 
                 Guid existingTaskGuid = activity.Context.TaskGuid;

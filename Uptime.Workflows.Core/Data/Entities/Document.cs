@@ -13,6 +13,8 @@ public class Document : BaseEntity
     public DateTime Created { get; set; }
     public bool IsDeleted { get; set; }
     public int LibraryId { get; set; }
+
+    // Navigation properties
     public virtual Library Library { get; set; } = null!;
     public virtual ICollection<Workflow>? Workflows { get; set; }
 }

@@ -7,6 +7,7 @@ using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Enums;
+using Uptime.Workflows.Core.Models;
 using Uptime.Workflows.Core.Services;
 using static SigningWorkflow.Constants;
 using Unit = Uptime.Workflows.Core.Common.Unit;

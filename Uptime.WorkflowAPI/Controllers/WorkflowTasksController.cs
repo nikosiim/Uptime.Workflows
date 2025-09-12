@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Shared.Models.Tasks;
 using Uptime.Workflows.Api.Extensions;
@@ -12,6 +13,7 @@ namespace Uptime.Workflows.Api.Controllers;
 
 [ApiController]
 [Route("api/workflow-tasks/{taskId:int}")]
+[Authorize]
 public class WorkflowTasksController(IMediator mediator) : ControllerBase
 {
     [HttpGet("")]
@@ -24,7 +26,13 @@ public class WorkflowTasksController(IMediator mediator) : ControllerBase
     [HttpPost("update")]
     public async Task<ActionResult> AlterTask(int taskId, [FromBody] AlterTaskRequest request, CancellationToken ct)
     {
-        var cmd = new AlterTaskCommand(User, (TaskId)taskId, request.Input);
+        var cmd = new AlterTaskCommand
+        {
+            CallerSid = request.CallerSid,
+            TaskId = (TaskId)taskId,
+            Payload = request.Input
+        }; 
+        
         Result<Unit> result = await mediator.Send(cmd, ct);
 
         return this.ToActionResult(result);

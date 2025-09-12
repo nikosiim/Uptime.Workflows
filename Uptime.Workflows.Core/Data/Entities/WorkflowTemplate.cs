@@ -16,6 +16,8 @@ public class WorkflowTemplate : BaseEntity
     public DateTime Modified { get; set; }
     public int LibraryId { get; set; }
     public bool IsDeleted { get; set; }
+
+    // Navigation properties
     public virtual Library Library { get; set; } = null!;
     public virtual ICollection<Workflow>? Workflows { get; set; }
 }

@@ -23,7 +23,7 @@ public class DeleteWorkflowTemplateCommandHandler(WorkflowDbContext db, ILogger<
         
         bool inUse = await db.Workflows.AnyAsync(w => w.WorkflowTemplateId == request.TemplateId.Value, cancellationToken: ct);
         if (inUse)
-            return Result<Unit>.Failure(ErrorCode.ValidationFailed, "Cannot delete template: it’s used by existing workflows.");
+            return Result<Unit>.Failure(ErrorCode.Validation, "Cannot delete template: it’s used by existing workflows.");
 
         template.IsDeleted = true;
         await db.SaveChangesAsync(ct);

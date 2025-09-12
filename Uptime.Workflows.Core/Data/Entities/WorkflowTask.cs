@@ -6,11 +6,6 @@ namespace Uptime.Workflows.Core.Data;
 public class WorkflowTask : BaseEntity
 {
     public Guid TaskGuid { get; set; }
-
-    [StringLength(128)]
-    public string AssignedTo { get; set; } = null!;
-    [StringLength(128)]
-    public string AssignedBy { get; set; } = null!;
     [StringLength(2048)]
     public string? Description { get; set; }
     public string Status { get; set; } = null!;
@@ -22,6 +17,12 @@ public class WorkflowTask : BaseEntity
     [StringLength(32)]
     public string? PhaseId { get; set; }
     public bool IsDeleted { get; set; }
+
+    // Navigation properties
     public int WorkflowId { get; set; }
     public virtual Workflow Workflow { get; set; } = null!;
+    public int AssignedToPrincipalId { get; set; }
+    public WorkflowPrincipal AssignedTo { get; set; } = null!;
+    public int AssignedByPrincipalId { get; set; }
+    public WorkflowPrincipal AssignedBy { get; set; } = null!;
 }

@@ -13,21 +13,33 @@ public class ReplicatorManager(WorkflowId workflowId, IReplicatorActivityProvide
     public void LoadReplicatorsAsync(Dictionary<string, ReplicatorState> replicatorStates, CancellationToken cancellationToken)
     {
         _replicators.Clear();
-        
+
         foreach ((string phaseId, ReplicatorState state) in replicatorStates)
         {
-            Console.WriteLine($"Initializing replicator for phase '{phaseId}', Task Count: {state.Items.Count}");
+            List<ReplicatorItem> activeItems = state.Items
+                .Where(i => i.Status is ReplicatorItemStatus.NotStarted or ReplicatorItemStatus.InProgress)
+                .ToList();
 
             var replicator = new Replicator
             {
                 Type = state.ReplicatorType,
-                Items = state.Items.Where(item => item.Status is ReplicatorItemStatus.NotStarted or ReplicatorItemStatus.InProgress).ToList(),
-                ChildActivity = item => activityProvider.CreateActivity(new WorkflowTaskContext(workflowId, item.TaskGuid, phaseId), item.Data),
+                Items = activeItems,
+                ChildActivity = CreateChildActivity,
                 OnChildInitialized = (data, activity) => activityProvider.OnChildInitialized(phaseId, data, activity),
-                OnAllTasksCompleted = async () => await workflowMachine.TriggerTransitionAsync(WorkflowTrigger.AllTasksCompleted, cancellationToken)
+                OnAllTasksCompleted = () => workflowMachine.TriggerTransitionAsync(WorkflowTrigger.AllTasksCompleted, cancellationToken)
             };
 
             _replicators[phaseId] = replicator;
+            continue;
+
+            // Local factory method keeps lambdas short & readable
+            IWorkflowActivity CreateChildActivity(ReplicatorItem item) =>
+                activityProvider.CreateActivity(new WorkflowTaskContext
+                {
+                    WorkflowId = workflowId,
+                    TaskGuid = item.TaskGuid,
+                    PhaseId = phaseId
+                }, item.Data);
         }
     }
 

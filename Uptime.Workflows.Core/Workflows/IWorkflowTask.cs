@@ -9,8 +9,8 @@ public interface IWorkflowTask
     Guid TaskGuid { get; }
     WorkflowId WorkflowId { get; }
     string? PhaseId { get; }
-    string AssignedTo { get; }
-    string AssignedBy { get; }
+    PrincipalId AssignedToPrincipalId { get; }
+    PrincipalId AssignedByPrincipalId { get; }
     string? TaskDescription { get; }
     DateTime? DueDate { get; }
     WorkflowTaskStatus TaskStatus { get; }

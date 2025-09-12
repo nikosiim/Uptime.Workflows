@@ -8,7 +8,7 @@ public interface IHistoryService
     Task CreateAsync(
         WorkflowId workflowId,
         WorkflowEventType eventType,
-        string? author,
+        PrincipalId principalId,
         string? description,
         string? comment = null,
         CancellationToken cancellationToken = default);

@@ -44,7 +44,7 @@ public static class ControllerResultExtensions
                 return controller.NotFound(new { result.Details });
             case ErrorCode.Forbidden:
                 return controller.Forbid();
-            case ErrorCode.ValidationFailed:
+            case ErrorCode.Validation:
                 return controller.BadRequest(new { result.Details });
             case ErrorCode.Cancelled:
                 return controller.StatusCode(499, new { result.Details }); // or 400

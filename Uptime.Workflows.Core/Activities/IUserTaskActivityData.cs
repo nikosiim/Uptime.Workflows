@@ -1,9 +1,11 @@
-﻿namespace Uptime.Workflows.Core;
+﻿using Uptime.Workflows.Core.Common;
+
+namespace Uptime.Workflows.Core;
 
 public interface IUserTaskActivityData : IWorkflowTaskData
 {
-    string AssignedTo { get; }
-    string AssignedBy { get; }
+    PrincipalId AssignedToPrincipalId { get; }
+    PrincipalId AssignedByPrincipalId { get; }
     string? TaskDescription { get; }
     DateTime? DueDate { get; }
 }

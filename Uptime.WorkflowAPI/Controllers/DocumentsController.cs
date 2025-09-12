@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Shared.Models.Documents;
 using Uptime.Workflows.Api.Extensions;
@@ -10,6 +11,7 @@ namespace Uptime.Workflows.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]/{documentId:int}")]
+[Authorize]
 public class DocumentsController(IMediator mediator) : ControllerBase
 {
     [HttpGet("workflows")]

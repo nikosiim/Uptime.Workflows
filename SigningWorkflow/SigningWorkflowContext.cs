@@ -3,7 +3,7 @@ using Uptime.Workflows.Core;
 
 namespace SigningWorkflow;
 
-public class SigningWorkflowContext : WorkflowContext
+public class SigningWorkflowContext : BaseWorkflowContext
 {
     public UserTaskActivityData? SigningTask { get; set; }
     

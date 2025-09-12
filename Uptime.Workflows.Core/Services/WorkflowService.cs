@@ -2,23 +2,22 @@
 using System.Text.Json;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
-using Uptime.Workflows.Core.Models;
 
 namespace Uptime.Workflows.Core.Services;
 
 public class WorkflowService(IDbContextFactory<WorkflowDbContext> factory) : IWorkflowService
 {
-    public async Task<WorkflowId> CreateAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
+    public async Task<WorkflowId> CreateAsync(IWorkflowContext workflowContext, CancellationToken cancellationToken)
     {
         var instance = new Workflow
         {
             IsActive = true,
             Phase = BaseState.NotStarted.Value,
-            StorageJson = null,
-            Originator = payload.Originator,
+            StorageJson = workflowContext.Serialize(),
             StartDate = DateTime.UtcNow,
-            DocumentId = payload.DocumentId.Value,
-            WorkflowTemplateId = payload.WorkflowTemplateId.Value
+            DocumentId = workflowContext.GetDocumentId().Value,
+            WorkflowTemplateId = workflowContext.GetWorkflowTemplateId().Value,
+            InitiatedByPrincipalId = workflowContext.GetInitiatorId().Value
         };
 
         await using WorkflowDbContext db = await factory.CreateDbContextAsync(cancellationToken);
@@ -47,23 +46,25 @@ public class WorkflowService(IDbContextFactory<WorkflowDbContext> factory) : IWo
         await db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task UpdateStateAsync<TContext>(WorkflowId workflowId, BaseState phase, TContext context, CancellationToken cancellationToken)
+    public async Task UpdateStateAsync<TContext>(TContext workflowContext, BaseState phase, CancellationToken cancellationToken) 
         where TContext : IWorkflowContext, new()
     {
+        int workflowId = workflowContext.GetWorkflowId().Value;
+
         await using WorkflowDbContext db = await factory.CreateDbContextAsync(cancellationToken);
 
-        Workflow? instance = await db.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId.Value, cancellationToken);
+        Workflow? instance = await db.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId, cancellationToken);
         if (instance == null)
         {
             throw new InvalidOperationException($"Workflow with ID {workflowId} not found.");
         }
 
-        var existingContext = WorkflowContextHelper.Deserialize<TContext>(instance.StorageJson);
-        WorkflowContextHelper.MergeContext(existingContext, context);
+        var existingContext = BaseWorkflowContext.Deserialize<TContext>(instance.StorageJson);
+        existingContext.Storage.MergeWith(workflowContext.Storage);
 
         instance.Phase = phase.Value;
-        instance.StorageJson = JsonSerializer.Serialize(context);
-        instance.Outcome = context.Outcome.Value;
+        instance.StorageJson = JsonSerializer.Serialize(workflowContext);
+        instance.Outcome = workflowContext.Outcome.Value;
 
         if (phase.IsFinal())
         {

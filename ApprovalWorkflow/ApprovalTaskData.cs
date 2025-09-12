@@ -1,15 +1,16 @@
 ﻿using Uptime.Workflows.Core;
+using Uptime.Workflows.Core.Common;
 
 namespace ApprovalWorkflow;
 
 public sealed class ApprovalTaskData : UserTaskActivityData
 {
-    public static ApprovalTaskData Copy(IUserTaskActivityData source, string assignedTo)
+    public static ApprovalTaskData Copy(IUserTaskActivityData source, PrincipalId assignedToPrincipalId)
     {
         return new ApprovalTaskData
         {
-            AssignedBy = source.AssignedBy,
-            AssignedTo = assignedTo,
+            AssignedByPrincipalId = source.AssignedByPrincipalId,
+            AssignedToPrincipalId = assignedToPrincipalId,
             TaskDescription = source.TaskDescription,
             DueDate = source.DueDate
         };

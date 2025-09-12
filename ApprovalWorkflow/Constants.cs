@@ -11,18 +11,18 @@ public static class Constants
         public const string Cancellation = "Cancellation";
     }
 
+    // TODO: redesign so all to be similar
     public static class TaskStorageKeys
     {
         public const string TaskComment = "TaskComment";
-        public const string TaskDelegatedTo = "TaskDelegatedTo";
-        public const string TaskDescription = "TaskDescription";
-        public const string SignerTask = "SignerTask";
-        public const string TaskDueDate = "TaskDueDate";
-        public const string TaskEditor = "TaskEditor";
-        public const string TaskExecutors = "TaskExecutors";
-        public const string TaskSigners = "TaskSigners";
+        public const string TaskDelegatedToSid = "TaskDelegatedToSid";
+        public const string TaskExecutorsSid = "TaskExecutorsSid";
+        public const string TaskSignersSid = "TaskSignersSid";
         public const string TaskOutcome = "TaskOutcome";
         public const string TaskResult = "TaskResult";
         public const string TaskTitle = "TaskTitle";
+
+        public const string TaskExecutorsPrincipalIds = "Task.Executors.PrincipalIds";
+        public const string TaskSignersPrincipalIds   = "Task.Signers.PrincipalIds";
     }
 }

@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Shared.Models.WorkflowTemplates;
 using Uptime.Workflows.Api.Extensions;
@@ -12,6 +13,7 @@ namespace Uptime.Workflows.Api.Controllers;
 
 [ApiController]
 [Route("api/workflow-templates")]
+[Authorize]
 public class WorkflowTemplatesController(IMediator mediator) : ControllerBase
 {
     [HttpGet("{templateId:int}")]

@@ -24,8 +24,8 @@ public class TaskService(IDbContextFactory<WorkflowDbContext> factory) : ITaskSe
         {
             WorkflowId = request.WorkflowId.Value,
             TaskGuid = request.TaskGuid,
-            AssignedTo = request.AssignedTo,
-            AssignedBy = request.AssignedBy,
+            AssignedToPrincipalId = request.AssignedToPrincipalId.Value,
+            AssignedByPrincipalId = request.AssignedByPrincipalId.Value,
             Description = request.TaskDescription,
             DueDate = request.DueDate,
             Status = status.ToString(),
@@ -33,7 +33,7 @@ public class TaskService(IDbContextFactory<WorkflowDbContext> factory) : ITaskSe
             PhaseId = request.PhaseId,
             StorageJson = JsonSerializer.Serialize(request.Storage)
         };
-        
+
         db.WorkflowTasks.Add(workflowTask);
         await db.SaveChangesAsync(cancellationToken);
 
@@ -54,8 +54,8 @@ public class TaskService(IDbContextFactory<WorkflowDbContext> factory) : ITaskSe
         WorkflowTaskStatus status = request.TaskStatus;
 
         task.TaskGuid = request.TaskGuid;
-        task.AssignedTo = request.AssignedTo;
-        task.AssignedBy = request.AssignedBy;
+        task.AssignedToPrincipalId = request.AssignedToPrincipalId.Value;
+        task.AssignedByPrincipalId = request.AssignedByPrincipalId.Value;
         task.Description = request.TaskDescription;
         task.DueDate = request.DueDate;
         task.Status = status.ToString();

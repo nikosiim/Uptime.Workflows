@@ -2,13 +2,15 @@
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
+using Uptime.Workflows.Core.Extensions;
+using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
 using Uptime.Workflows.Core.Services;
 using static SigningWorkflow.Constants;
 
 namespace SigningWorkflow;
 
-public class SigningWorkflow(IWorkflowService workflowService, ITaskService taskService, IHistoryService historyService, 
+public class SigningWorkflow(IWorkflowService workflowService, ITaskService taskService, IHistoryService historyService, IPrincipalResolver principalResolver,
     ILogger<WorkflowBase<SigningWorkflowContext>> logger)
     : ActivityWorkflowBase<SigningWorkflowContext>(workflowService, taskService, historyService, logger)
 {
@@ -17,7 +19,7 @@ public class SigningWorkflow(IWorkflowService workflowService, ITaskService task
     private readonly ILogger<WorkflowBase<SigningWorkflowContext>> _logger = logger;
 
     public bool IsTaskRejected { get; private set; }
-    
+
     protected override IWorkflowDefinition WorkflowDefinition => new SigningWorkflowDefinition();
 
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
@@ -26,42 +28,49 @@ public class SigningWorkflow(IWorkflowService workflowService, ITaskService task
             .Permit(WorkflowTrigger.Start, ExtendedState.Signing);
         Machine.Configure(ExtendedState.Signing)
             .OnEntryAsync(() => StartSigningTask(cancellationToken))
-            .OnExit(OnSigningTaskCompleted) 
+            .OnExit(OnSigningTaskCompleted)
             .Permit(WorkflowTrigger.TaskCompleted, BaseState.Completed)
             .Permit(WorkflowTrigger.TaskRejected, BaseState.Completed)
             .Permit(WorkflowTrigger.Cancel, BaseState.Cancelled);
         Machine.Configure(BaseState.Completed);
     }
 
-    protected override void OnWorkflowActivatedAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
+    protected override async Task OnWorkflowActivatedAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
         WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
 
-        if (payload.Storage.TryGetValue(TaskStorageKeys.TaskSigners, out string? signer) && !string.IsNullOrWhiteSpace(signer))
+        if (!payload.Storage.TryGetValue(TaskStorageKeys.TaskSignerSid, out string? signerSid) || string.IsNullOrWhiteSpace(signerSid))
         {
-            string? taskDescription = payload.Storage.GetValue(TaskStorageKeys.TaskDescription);
-            string? dueDays = payload.Storage.GetValue(TaskStorageKeys.TaskDueDays);
-
-            _ = int.TryParse(dueDays, out int days);
-
-            WorkflowContext.SigningTask = new UserTaskActivityData
-            {
-                AssignedBy = payload.Originator,
-                AssignedTo = signer,
-                TaskDescription = taskDescription,
-                DueDate = DateTime.Now.AddDays(days)
-            };
+            throw new WorkflowValidationException(ErrorCode.Validation, "Signer SID is missing in workflow start payload.");
         }
+
+        string? taskDescription = payload.Storage.GetValue(TaskStorageKeys.TaskDescription);
+        string? dueDaysText = payload.Storage.GetValue(TaskStorageKeys.TaskDueDays);
+        _ = int.TryParse(dueDaysText, out int days);
+
+        Principal? signer = await principalResolver.ResolveBySidAsync(signerSid, cancellationToken);
+        if (signer is null)
+        {
+            throw new WorkflowValidationException(ErrorCode.NotFound, $"Signer not found for SID '{signerSid}'.");
+        }
+
+        WorkflowContext.SigningTask = new UserTaskActivityData
+        {
+            AssignedByPrincipalId = payload.InitiatedByPrincipalId,
+            AssignedToPrincipalId = signer.Id,
+            TaskDescription = taskDescription,
+            DueDate = days > 0 ? DateTime.UtcNow.AddDays(days) : null
+        };
     }
 
-    protected override async Task OnTaskAlteredAsync(WorkflowTaskContext context, Dictionary<string, string?> payload, CancellationToken cancellationToken)
+    protected override async Task OnTaskAlteredAsync(AlterTaskPayload payload, CancellationToken cancellationToken)
     {
-        var taskActivity = new SigningTaskActivity(_taskService, _historyService, context)
+        var taskActivity = new SigningTaskActivity(_taskService, _historyService, payload.Context)
         {
             TaskData = WorkflowContext.SigningTask
         };
 
-        await taskActivity.ChangedTaskAsync(payload, cancellationToken);
+        await taskActivity.ChangedTaskAsync(payload.ExecutedByPrincipalId, payload.InputData, cancellationToken);
 
         IsTaskRejected = taskActivity.IsTaskRejected;
 
@@ -90,14 +99,21 @@ public class SigningWorkflow(IWorkflowService workflowService, ITaskService task
         }
 
         UserTaskActivityData taskData = WorkflowContext.SigningTask!;
-        var taskActivity = new SigningTaskActivity(_taskService, _historyService, new WorkflowTaskContext(WorkflowId, Guid.NewGuid()))
+
+        var workflowTaskContext = new WorkflowTaskContext
+        {
+            WorkflowId = WorkflowId,
+            TaskGuid = Guid.NewGuid()
+        };
+
+        var taskActivity = new SigningTaskActivity(_taskService, _historyService, workflowTaskContext)
         {
             TaskData = taskData
         };
 
         await taskActivity.ExecuteAsync(cancellationToken);
     }
-    
+
     private void OnSigningTaskCompleted()
     {
         _logger.LogSigningTaskCompleted(WorkflowDefinition, WorkflowId, AssociationName);

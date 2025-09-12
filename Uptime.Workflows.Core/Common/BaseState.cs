@@ -29,10 +29,8 @@ namespace Uptime.Workflows.Core.Common
 
         public bool Equals(BaseState? other)
         {
-            if (other is null)
-                return false;
-            return ReferenceEquals(this, other) || 
-                   string.Equals(Value, other.Value, StringComparison.Ordinal);
+            if (other is null) return false;
+            return ReferenceEquals(this, other) || string.Equals(Value, other.Value, StringComparison.Ordinal);
         }
 
         public override bool Equals(object? obj) => Equals(obj as BaseState);

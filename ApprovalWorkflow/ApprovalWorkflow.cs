@@ -3,6 +3,8 @@ using System.Text.Json;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
+using Uptime.Workflows.Core.Extensions;
+using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
 using Uptime.Workflows.Core.Services;
 
@@ -12,8 +14,10 @@ public class ApprovalWorkflow(
     IWorkflowService workflowService, 
     ITaskService taskService, 
     IHistoryService historyService,
+    IPrincipalResolver principalResolver,
+    IApprovalWorkflowInputPreparer inputPreparer,
     ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
-    : ReplicatorActivityWorkflowBase<ApprovalWorkflowContext>(workflowService, taskService, historyService, logger)
+    : ReplicatorActivityWorkflowBase<ApprovalWorkflowContext>(workflowService, taskService, historyService, principalResolver, logger)
 {
     private readonly ITaskService _taskService = taskService;
     private readonly IHistoryService _historyService = historyService;
@@ -42,11 +46,34 @@ public class ApprovalWorkflow(
             .Permit(WorkflowTrigger.AllTasksCompleted, BaseState.Completed);
     }
     
-    protected override void OnWorkflowActivatedAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
+    protected override async Task OnWorkflowActivatedAsync(CancellationToken cancellationToken)
     {
-        base.OnWorkflowActivatedAsync(payload, cancellationToken);
-
+        await base.OnWorkflowActivatedAsync(cancellationToken);
         WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
+    }
+    
+    protected override Task PrepareInputDataAsync(CancellationToken cancellationToken)
+    {
+        return inputPreparer.PrepareAsync(WorkflowContext.Storage, cancellationToken);
+    }
+
+    protected override IReplicatorPhaseBuilder CreateReplicatorPhaseBuilder()
+    {
+        var phases = new Dictionary<string, ReplicatorPhaseConfiguration>
+        {
+            [ExtendedState.Approval.Value] = new()
+            {
+                ActivityData = workflowContext => workflowContext.GetApprovalTasks(),
+                ReplicatorType = workflowContext => workflowContext.GetReplicatorType(ExtendedState.Approval.Value)
+            },
+            [ExtendedState.Signing.Value] = new()
+            {
+                ActivityData = workflowContext => workflowContext.GetSigningTasks(),
+                ReplicatorType = workflowContext => workflowContext.GetReplicatorType(ExtendedState.Signing.Value)
+            }
+        };
+
+        return new ReplicatorPhaseBuilder(phases);
     }
     
     protected override string OnWorkflowModification()
@@ -64,7 +91,7 @@ public class ApprovalWorkflow(
             ApprovalTasks = activeItems.Select(activeItem 
                 => new ApprovalTask
                 {
-                    AssignedTo = activeItem.Data.DeserializeTaskData<ApprovalTaskData>().AssignedTo,
+                    AssignedToPrincipalId = activeItem.Data.DeserializeTaskData<ApprovalTaskData>().AssignedToPrincipalId,
                     TaskGuid = activeItem.TaskGuid.ToString()
                 }).ToList()
         };
@@ -88,15 +115,15 @@ public class ApprovalWorkflow(
         if (context == null) 
             return Task.FromResult(true);
        
-        var currentTaskData = inProgressItem.Data.DeserializeTaskData<ApprovalTaskData>();
+        ApprovalTaskData currentTaskData = inProgressItem.Data.DeserializeTaskData<ApprovalTaskData>();
 
         replicatorState.Items.RemoveAll(item => item.Status == ReplicatorItemStatus.NotStarted);
         
         foreach (ApprovalTask task in context.ApprovalTasks)
         {
-            if (task.AssignedTo == currentTaskData.AssignedTo) continue;
+            if (task.AssignedToPrincipalId == currentTaskData.AssignedToPrincipalId) continue;
             
-            ApprovalTaskData data = ApprovalTaskData.Copy(currentTaskData, task.AssignedTo);
+            ApprovalTaskData data = ApprovalTaskData.Copy(currentTaskData, task.AssignedToPrincipalId);
 
             Guid taskGuid = Guid.Parse(task.TaskGuid);
             if (taskGuid.Equals(Guid.Empty))

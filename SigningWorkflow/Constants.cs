@@ -14,8 +14,7 @@ public static class Constants
         public const string TaskComment = "TaskComment";
         public const string TaskDescription = "TaskDescription";
         public const string TaskDueDays = "TaskDueDays";
-        public const string TaskEditor = "TaskEditor";
-        public const string TaskSigners = "TaskSigners";
+        public const string TaskSignerSid = "TaskSignerSid";
         public const string TaskOutcome = "TaskOutcome";
         public const string TaskResult = "TaskResult";
         public const string TaskTitle = "TaskTitle";

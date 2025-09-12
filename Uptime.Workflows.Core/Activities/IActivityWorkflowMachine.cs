@@ -1,9 +1,9 @@
 ﻿using Uptime.Workflows.Core.Common;
-using Uptime.Workflows.Core.Data;
+using Uptime.Workflows.Core.Models;
 
 namespace Uptime.Workflows.Core;
 
 public interface IActivityWorkflowMachine : IWorkflowMachine
 {
-    Task<Result<Unit>> AlterTaskAsync(WorkflowTask workflowTask, Dictionary<string, string?> payload, CancellationToken cancellationToken);
+    Task<Result<Unit>> AlterTaskAsync(AlterTaskPayload payload, CancellationToken cancellationToken);
 }

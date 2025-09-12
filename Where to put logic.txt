@@ -1,0 +1,72 @@
+﻿1) Define states & transitions (the “map”)
+
+Override: ConfigureStateMachineAsync in your workflow class.
+Add states, transitions, and entry actions (e.g., start replicators, fire triggers).
+
+2) Initialize when a workflow starts
+
+Hook: OnWorkflowActivatedAsync to preload context/metadata when StartAsync is called (before first transition).
+
+Optional: OnWorkflowStartedAsync for post-start actions (after first Start trigger).
+
+3) Persist workflow state & context
+
+Who saves: SaveWorkflowStateAsync → WorkflowService.UpdateStateAsync (serializes context, updates phase & outcome).
+You normally don’t call the service directly; call SaveWorkflowStateAsync.
+
+4) Resume from DB (API calls, app restarts)
+
+Method: RehydrateAsync — restores WorkflowContext, WorkflowId, and the current phase into the state machine.
+Put any “reconnect” logic around this if needed.
+
+5) Move the workflow forward (events)
+
+Method: TriggerTransitionAsync — call when “something happened” (task completed, approval given).
+It queues the trigger, runs transitions, and (by default) commits state. Use autoCommit: false for batch flows.
+
+6) Support mid‑flight modifications (add/remove assignees, etc.)
+
+Expose current modifiable data: override OnWorkflowModification() to return JSON the UI can edit; GetModificationContext() returns it to the API.
+
+Apply incoming changes: override OnWorkflowModifiedAsync(payload); compare payload with WorkflowContext and mutate context/replicator items; return true to persist.
+See concrete example in ApprovalWorkflow (prunes + re-seeds replicator items).
+
+7) Create user tasks (per activity)
+
+Base: derive from UserTaskActivity. Set fields in OnExecuteTask() (title, outcome placeholder, etc.).
+The base will write “TaskCreated” history and call TaskService.CreateAsync.
+
+When you start activities: your workflow/replicator builds a WorkflowTaskContext and instantiates the activity. See ApprovalWorkflowActivityProvider.CreateActivity.
+
+8) React to user task updates (approve/reject/delegate)
+
+Override: OnTaskChangedAsync(payload) in your concrete activity.
+Update Context.Storage, set IsCompleted, TaskStatus, raise history events, and set flags for workflow logic (e.g., IsTaskRejected).
+Example: ApprovalTaskActivity sets outcome and writes proper history.
+
+9) Wire task updates back into workflow decisions
+
+Provider hook: IReplicatorActivityProvider.OnChildCompleted(...) integrates activity outcomes into WorkflowContext (e.g., mark AnyTaskRejected, inject follow‑up items on delegation).
+See ApprovalWorkflowActivityProvider.
+
+State transition: after all children complete, fire a trigger (AllTasksCompleted) to move to next state or complete. The dynamic decision is in ConfigureStateMachineAsync.
+
+10) Alter an existing task from outside (API-driven)
+
+Entry point (workflow level): ActivityWorkflowBase.AlterTaskAsync(...) → builds WorkflowTaskContext and calls OnTaskAlteredAsync.
+Use this to adjust a task mid-flight (e.g., change assignee metadata). Then it persists state.
+
+11) Cancellation & terminal outcomes
+
+Method: CancelAsync(...) — writes a comment history entry, cancels all active tasks, fires Cancel, then saves.
+Finalization (Completed/Cancelled) triggers OnWorkflowCompletedAsync/OnWorkflowCancelledAsync where you set WorkflowContext.Outcome and optional history description.
+
+12) History logging (what’s recorded, when)
+
+Where it happens:
+
+Start/Complete/Cancel entries in WorkflowBase transition hooks.
+
+TaskCreated in UserTaskActivity.ExecuteAsync.
+
+Per‑action (approve/reject/delegate) in concrete activities (e.g., ApprovalTaskActivity).

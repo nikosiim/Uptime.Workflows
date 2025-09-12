@@ -1,4 +1,6 @@
-﻿namespace ApprovalWorkflow;
+﻿using Uptime.Workflows.Core.Common;
+
+namespace ApprovalWorkflow;
 
 public record ApprovalModificationContext
 {
@@ -7,6 +9,6 @@ public record ApprovalModificationContext
 
 public record ApprovalTask
 {
-    public required string AssignedTo { get; init; }
+    public required PrincipalId AssignedToPrincipalId { get; init; }
     public required string TaskGuid { get; init; }
 }

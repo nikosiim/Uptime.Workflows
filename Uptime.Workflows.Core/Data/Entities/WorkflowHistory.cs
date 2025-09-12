@@ -6,8 +6,6 @@ namespace Uptime.Workflows.Core.Data;
 public class WorkflowHistory : BaseEntity
 {
     public required WorkflowEventType Event { get; set; }
-    [StringLength(128)]
-    public string? User { get; set; }
     public DateTime Occurred { get; set; }
     [StringLength(2048)]
     public string? Description { get; set; }
@@ -15,6 +13,10 @@ public class WorkflowHistory : BaseEntity
     [StringLength(2048)]
     public string? Comment { get; set; }
     public bool IsDeleted { get; set; }
+
+    // Navigation properties
     public int WorkflowId { get; set; }
     public virtual Workflow Workflow { get; set; } = null!;
+    public int? PerformedByPrincipalId { get; set; }
+    public WorkflowPrincipal? PerformedByPrincipal { get; set; }
 }

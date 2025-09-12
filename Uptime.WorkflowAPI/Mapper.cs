@@ -115,18 +115,7 @@ public static class Mapper
             StorageJson = dto.StorageJson
         }).ToList();
     }
-
-    public static StartWorkflowCommand MapToStartWorkflowCommand(StartWorkflowRequest source)
-    {
-        return new StartWorkflowCommand
-        {
-            Originator = source.Originator,
-            DocumentId = (DocumentId)source.DocumentId,
-            WorkflowTemplateId = (WorkflowTemplateId)source.WorkflowTemplateId,
-            Storage = source.Storage
-        };
-    }
-
+    
     public static List<WorkflowDefinitionResponse> MapToWorkflowDefinitionResponse(List<WorkflowDefinition>? source)
     {
         if (source is null)
@@ -168,8 +157,8 @@ public static class Mapper
         return new WorkflowTaskResponse
         {
             Id = source.Id,
-            AssignedTo = source.AssignedTo,
-            AssignedBy = source.AssignedBy,
+            //AssignedTo = source.AssignedTo, // TODO: fix later
+            //AssignedBy = source.AssignedBy,
             InternalStatus = (int)source.InternalStatus,
             Description = source.Description,
             DueDate = source.DueDate,
@@ -232,7 +221,7 @@ public static class Mapper
             WorkflowId = dto.WorkflowId,
             Occurred = dto.Occurred,
             Description = dto.Description,
-            User = dto.User,
+            User = dto.PerformedBy,
             Comment = dto.Comment,
             Event = dto.Event.ToString()
         }).ToList();

@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Shared.Models.Workflows;
 using Uptime.Workflows.Api.Extensions;
@@ -14,6 +15,7 @@ namespace Uptime.Workflows.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class WorkflowsController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
@@ -64,7 +66,14 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     [HttpPost("start-workflow")]
     public async Task<ActionResult> StartWorkflow([FromBody] StartWorkflowRequest request, CancellationToken ct)
     {
-        StartWorkflowCommand cmd = Mapper.MapToStartWorkflowCommand(request);
+        var cmd = new StartWorkflowCommand
+        {
+            CallerSid = request.InitiatorSid,
+            DocumentId = (DocumentId)request.DocumentId,
+            WorkflowTemplateId = (WorkflowTemplateId)request.WorkflowTemplateId,
+            Storage = request.Storage
+        };
+
         Result<Unit> result = await mediator.Send(cmd, ct);
 
         return this.ToActionResult(result);
@@ -84,7 +93,13 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     [HttpPost("{workflowId:int}/cancel-workflow")]
     public async Task<ActionResult> CancelWorkflow(int workflowId, [FromBody] CancelWorkflowRequest request, CancellationToken ct)
     {
-        var cmd = new CancelWorkflowCommand((WorkflowId)workflowId, request.Executor, request.Comment);
+        var cmd = new CancelWorkflowCommand
+        {
+            CallerSid = request.ExecutorSid,
+            WorkflowId = (WorkflowId)workflowId,
+            Comment = request.Comment
+        };
+
         Result<Unit> result = await mediator.Send(cmd, ct);
 
         return this.ToActionResult(result);
