@@ -36,7 +36,6 @@ public abstract class WorkflowBase<TContext>(
     #region Fields & Properties
 
     protected StateMachine<BaseState, WorkflowTrigger> Machine = null!;
-    protected WorkflowId WorkflowId;
 
     /// <summary>
     /// Holds the runtime state (“memory”) of the workflow, including custom data defined
@@ -51,6 +50,12 @@ public abstract class WorkflowBase<TContext>(
     /// </para>
     /// </summary>
     public TContext WorkflowContext { get; private set; } = new();
+
+    protected WorkflowId WorkflowId
+    {
+        get => WorkflowContext.GetWorkflowId();
+        private set => WorkflowContext.SetWorkflowId(value);
+    }
 
     #endregion
 
@@ -141,23 +146,21 @@ public abstract class WorkflowBase<TContext>(
     /// started fresh (for example, after an API call or app restart). Without
     /// this, the workflow would lose its context and could not continue.
     /// </summary>
-    public Result<Unit> Rehydrate(Workflow instance, CancellationToken cancellationToken)
+    public Result<Unit> Rehydrate(string storageJson, string phase, CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
             return Result<Unit>.Cancelled();
 
         try
         {
-            WorkflowContext = BaseWorkflowContext.Deserialize<TContext>(instance.StorageJson);
-            WorkflowId = (WorkflowId)instance.Id;
-
-            InitializeStateMachine(BaseState.FromString(instance.Phase), cancellationToken);
+            WorkflowContext = BaseWorkflowContext.Deserialize<TContext>(storageJson);
+            InitializeStateMachine(BaseState.FromString(phase), cancellationToken);
             
             logger.LogRehydrated(WorkflowDefinition, WorkflowId, AssociationName);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to rehydrate workflow with ID {WorkflowId}", instance.Id);
+            logger.LogError(ex, "Failed to rehydrate workflow with ID {WorkflowId}", WorkflowId);
             return Result<Unit>.Failure(ErrorCode.Unexpected);
         }
 
@@ -236,10 +239,10 @@ public abstract class WorkflowBase<TContext>(
     #endregion
 
     #region Protected Methods
-
-    protected virtual string? WorkflowStartedHistoryDescription { get; set; }
-    protected virtual string? WorkflowCompletedHistoryDescription { get; set; }
-    protected virtual string? AssociationName => WorkflowContext.GetAssociationName();
+    
+    protected string? AssociationName => WorkflowContext.GetAssociationName();
+    protected string? WorkflowStartedHistoryDescription { get; set; } = "Workflow has been started.";
+    protected string? WorkflowCompletedHistoryDescription { get; set; } = "Workflow has been completed.";
     
     protected virtual async Task InitializeWorkflowContextAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {

@@ -22,7 +22,7 @@ public class ApprovalWorkflow(
     private readonly IPrincipalResolver _principalResolver = principalResolver;
 
     protected override IWorkflowDefinition WorkflowDefinition => new ApprovalWorkflowDefinition();
-
+    
     protected override IReplicatorActivityProvider ActivityProvider => new ApprovalWorkflowActivityProvider(_taskService, _historyService);
 
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
@@ -47,22 +47,23 @@ public class ApprovalWorkflow(
 
     protected override async Task OnWorkflowActivatedAsync(CancellationToken cancellationToken)
     {
-        await base.OnWorkflowActivatedAsync(cancellationToken);
         WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
+
+        await base.OnWorkflowActivatedAsync(cancellationToken);
     }
 
     protected override async Task PrepareInputDataAsync(CancellationToken cancellationToken)
     {
         await WorkflowInputPreparerBase.ResolveAndStorePrincipalIdsAsync(
-            ctx => ctx.GetApprovalTaskExecutorSids(),
-            (ctx, ids) => ctx.SetApprovalTaskExecutorPrincipalIds(ids),
+            ctx => ctx.GetTaskApproverSids(),
+            (ctx, ids) => ctx.SetTaskApproverPrincipalIds(ids),
             WorkflowContext,
             _principalResolver,
             cancellationToken);
 
         await WorkflowInputPreparerBase.ResolveAndStorePrincipalIdsAsync(
-            ctx => ctx.GetSigningTaskSids(),
-            (ctx, ids) => ctx.SetSigningTaskPrincipalIds(ids),
+            ctx => ctx.GetTaskSignerSids(),
+            (ctx, ids) => ctx.SetTaskSignersPrincipalIds(ids),
             WorkflowContext,
             _principalResolver,
             cancellationToken);
@@ -76,8 +77,8 @@ public class ApprovalWorkflow(
             {
                 ActivityData = ctx =>
                 {
-                    List<string> executorIds = ctx.GetApprovalTaskExecutorPrincipalIds();
-                    string? taskDescription = ctx.GetTaskDescription();
+                    List<string> executorIds = ctx.GetTaskApproverPrincipalIds();
+                    string? taskDescription = ctx.GetTaskApproverDescription();
                     DateTime dueDate = ctx.GetTaskDueDate();
                     PrincipalId initiatorId = ctx.GetInitiatorId();
 
@@ -99,8 +100,8 @@ public class ApprovalWorkflow(
             {
                 ActivityData = ctx =>
                 {
-                    List<string> signerIds = ctx.GetSigningTaskPrincipalIds();
-                    string? taskDescription = ctx.GetSignerTaskDescription();
+                    List<string> signerIds = ctx.GetTaskSignerPrincipalIds();
+                    string? taskDescription = ctx.GetTaskSignerDescription();
                     DateTime dueDate = ctx.GetTaskDueDate();
                     PrincipalId initiatorId = ctx.GetInitiatorId();
 

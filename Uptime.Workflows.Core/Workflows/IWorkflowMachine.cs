@@ -1,5 +1,4 @@
 ﻿using Uptime.Workflows.Core.Common;
-using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
@@ -12,6 +11,6 @@ public interface IWorkflowMachine
     Result<string> GetModificationContext(); 
     Task<Result<Unit>> ModifyAsync(ModificationPayload payload, CancellationToken cancellationToken);
     Task<Result<Unit>> CancelAsync(PrincipalId principalId, string? comment, CancellationToken cancellationToken);
-    Result<Unit> Rehydrate(Workflow instance, CancellationToken cancellationToken);
+    Result<Unit> Rehydrate(string storageJson, string phase, CancellationToken cancellationToken);
     Task TriggerTransitionAsync(WorkflowTrigger trigger, CancellationToken cancellationToken, bool autoCommit = true);
 }

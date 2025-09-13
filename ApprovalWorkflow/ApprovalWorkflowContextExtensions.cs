@@ -8,60 +8,76 @@ internal static class ApprovalWorkflowContextExtensions
 {
     public static ReplicatorType? GetReplicatorType(this IWorkflowContext context)
     {
-        if (context.Storage.TryGetValueAsEnum(ApprovalWorkflowStorageKeys.ReplicatorType, out ReplicatorType type))
+        if (context.Storage.TryGetValueAsEnum(StorageKeys.ReplicatorType, out ReplicatorType type))
             return type;
 
         return null;
     }
-
-    public static List<string> GetApprovalTaskExecutorPrincipalIds(this IWorkflowContext context)
-    {
-        return context.Storage.TryGetValueAsList(ApprovalWorkflowStorageKeys.TaskExecutorsPrincipalIds, out List<string> ids) ? ids : [];
-    }
-
-    public static List<string> GetSigningTaskPrincipalIds(this IWorkflowContext context)
-    {
-        return context.Storage.TryGetValueAsList(ApprovalWorkflowStorageKeys.TaskSignersPrincipalIds, out List<string> ids) ? ids : [];
-    }
-
-    public static string? GetTaskDescription(this IWorkflowContext context)
-        => context.Storage.GetValue(ApprovalWorkflowStorageKeys.TaskDescription);
-
-    public static string? GetSignerTaskDescription(this IWorkflowContext context)
-        => context.Storage.GetValue(ApprovalWorkflowStorageKeys.SignerTask);
-
-    public static DateTime GetTaskDueDate(this IWorkflowContext context)
-        => context.Storage.GetValueAsDateTime(ApprovalWorkflowStorageKeys.TaskDueDate);
     
-    public static List<string> GetApprovalTaskExecutorSids(this IWorkflowContext context)
+    public static DateTime GetTaskDueDate(this IWorkflowContext context)
     {
-        return context.Storage.TryGetValueAsList(ApprovalWorkflowStorageKeys.TaskExecutorsSid, out List<string> execSids) ? execSids : [];
+        return context.Storage.GetValueAsDateTime(StorageKeys.TaskDueDate);
     }
 
-    public static void SetApprovalTaskExecutorPrincipalIds(this IWorkflowContext context, IEnumerable<string> principalIds)
+    #region ApproverTask
+
+    public static string? GetTaskApproverDescription(this IWorkflowContext context)
     {
-        context.Storage.SetValue(ApprovalWorkflowStorageKeys.TaskExecutorsPrincipalIds, string.Join(",", principalIds));
+        return context.Storage.GetValue(StorageKeys.TaskApproverDescription);
     }
 
-    public static List<string> GetSigningTaskSids(this IWorkflowContext context)
+    public static List<string> GetTaskApproverSids(this IWorkflowContext context)
     {
-        return context.Storage.TryGetValueAsList(ApprovalWorkflowStorageKeys.TaskSignersSid, out List<string> signerSids) ? signerSids : [];
+        return context.Storage.TryGetValueAsList(StorageKeys.TaskApproverSids, out List<string> sids) ? sids : [];
+    }
+    
+    public static List<string> GetTaskApproverPrincipalIds(this IWorkflowContext context)
+    {
+        return context.Storage.TryGetValueAsList(StorageKeys.TaskApproverPrincipalIds, out List<string> ids) ? ids : [];
     }
 
-    public static void SetSigningTaskPrincipalIds(this IWorkflowContext context, IEnumerable<string> principalIds)
+    public static void SetTaskApproverPrincipalIds(this IWorkflowContext context, IEnumerable<string> principalIds)
     {
-        context.Storage.SetValue(ApprovalWorkflowStorageKeys.TaskSignersPrincipalIds, string.Join(",", principalIds));
+        context.Storage.SetValue(StorageKeys.TaskApproverPrincipalIds, string.Join(DictionaryExtensions.ListSeparator, principalIds));
+    }
+    
+    #endregion
+
+    #region SignerTask
+
+    public static string? GetTaskSignerDescription(this IWorkflowContext context)
+    {
+        return context.Storage.GetValue(StorageKeys.TaskSignerDescription);
     }
 
-    private static class ApprovalWorkflowStorageKeys
+    public static List<string> GetTaskSignerSids(this IWorkflowContext context)
     {
-        public const string ReplicatorType = "ReplicatorType";
-        public const string TaskExecutorsPrincipalIds = "Task.Executors.PrincipalIds";
-        public const string TaskSignersPrincipalIds   = "Task.Signers.PrincipalIds";
-        public const string TaskDescription = "TaskDescription";
-        public const string SignerTask = "SignerTask";
-        public const string TaskDueDate = "TaskDueDate";
-        public const string TaskExecutorsSid = "TaskExecutorsSid";
-        public const string TaskSignersSid = "TaskSignersSid";
+        return context.Storage.TryGetValueAsList(StorageKeys.TaskSignerSids, out List<string> sids) ? sids : [];
+    }
+    
+    public static List<string> GetTaskSignerPrincipalIds(this IWorkflowContext context)
+    {
+        return context.Storage.TryGetValueAsList(StorageKeys.TaskSignerPrincipalIds, out List<string> ids) ? ids : [];
+    }
+
+    public static void SetTaskSignersPrincipalIds(this IWorkflowContext context, IEnumerable<string> principalIds)
+    {
+        context.Storage.SetValue(StorageKeys.TaskSignerPrincipalIds, string.Join(DictionaryExtensions.ListSeparator, principalIds));
+    }
+    
+    #endregion
+
+    private static class StorageKeys
+    {
+        public const string ReplicatorType = "Workflow.ReplicatorType";
+        public const string TaskDueDate = "Task.DueDate";
+
+        public const string TaskApproverDescription = "Task.Approver.Description";
+        public const string TaskApproverSids = "Task.Approver.Sids";
+        public const string TaskApproverPrincipalIds = "Task.Approver.PrincipalIds";
+
+        public const string TaskSignerSids = "Task.Signer.Sids";
+        public const string TaskSignerDescription = "Task.Signer.Description";
+        public const string TaskSignerPrincipalIds = "Task.Signer.PrincipalIds";
     }
 }

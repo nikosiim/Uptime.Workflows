@@ -34,7 +34,7 @@ public class ModifyWorkflowCommandHandler(WorkflowDbContext db, IWorkflowFactory
             return Result<Unit>.Failure(ErrorCode.Unexpected);
         }
 
-        Result<Unit> rehydrationResult = machine.Rehydrate(workflow, ct);
+        Result<Unit> rehydrationResult = machine.Rehydrate(workflow.StorageJson!, workflow.Phase, ct);
         if (!rehydrationResult.Succeeded)
             return rehydrationResult;
 

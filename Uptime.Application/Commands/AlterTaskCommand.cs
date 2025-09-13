@@ -44,7 +44,7 @@ public sealed class AlterTaskCommandHandler(WorkflowDbContext db, IWorkflowFacto
             return Result<Unit>.Failure(ErrorCode.Unsupported);
         }
       
-        Result<Unit> rehydrationResult = machine.Rehydrate(task.Workflow, ct);
+        Result<Unit> rehydrationResult = machine.Rehydrate(task.Workflow.StorageJson!, task.Workflow.Phase, ct);
         if (!rehydrationResult.Succeeded)
             return rehydrationResult;
         

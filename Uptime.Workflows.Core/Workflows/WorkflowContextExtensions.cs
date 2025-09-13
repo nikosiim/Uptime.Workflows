@@ -30,24 +30,24 @@ public static class WorkflowContextExtensions
 {
     #region AssociationName
     public static string? GetAssociationName(this IWorkflowContext context)
-        => context.Storage.GetValueOrDefault(WorkflowStorageKeys.AssociationName);
+        => context.Storage.GetValueOrDefault(StorageKeys.AssociationName);
 
     public static void SetAssociationName(this IWorkflowContext context, string? value)
     {
         if (value == null)
-            context.Storage.Remove(WorkflowStorageKeys.AssociationName);
+            context.Storage.Remove(StorageKeys.AssociationName);
         else
-            context.Storage[WorkflowStorageKeys.AssociationName] = value;
+            context.Storage[StorageKeys.AssociationName] = value;
     }
 
     #endregion
 
     #region DocumentId
     public static void SetDocumentId(this IWorkflowContext context, DocumentId id)
-        => context.Storage[WorkflowStorageKeys.DocumentId] = id.Value.ToString();
+        => context.Storage[StorageKeys.DocumentId] = id.Value.ToString();
 
     public static DocumentId GetDocumentId(this IWorkflowContext context)
-        => DocumentId.Parse(context.Storage.GetValueOrDefault(WorkflowStorageKeys.DocumentId));
+        => DocumentId.Parse(context.Storage.GetValueOrDefault(StorageKeys.DocumentId));
 
     #endregion
 
@@ -55,24 +55,24 @@ public static class WorkflowContextExtensions
 
     public static void SetInitiator(this IWorkflowContext context, Principal principal, string principalSid)
     {
-        context.Storage[WorkflowStorageKeys.Initiator.Sid] = principalSid;
-        context.Storage[WorkflowStorageKeys.Initiator.Name] = principal.Name;
-        context.Storage[WorkflowStorageKeys.Initiator.PrincipalId] = principal.Id.ToString();
+        context.Storage[StorageKeys.InitiatorSid] = principalSid;
+        context.Storage[StorageKeys.InitiatorName] = principal.Name;
+        context.Storage[StorageKeys.InitiatorPrincipalId] = principal.Id.ToString();
 
         if (!string.IsNullOrEmpty(principal.Email))
-            context.Storage[WorkflowStorageKeys.Initiator.Email] = principal.Email;
+            context.Storage[StorageKeys.InitiatorEmail] = principal.Email;
     }
 
     public static PrincipalId GetInitiatorId(this IWorkflowContext context)
     {
-        if (!context.Storage.TryGetValue(WorkflowStorageKeys.Initiator.PrincipalId, out string? value) || string.IsNullOrWhiteSpace(value))
+        if (!context.Storage.TryGetValue(StorageKeys.InitiatorPrincipalId, out string? value) || string.IsNullOrWhiteSpace(value))
             throw new InvalidOperationException("Initiator PrincipalId is missing from WorkflowContext.Storage.");
         return PrincipalId.Parse(value);
     }
 
     public static string? GetInitiatorName(this IWorkflowContext context)
     {
-        return context.Storage.GetValueOrDefault(WorkflowStorageKeys.Initiator.Name);
+        return context.Storage.GetValueOrDefault(StorageKeys.InitiatorName);
     }
 
     #endregion
@@ -80,20 +80,20 @@ public static class WorkflowContextExtensions
     #region WorkflowId
 
     public static WorkflowId GetWorkflowId(this IWorkflowContext context)
-        => WorkflowId.Parse(context.Storage.GetValueOrDefault(WorkflowStorageKeys.WorkflowId));
+        => WorkflowId.Parse(context.Storage.GetValueOrDefault(StorageKeys.WorkflowId));
 
     public static void SetWorkflowId(this IWorkflowContext context, WorkflowId id)
-        => context.Storage[WorkflowStorageKeys.WorkflowId] = id.Value.ToString();
+        => context.Storage[StorageKeys.WorkflowId] = id.Value.ToString();
 
     #endregion
 
     #region WorkflowTemplateId
 
     public static WorkflowTemplateId GetWorkflowTemplateId(this IWorkflowContext context)
-        => WorkflowTemplateId.Parse(context.Storage.GetValueOrDefault(WorkflowStorageKeys.WorkflowTemplateId));
+        => WorkflowTemplateId.Parse(context.Storage.GetValueOrDefault(StorageKeys.WorkflowTemplateId));
 
     public static void SetWorkflowTemplateId(this IWorkflowContext context, WorkflowTemplateId id)
-        => context.Storage[WorkflowStorageKeys.WorkflowTemplateId] = id.Value.ToString();
+        => context.Storage[StorageKeys.WorkflowTemplateId] = id.Value.ToString();
 
     #endregion
 
@@ -120,19 +120,16 @@ public static class WorkflowContextExtensions
 
     #endregion
 
-    private static class WorkflowStorageKeys
+    private static class StorageKeys
     {
         public const string WorkflowId = "WorkflowId";
         public const string DocumentId = "DocumentId";
         public const string WorkflowTemplateId = "WorkflowTemplateId";
         public const string AssociationName = "AssociationName";
 
-        public static class Initiator
-        {
-            public const string PrincipalId = "initiator:principalId";
-            public const string Name = "initiator:name";
-            public const string Sid = "initiator:sid";
-            public const string Email = "initiator:email";
-        }
+        public const string InitiatorPrincipalId = "Initiator.PrincipalId";
+        public const string InitiatorName = "Initiator.Name";
+        public const string InitiatorSid = "Initiator.Sid";
+        public const string InitiatorEmail = "Initiator.Email"; 
     }
 }

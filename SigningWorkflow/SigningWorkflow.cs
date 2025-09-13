@@ -2,26 +2,28 @@
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
-using Uptime.Workflows.Core.Extensions;
-using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
 using Uptime.Workflows.Core.Services;
-using static SigningWorkflow.Constants;
 
 namespace SigningWorkflow;
 
-public class SigningWorkflow(IWorkflowService workflowService, ITaskService taskService, IHistoryService historyService, IPrincipalResolver principalResolver,
+public class SigningWorkflow(
+    IWorkflowService workflowService, 
+    ITaskService taskService, 
+    IHistoryService historyService, 
+    IPrincipalResolver principalResolver,
     ILogger<WorkflowBase<SigningWorkflowContext>> logger)
-    : ActivityWorkflowBase<SigningWorkflowContext>(workflowService, taskService, historyService, logger)
+    : ActivityWorkflowBase<SigningWorkflowContext>(workflowService, taskService, historyService, principalResolver, logger)
 {
     private readonly ITaskService _taskService = taskService;
     private readonly IHistoryService _historyService = historyService;
     private readonly ILogger<WorkflowBase<SigningWorkflowContext>> _logger = logger;
+    private readonly IPrincipalResolver _principalResolver = principalResolver;
 
-    public bool IsTaskRejected { get; private set; }
+    private bool IsTaskRejected { get; set; }
 
     protected override IWorkflowDefinition WorkflowDefinition => new SigningWorkflowDefinition();
-
+    
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {
         Machine.Configure(BaseState.NotStarted)
@@ -35,32 +37,35 @@ public class SigningWorkflow(IWorkflowService workflowService, ITaskService task
         Machine.Configure(BaseState.Completed);
     }
 
-    protected override async Task OnWorkflowActivatedAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
+    protected override Task OnWorkflowActivatedAsync(CancellationToken cancellationToken)
     {
         WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
 
-        if (!payload.Storage.TryGetValue(TaskStorageKeys.TaskSignerSid, out string? signerSid) || string.IsNullOrWhiteSpace(signerSid))
-        {
-            throw new WorkflowValidationException(ErrorCode.Validation, "Signer SID is missing in workflow start payload.");
-        }
+        List<string> signerSids = WorkflowContext.GetTaskPrincipalIds();
+        if (signerSids.Count < 1)
+            throw new WorkflowValidationException(ErrorCode.Validation, "Signer PrincipalId could not be resolved.");
 
-        string? taskDescription = payload.Storage.GetValue(TaskStorageKeys.TaskDescription);
-        string? dueDaysText = payload.Storage.GetValue(TaskStorageKeys.TaskDueDays);
-        _ = int.TryParse(dueDaysText, out int days);
-
-        Principal? signer = await principalResolver.ResolveBySidAsync(signerSid, cancellationToken);
-        if (signer is null)
-        {
-            throw new WorkflowValidationException(ErrorCode.NotFound, $"Signer not found for SID '{signerSid}'.");
-        }
+        int? dueDays = WorkflowContext.GetTaskDueDays();
 
         WorkflowContext.SigningTask = new UserTaskActivityData
         {
-            AssignedByPrincipalId = payload.InitiatedByPrincipalId,
-            AssignedToPrincipalId = signer.Id,
-            TaskDescription = taskDescription,
-            DueDate = days > 0 ? DateTime.UtcNow.AddDays(days) : null
+            AssignedByPrincipalId = WorkflowContext.GetInitiatorId(),
+            AssignedToPrincipalId = PrincipalId.Parse(signerSids.FirstOrDefault()),
+            TaskDescription = WorkflowContext.GetTaskDescription(),
+            DueDate = dueDays.HasValue ? DateTime.UtcNow.AddDays(dueDays.Value) : null
         };
+
+        return Task.CompletedTask;
+    }
+
+    protected override async Task PrepareInputDataAsync(CancellationToken cancellationToken)
+    {
+        await WorkflowInputPreparerBase.ResolveAndStorePrincipalIdsAsync(
+            ctx => ctx.GetTaskSids(),
+            (ctx, ids) => ctx.SetTaskPrincipalIds(ids),
+            WorkflowContext,
+            _principalResolver,
+            cancellationToken);
     }
 
     protected override async Task OnTaskAlteredAsync(AlterTaskPayload payload, CancellationToken cancellationToken)
