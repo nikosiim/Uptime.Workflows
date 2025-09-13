@@ -22,12 +22,12 @@ namespace Uptime.Workflows.Core;
 /// Think of this as the “unit of work” a human needs to perform within
 /// a workflow.
 /// </summary>
-public abstract class UserTaskActivity(ITaskService taskService, IHistoryService historyService, 
-    WorkflowTaskContext context) : IUserTaskActivity
+public abstract class UserTaskActivity(ITaskService taskService, IHistoryService historyService, WorkflowTaskContext context) 
+    : IUserTaskActivity
 {
     public WorkflowTaskContext Context => context;
 
-    public bool IsCompleted { get; set; }
+    public bool IsCompleted { get; protected set; }
 
     public IUserTaskActivityData? TaskData { get; set; } // TODO: check why nullable
 

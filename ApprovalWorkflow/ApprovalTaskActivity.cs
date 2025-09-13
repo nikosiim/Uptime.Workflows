@@ -11,7 +11,7 @@ public class ApprovalTaskActivity(ITaskService taskService, IHistoryService hist
     WorkflowTaskContext context) : UserTaskActivity(taskService, historyService, context)
 {
     private readonly IHistoryService _historyService = historyService;
-    private string? AssociationName => Context.Storage.GetValueOrDefault(WorkflowStorageKeys.AssociationName);
+    private string? AssociationName => Context.Storage.GetValueOrDefault(TaskStorageKeys.AssociationName); // TODO: should be get from workflow context
 
     public bool IsTaskDelegated { get; private set; }
     public bool IsTaskRejected { get; private set; }

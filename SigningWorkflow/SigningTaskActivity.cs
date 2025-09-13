@@ -11,7 +11,7 @@ public class SigningTaskActivity(ITaskService taskService, IHistoryService histo
     : UserTaskActivity(taskService, historyService, context)
 {
     private readonly IHistoryService _historyService = historyService;
-    private string? AssociationName => Context.Storage.GetValueOrDefault(WorkflowStorageKeys.AssociationName);
+    private string? AssociationName => Context.Storage.GetValueOrDefault(TaskStorageKeys.AssociationName); // TODO: check what setting of AssociationName
 
     public bool IsTaskRejected { get; private set; }
 

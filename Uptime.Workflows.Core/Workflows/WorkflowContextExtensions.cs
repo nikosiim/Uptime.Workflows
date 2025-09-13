@@ -3,22 +3,6 @@ using Uptime.Workflows.Core.Models;
 
 namespace Uptime.Workflows.Core;
 
-public static class WorkflowStorageKeys
-{
-    public const string WorkflowId = "WorkflowId";
-    public const string DocumentId = "DocumentId";
-    public const string WorkflowTemplateId = "WorkflowTemplateId";
-    public const string AssociationName = "AssociationName";
-
-    public static class Initiator
-    {
-        public const string PrincipalId = "initiator:principalId";
-        public const string Name = "initiator:name";
-        public const string Sid = "initiator:sid";
-        public const string Email = "initiator:email";
-    }
-}
-
 /// <summary>
 /// Provides strongly-typed extension methods for working with the <see cref="IWorkflowContext.Storage"/> dictionary.
 /// 
@@ -44,6 +28,20 @@ public static class WorkflowStorageKeys
 /// </summary>
 public static class WorkflowContextExtensions
 {
+    #region AssociationName
+    public static string? GetAssociationName(this IWorkflowContext context)
+        => context.Storage.GetValueOrDefault(WorkflowStorageKeys.AssociationName);
+
+    public static void SetAssociationName(this IWorkflowContext context, string? value)
+    {
+        if (value == null)
+            context.Storage.Remove(WorkflowStorageKeys.AssociationName);
+        else
+            context.Storage[WorkflowStorageKeys.AssociationName] = value;
+    }
+
+    #endregion
+
     #region DocumentId
     public static void SetDocumentId(this IWorkflowContext context, DocumentId id)
         => context.Storage[WorkflowStorageKeys.DocumentId] = id.Value.ToString();
@@ -121,4 +119,20 @@ public static class WorkflowContextExtensions
     }
 
     #endregion
+
+    private static class WorkflowStorageKeys
+    {
+        public const string WorkflowId = "WorkflowId";
+        public const string DocumentId = "DocumentId";
+        public const string WorkflowTemplateId = "WorkflowTemplateId";
+        public const string AssociationName = "AssociationName";
+
+        public static class Initiator
+        {
+            public const string PrincipalId = "initiator:principalId";
+            public const string Name = "initiator:name";
+            public const string Sid = "initiator:sid";
+            public const string Email = "initiator:email";
+        }
+    }
 }

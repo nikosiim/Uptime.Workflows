@@ -11,6 +11,7 @@ public static class Constants
 
     public static class TaskStorageKeys
     {
+        public const string AssociationName = "AssociationName";
         public const string TaskComment = "TaskComment";
         public const string TaskDescription = "TaskDescription";
         public const string TaskDueDays = "TaskDueDays";

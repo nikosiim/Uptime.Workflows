@@ -239,7 +239,7 @@ public abstract class WorkflowBase<TContext>(
 
     protected virtual string? WorkflowStartedHistoryDescription { get; set; }
     protected virtual string? WorkflowCompletedHistoryDescription { get; set; }
-    protected virtual string? AssociationName => WorkflowContext.Storage.GetValueOrDefault(WorkflowStorageKeys.AssociationName); // TODO: remove/replace
+    protected virtual string? AssociationName => WorkflowContext.GetAssociationName();
     
     protected virtual async Task InitializeWorkflowContextAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
     {
