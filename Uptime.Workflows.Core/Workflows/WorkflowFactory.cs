@@ -1,9 +1,16 @@
-﻿using System.Collections.ObjectModel;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
+using System.Collections.ObjectModel;
 using Uptime.Workflows.Core.Common;
-using Uptime.Workflows.Core.Interfaces;
+using Uptime.Workflows.Core.Models;
 
 namespace Uptime.Workflows.Core;
+
+public interface IWorkflowFactory
+{
+    IWorkflowMachine? TryGetStateMachine(string workflowBaseId);
+    IWorkflowDefinition? TryGetDefinition(Guid workflowBaseId);
+    Task<Result<Unit>> StartWorkflowAsync(string workflowBaseId, StartWorkflowPayload payload, CancellationToken cancellationToken);
+}
 
 /// <summary>
 /// Centrally resolves <c>IWorkflowMachine</c> instances by their
@@ -53,6 +60,7 @@ public class WorkflowFactory : IWorkflowFactory
     /// <param name="definitions">
     /// One definition per workflow machine; provides the GUID and metadata.
     /// </param>
+    /// <param name="logger"></param>
     /// <remarks>
     /// Both collections are usually added with
     /// <c>services.AddScoped&lt;IWorkflowMachine, MyWorkflow&gt;()</c> and
@@ -110,14 +118,14 @@ public class WorkflowFactory : IWorkflowFactory
     /// The caller (API / command handler) converts that failure into an HTTP
     /// 400 or similar.
     /// </remarks>
-    public async Task<Result<Unit>> StartWorkflowAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> StartWorkflowAsync(string workflowBaseIdString, StartWorkflowPayload payload, CancellationToken cancellationToken)
     {
-        if (_machinesByBaseId.TryGetValue(payload.WorkflowBaseId, out IWorkflowMachine? machine))
+        if (_machinesByBaseId.TryGetValue(new Guid(workflowBaseIdString), out IWorkflowMachine? machine))
         {
             return await machine.StartAsync(payload, cancellationToken);
         }
 
-        _logger.LogWarning("State-machine not found for baseId: {WorkflowBaseId}", payload.WorkflowBaseId);
+        _logger.LogWarning("State-machine not found for baseId: {WorkflowBaseId}", workflowBaseIdString);
         return Result<Unit>.Failure(ErrorCode.NotFound);
     }
 }

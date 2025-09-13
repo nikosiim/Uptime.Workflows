@@ -4,12 +4,21 @@ using Microsoft.Extensions.Logging;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
+using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
 using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.Workflows.Application.Commands;
 
-public record ModifyWorkflowCommand(WorkflowId WorkflowId, ModificationPayload Payload) : IRequest<Result<Unit>>;
+public record ModifyWorkflowCommand : IRequest<Result<Unit>>, IPrincipalRequest
+{
+    public required WorkflowId WorkflowId { get; init; }
+    public required string ExecutedBySid { get; init; }
+    public string? InputContext { get; init; }
+
+    // Will be populated by pipeline
+    public Principal ExecutedBy { get; set; } = null!;
+};
 
 public class ModifyWorkflowCommandHandler(WorkflowDbContext db, IWorkflowFactory factory, ILogger<ModifyWorkflowCommand> log)
     : IRequestHandler<ModifyWorkflowCommand, Result<Unit>>
@@ -38,6 +47,12 @@ public class ModifyWorkflowCommandHandler(WorkflowDbContext db, IWorkflowFactory
         if (!rehydrationResult.Succeeded)
             return rehydrationResult;
 
-        return await machine.ModifyAsync(request.Payload, ct);
+        var payload = new ModificationPayload
+        {
+            ExecutedBy = request.ExecutedBy,
+            ModificationContext = request.InputContext
+        };
+
+        return await machine.ModifyAsync(payload, ct);
     }
 }

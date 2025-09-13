@@ -53,9 +53,9 @@ public static class WorkflowContextExtensions
 
     #region Initiator
 
-    public static void SetInitiator(this IWorkflowContext context, Principal principal, string principalSid)
+    public static void SetInitiator(this IWorkflowContext context, Principal principal)
     {
-        context.Storage[StorageKeys.InitiatorSid] = principalSid;
+        context.Storage[StorageKeys.InitiatorSid] = principal.Sid;
         context.Storage[StorageKeys.InitiatorName] = principal.Name;
         context.Storage[StorageKeys.InitiatorPrincipalId] = principal.Id.ToString();
 

@@ -2,8 +2,8 @@
 
 namespace Uptime.Workflows.Core.Models;
 
-public record ModificationPayload : IUserActionPayload
+public record CancelWorkflowPayload: IUserActionPayload
 {
     public required Principal ExecutedBy { get; init; }
-    public string? ModificationContext { get; init; }
+    public string? Comment { get; init; }
 }

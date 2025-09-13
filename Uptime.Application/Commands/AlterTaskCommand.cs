@@ -14,11 +14,11 @@ namespace Uptime.Workflows.Application.Commands;
 public sealed record AlterTaskCommand : IRequest<Result<Unit>>, IPrincipalRequest
 {
     public required TaskId TaskId { get; init; }
-    public required string CallerSid { get; init; }
+    public required string ExecutedBySid { get; init; }
     public required Dictionary<string, string?> Payload { get; init; }
 
     // Will be populated by pipeline
-    public Principal? Caller { get; set; }
+    public Principal ExecutedBy { get; set; } = null!;
 }
 
 public sealed class AlterTaskCommandHandler(WorkflowDbContext db, IWorkflowFactory workflowFactory, ILogger<AlterTaskCommandHandler> log)
@@ -50,7 +50,7 @@ public sealed class AlterTaskCommandHandler(WorkflowDbContext db, IWorkflowFacto
         
         var input = new AlterTaskPayload
         {
-            ExecutedByPrincipalId = request.Caller!.Id,
+            ExecutedBy = request.ExecutedBy,
             Context = new WorkflowTaskContext
             {
                 WorkflowId = (WorkflowId)task.WorkflowId,

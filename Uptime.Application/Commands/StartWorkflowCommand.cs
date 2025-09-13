@@ -3,17 +3,21 @@ using Microsoft.EntityFrameworkCore;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
+using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
 using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.Workflows.Application.Commands;
 
-public record  StartWorkflowCommand : IRequest<Result<Unit>>
+public record StartWorkflowCommand : IRequest<Result<Unit>>, IPrincipalRequest
 {
-    public required string CallerSid { get; init; }
+    public required string ExecutedBySid { get; init; }
     public required DocumentId DocumentId { get; init; }
     public required WorkflowTemplateId WorkflowTemplateId { get; init; }
     public Dictionary<string, string?> Storage { get; init; } = new();
+
+    // Will be populated by pipeline
+    public Principal ExecutedBy { get; set; } = null!;
 }
 
 public class StartWorkflowCommandHandler(WorkflowDbContext db, IWorkflowFactory factory)
@@ -34,13 +38,12 @@ public class StartWorkflowCommandHandler(WorkflowDbContext db, IWorkflowFactory 
         
         var payload = new StartWorkflowPayload
         {
-            PrincipalSid = request.CallerSid,
-            WorkflowBaseId = new Guid(workflowBaseIdString),
+            ExecutedBy = request.ExecutedBy,
             DocumentId = request.DocumentId,
             WorkflowTemplateId = request.WorkflowTemplateId,
             Storage = request.Storage
         };
 
-        return await factory.StartWorkflowAsync(payload, ct);
+        return await factory.StartWorkflowAsync(workflowBaseIdString, payload, ct);
     }
 }

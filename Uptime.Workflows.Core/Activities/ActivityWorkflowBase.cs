@@ -23,9 +23,8 @@ public abstract class ActivityWorkflowBase<TContext>(
     IWorkflowService workflowService, 
     ITaskService taskService, 
     IHistoryService historyService,
-    IPrincipalResolver principalResolver,
     ILogger<WorkflowBase<TContext>> logger)
-    : WorkflowBase<TContext>(workflowService,taskService, historyService, principalResolver, logger: logger), IActivityWorkflowMachine
+    : WorkflowBase<TContext>(workflowService,taskService, historyService, logger: logger), IActivityWorkflowMachine
     where TContext : class, IWorkflowContext, new()
 {
     private readonly ILogger<WorkflowBase<TContext>> _logger = logger;

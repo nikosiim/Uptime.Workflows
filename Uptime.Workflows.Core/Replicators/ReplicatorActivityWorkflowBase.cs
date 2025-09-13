@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
-using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
 using Uptime.Workflows.Core.Services;
 
@@ -49,9 +47,8 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
     IWorkflowService workflowService, 
     ITaskService taskService, 
     IHistoryService historyService,
-    IPrincipalResolver principalResolver,
     ILogger<WorkflowBase<TContext>> logger)
-    : ActivityWorkflowBase<TContext>(workflowService, taskService, historyService, principalResolver, logger)
+    : ActivityWorkflowBase<TContext>(workflowService, taskService, historyService, logger)
     where TContext : class, IReplicatorWorkflowContext, new()
 {
     private ReplicatorManager? _replicatorManager;

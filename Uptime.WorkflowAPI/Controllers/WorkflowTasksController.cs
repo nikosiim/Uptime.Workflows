@@ -28,7 +28,7 @@ public class WorkflowTasksController(IMediator mediator) : ControllerBase
     {
         var cmd = new AlterTaskCommand
         {
-            CallerSid = request.CallerSid,
+            ExecutedBySid = request.CallerSid,
             TaskId = (TaskId)taskId,
             Payload = request.Input
         }; 

@@ -2,8 +2,8 @@
 
 namespace Uptime.Workflows.Core.Interfaces;
 
-public interface IPrincipalRequest // TODO: remove this interfaceand related implementations, principal is resolved in workflow engine
+public interface IPrincipalRequest
 {
-    string CallerSid { get; }
-    Principal? Caller { get; set; }
+    string ExecutedBySid { get; }
+    Principal ExecutedBy { get; set; }
 }

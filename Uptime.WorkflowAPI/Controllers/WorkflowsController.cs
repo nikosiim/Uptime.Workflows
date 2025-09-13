@@ -68,7 +68,7 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     {
         var cmd = new StartWorkflowCommand
         {
-            CallerSid = request.InitiatorSid,
+            ExecutedBySid = request.InitiatorSid,
             DocumentId = (DocumentId)request.DocumentId,
             WorkflowTemplateId = (WorkflowTemplateId)request.WorkflowTemplateId,
             Storage = request.Storage
@@ -95,7 +95,7 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     {
         var cmd = new CancelWorkflowCommand
         {
-            CallerSid = request.ExecutorSid,
+            ExecutedBySid = request.ExecutorSid,
             WorkflowId = (WorkflowId)workflowId,
             Comment = request.Comment
         };

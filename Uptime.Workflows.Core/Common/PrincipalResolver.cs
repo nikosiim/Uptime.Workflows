@@ -24,6 +24,7 @@ public sealed class PrincipalResolver(WorkflowDbContext db) : IPrincipalResolver
 
         return new Principal
         {
+            Sid = sid,
             Id = (PrincipalId)e.Id,
             Name = e.Name,
             Email = e.Email

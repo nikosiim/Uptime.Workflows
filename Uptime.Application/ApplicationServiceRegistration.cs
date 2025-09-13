@@ -22,6 +22,7 @@ public static class ApplicationServiceRegistration
 
         // Pipeline behaviors
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ExceptionHandlingBehavior<,>));
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PrincipalResolutionBehavior<,>));
         
         // Core services
         services.AddScoped<IWorkflowMachine, ApprovalWorkflow.ApprovalWorkflow>();

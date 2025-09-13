@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Stateless;
 using Uptime.Workflows.Core.Common;
-using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Enums;
-using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
 using Uptime.Workflows.Core.Services;
 
@@ -28,8 +26,7 @@ namespace Uptime.Workflows.Core;
 public abstract class WorkflowBase<TContext>(
     IWorkflowService workflowService, 
     ITaskService taskService, 
-    IHistoryService historyService, 
-    IPrincipalResolver principalResolver,
+    IHistoryService historyService,
     ILogger<WorkflowBase<TContext>> logger)
     : IWorkflowMachine, IWorkflow<TContext> where TContext : class, IWorkflowContext, new()
 {
@@ -61,13 +58,13 @@ public abstract class WorkflowBase<TContext>(
 
     #region Public Methods
 
-    public async Task<Result<Unit>> StartAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> StartAsync(StartWorkflowPayload payload, CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
             return Result<Unit>.Cancelled();
         try
         {
-            await InitializeWorkflowContextAsync(payload, cancellationToken);
+            InitializeWorkflowContext(payload);
             InitializeStateMachine(BaseState.NotStarted, cancellationToken);
             
             await RegisterWorkflowInstanceAsync(cancellationToken);
@@ -167,7 +164,7 @@ public abstract class WorkflowBase<TContext>(
         return Result<Unit>.Success(new Unit());
     }
 
-    public async Task<Result<Unit>> CancelAsync(PrincipalId principalId, string? comment, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> CancelAsync(CancelWorkflowPayload payload, CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
             return Result<Unit>.Cancelled();
@@ -183,8 +180,8 @@ public abstract class WorkflowBase<TContext>(
             await historyService.CreateAsync(
                 WorkflowId,
                 WorkflowEventType.WorkflowComment,
-                principalId,
-                description: comment,
+                payload.ExecutedBy.Id,
+                description: payload.Comment,
                 cancellationToken:cancellationToken
             );
 
@@ -244,25 +241,19 @@ public abstract class WorkflowBase<TContext>(
     protected string? WorkflowStartedHistoryDescription { get; set; } = "Workflow has been started.";
     protected string? WorkflowCompletedHistoryDescription { get; set; } = "Workflow has been completed.";
     
-    protected virtual async Task InitializeWorkflowContextAsync(IWorkflowPayload payload, CancellationToken cancellationToken)
+    protected virtual void InitializeWorkflowContext(StartWorkflowPayload payload)
     {
         if (payload.DocumentId == default)
             throw new WorkflowValidationException(ErrorCode.Validation, "DocumentId is required.");
 
         if (payload.WorkflowTemplateId == default)
             throw new WorkflowValidationException(ErrorCode.Validation, "WorkflowTemplateId is required.");
-
-        if (string.IsNullOrWhiteSpace(payload.PrincipalSid))
-            throw new WorkflowValidationException(ErrorCode.Validation, "PrincipalSid is required.");
-
-        Principal principal = await principalResolver.ResolveBySidAsync(payload.PrincipalSid, cancellationToken)
-                              ?? throw new WorkflowValidationException(ErrorCode.NotFound, $"Initiator SID '{payload.PrincipalSid}' not found.");
         
         WorkflowContext.Storage.MergeWith(payload.Storage);
 
         WorkflowContext.SetDocumentId(payload.DocumentId);
         WorkflowContext.SetWorkflowTemplateId(payload.WorkflowTemplateId);
-        WorkflowContext.SetInitiator(principal, payload.PrincipalSid);
+        WorkflowContext.SetInitiator(payload.ExecutedBy);
     }
     
     protected virtual Task OnWorkflowStartedAsync(CancellationToken cancellationToken)

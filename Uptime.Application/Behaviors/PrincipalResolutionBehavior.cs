@@ -14,14 +14,14 @@ public sealed class PrincipalResolutionBehavior<TReq, TRes>(IPrincipalResolver r
         if (request is not IPrincipalRequest principalRequest)
             return await next(ct);
 
-        Principal? principal = await resolver.ResolveBySidAsync(principalRequest.CallerSid, ct);
+        Principal? principal = await resolver.ResolveBySidAsync(principalRequest.ExecutedBySid, ct);
         if (principal is null)
         {
-            log.LogWarning("Principal with SID {CallerSid} not found.", principalRequest.CallerSid);
-            return Result<TRes>.Failure(ErrorCode.NotFound, $"Principal with SID {principalRequest.CallerSid} not found.");
+            log.LogWarning("Principal with SID {ExecutedBySid} not found.", principalRequest.ExecutedBySid);
+            return Result<TRes>.Failure(ErrorCode.NotFound, $"Principal with SID {principalRequest.ExecutedBySid} not found.");
         }
 
-        principalRequest.Caller = principal;
+        principalRequest.ExecutedBy = principal;
         return await next(ct);
     }
 }

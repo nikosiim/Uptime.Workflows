@@ -12,12 +12,12 @@ namespace Uptime.Workflows.Application.Commands;
 
 public record CancelWorkflowCommand : IRequest<Result<Unit>>, IPrincipalRequest
 {
-    public required string CallerSid { get; init; }
+    public required string ExecutedBySid { get; init; }
     public required WorkflowId WorkflowId { get; init; }
     public required string Comment { get; init; }
 
     // Will be populated by pipeline
-    public Principal? Caller { get; set; } 
+    public Principal ExecutedBy { get; set; } = null!;
 };
 
 public class CancelWorkflowCommandHandler(WorkflowDbContext db, IWorkflowFactory factory, ILogger<CancelWorkflowCommand> log)
@@ -46,8 +46,12 @@ public class CancelWorkflowCommandHandler(WorkflowDbContext db, IWorkflowFactory
         if (!rehydrationResult.Succeeded)
             return rehydrationResult;
 
-        Principal principal = request.Caller!;
+        var payload = new CancelWorkflowPayload
+        {
+            ExecutedBy = request.ExecutedBy,
+            Comment = request.Comment
+        };
         
-        return await machine.CancelAsync(principal.Id, request.Comment, ct);
+        return await machine.CancelAsync(payload, ct);
     }
 }

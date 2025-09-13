@@ -3,11 +3,10 @@ using Uptime.Workflows.Core.Interfaces;
 
 namespace Uptime.Workflows.Core.Models;
 
-public class StartWorkflowPayload : IWorkflowPayload
+public record StartWorkflowPayload: IUserActionPayload
 {
-    public required string PrincipalSid { get; set; }
-    public required Guid WorkflowBaseId { get; set; }
-    public required DocumentId DocumentId { get; set; }
-    public required WorkflowTemplateId WorkflowTemplateId { get; set; }
+    public required Principal ExecutedBy { get; init; }
+    public required DocumentId DocumentId { get; init; }
+    public required WorkflowTemplateId WorkflowTemplateId { get; init; }
     public Dictionary<string, string?> Storage { get; init; } = new();
 }
