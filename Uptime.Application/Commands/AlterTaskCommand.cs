@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
@@ -51,22 +50,11 @@ public sealed class AlterTaskCommandHandler(WorkflowDbContext db, IWorkflowFacto
         var input = new AlterTaskPayload
         {
             ExecutedBy = request.ExecutedBy,
-            Context = new WorkflowTaskContext
-            {
-                WorkflowId = (WorkflowId)task.WorkflowId,
-                TaskGuid = task.TaskGuid,
-                PhaseId = task.PhaseId,
-                TaskId = (TaskId)task.Id,
-                AssignedToPrincipalId = (PrincipalId)task.AssignedToPrincipalId,
-                AssignedByPrincipalId = (PrincipalId)task.AssignedByPrincipalId,
-                TaskDescription = task.Description,
-                DueDate = task.DueDate,
-
-                Storage = string.IsNullOrWhiteSpace(task.StorageJson)
-                    ? new Dictionary<string, string?>()
-                    : JsonSerializer.Deserialize<Dictionary<string, string?>>(task.StorageJson) ??
-                      new Dictionary<string, string?>()
-            },
+            PhaseId = task.PhaseId,
+            TaskGuid = task.TaskGuid,
+            AssignedTo = (PrincipalId)task.AssignedToPrincipalId,
+            DueDate = task.DueDate,
+            StorageJson = task.StorageJson,
             InputData = request.Payload
         };
         

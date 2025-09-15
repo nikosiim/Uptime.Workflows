@@ -2,7 +2,7 @@
 
 namespace Uptime.Workflows.Core.Data;
 
-public class Document : BaseEntity
+public sealed class Document : BaseEntity
 {
     [StringLength(128)]
     public string Title { get; set; } = null!;
@@ -15,6 +15,6 @@ public class Document : BaseEntity
     public int LibraryId { get; set; }
 
     // Navigation properties
-    public virtual Library Library { get; set; } = null!;
-    public virtual ICollection<Workflow>? Workflows { get; set; }
+    public Library Library { get; set; } = null!;
+    public ICollection<Workflow>? Workflows { get; set; }
 }

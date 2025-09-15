@@ -3,7 +3,7 @@ using Uptime.Workflows.Core.Enums;
 
 namespace Uptime.Workflows.Core.Data;
 
-public class WorkflowPrincipal : BaseEntity
+public sealed class WorkflowPrincipal : BaseEntity
 {
     /// <summary>
     /// A stable, unique ID for this principal (Azure AD oid, Windows SID, or fallback Name).

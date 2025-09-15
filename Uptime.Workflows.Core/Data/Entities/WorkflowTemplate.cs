@@ -2,7 +2,7 @@
 
 namespace Uptime.Workflows.Core.Data;
 
-public class WorkflowTemplate : BaseEntity
+public sealed class WorkflowTemplate : BaseEntity
 {
     [StringLength(128)] 
     public string TemplateName { get; set; } = null!;
@@ -18,6 +18,6 @@ public class WorkflowTemplate : BaseEntity
     public bool IsDeleted { get; set; }
 
     // Navigation properties
-    public virtual Library Library { get; set; } = null!;
-    public virtual ICollection<Workflow>? Workflows { get; set; }
+    public Library Library { get; set; } = null!;
+    public ICollection<Workflow>? Workflows { get; set; }
 }

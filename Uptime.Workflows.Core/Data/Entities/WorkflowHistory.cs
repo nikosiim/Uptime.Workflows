@@ -3,7 +3,7 @@ using Uptime.Workflows.Core.Enums;
 
 namespace Uptime.Workflows.Core.Data;
 
-public class WorkflowHistory : BaseEntity
+public sealed class WorkflowHistory : BaseEntity
 {
     public required WorkflowEventType Event { get; set; }
     public DateTime Occurred { get; set; }
@@ -16,7 +16,7 @@ public class WorkflowHistory : BaseEntity
 
     // Navigation properties
     public int WorkflowId { get; set; }
-    public virtual Workflow Workflow { get; set; } = null!;
+    public Workflow Workflow { get; set; } = null!;
     public int? PerformedByPrincipalId { get; set; }
     public WorkflowPrincipal? PerformedByPrincipal { get; set; }
 }

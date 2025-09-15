@@ -2,36 +2,36 @@
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Extensions;
+using Uptime.Workflows.Core.Models;
 using Uptime.Workflows.Core.Services;
-using static ApprovalWorkflow.Constants;
+using static Uptime.Workflows.Core.TaskInputPayloadExtensions;
 
 namespace ApprovalWorkflow;
 
-public class ApprovalTaskActivity(ITaskService taskService, IHistoryService historyService, 
-    WorkflowTaskContext context) : UserTaskActivity(taskService, historyService, context)
+public sealed class ApprovalTaskActivity(
+    ITaskService taskService, 
+    IHistoryService historyService, 
+    IPrincipalResolver principalResolver,
+    IWorkflowTaskContext taskContext, 
+    IWorkflowContext workflowContext) 
+    : UserTaskActivity(taskService, historyService, taskContext, workflowContext)
 {
-    private readonly IHistoryService _historyService = historyService;
-    private string? AssociationName => Context.Storage.GetValueOrDefault(TaskStorageKeys.AssociationName); // TODO: should be get from workflow context
-
-    public bool IsTaskDelegated { get; private set; }
+    public Principal? TaskDelegatedToPrincipal { get; private set; }
     public bool IsTaskRejected { get; private set; }
 
     protected override void OnExecuteTask()
     {
-        if (TaskData is null) return;
+        Context.SetTaskTitle("Kinnitamine");
+        Context.SetTaskOutcome("Ootel");
         
-        Context.Storage.SetValue(TaskStorageKeys.TaskTitle, "Kinnitamine");
-        Context.Storage.SetValue(TaskStorageKeys.TaskOutcome, "Ootel");
-
-        TaskCreatedHistoryDescription = $"Tööülesanne {AssociationName} on loodud kasutajale {TaskData.AssignedToPrincipalId}";
+        TaskCreatedHistoryDescription = $"Tööülesanne {AssociationName} on loodud kasutajale {Context.AssignedToPrincipalId}";
     }
 
-    protected override async Task OnTaskChangedAsync(PrincipalId executorId, Dictionary<string, string?> payload, CancellationToken cancellationToken)
+    protected override async Task OnTaskChangedAsync(Principal executedBy, Dictionary<string, string?> payload, CancellationToken ct)
     {
-        string? comment = payload.GetValue(TaskStorageKeys.TaskComment);
-        string? delegatedTo = payload.GetValue(TaskStorageKeys.TaskDelegatedToSid);
+        string? comment = payload.GetTaskComment();
 
-        if (payload.TryGetValueAsEnum(TaskStorageKeys.TaskResult, out WorkflowEventType workflowEvent))
+        if (payload.TryGetValueAsEnum(TaskInputKeys.TaskResult, out WorkflowEventType workflowEvent))
         {
             string outcome;
             string description;
@@ -41,33 +41,37 @@ public class ApprovalTaskActivity(ITaskService taskService, IHistoryService hist
                 case WorkflowEventType.TaskRejected:
                     IsTaskRejected = true;
                     outcome = "Tagasilükatud";
-                    description = $"Kasutaja {TaskData?.AssignedToPrincipalId} on tööülesande {AssociationName} tagasilükanud.";
+                    description = $"Kasutaja {executedBy.Id} on tööülesande {AssociationName} tagasilükanud.";
                     break;
                 case WorkflowEventType.TaskDelegated:
-                    IsTaskDelegated = true;
+                    string? sid = payload.GetTaskDelegatedToSid();
+                    if (string.IsNullOrWhiteSpace(sid))
+                        throw new WorkflowValidationException(ErrorCode.NotFound, "DelegatedTo SID not provided");
+                    TaskDelegatedToPrincipal = await principalResolver.ResolveBySidAsync(sid, ct);
+                    if (TaskDelegatedToPrincipal == null)
+                        throw new WorkflowValidationException(ErrorCode.NotFound, $"Not found for SID: {sid}");
                     outcome = "Suunatud";
-                    description = $"Tööülesanne {AssociationName} on suunatud kasutajale {delegatedTo}";
+                    description = $"Tööülesanne {AssociationName} on suunatud kasutajale {sid}";
                     break;
                 case WorkflowEventType.TaskCancelled:
                     outcome = "Tühistatud";
-                    description = $"Kasutaja {TaskData?.AssignedToPrincipalId} on tööülesande {AssociationName} tühistanud.";
+                    description = $"Kasutaja {Context.AssignedToPrincipalId} on tööülesande {AssociationName} tühistanud.";
                     break;
                 case WorkflowEventType.TaskCompleted:
                     outcome = "Kinnitatud";
-                    description = $"Kasutajale {TaskData?.AssignedToPrincipalId} määratud tööülesanne on edukalt lõpetatud.";
+                    description = $"Kasutajale {Context.AssignedToPrincipalId} määratud tööülesanne on edukalt lõpetatud.";
                     break;
                 default:
                     return;
             }
 
             IsCompleted = true;
-            Context.TaskStatus = WorkflowTaskStatus.Completed;
 
-            Context.Storage.SetValue(TaskStorageKeys.TaskComment, comment);
-            Context.Storage.SetValue(TaskStorageKeys.TaskDelegatedToSid, delegatedTo);
-            Context.Storage.SetValue(TaskStorageKeys.TaskOutcome, outcome);
+            Context.SetTaskStatus(WorkflowTaskStatus.Completed);
+            Context.SetTaskComment(comment);
+            Context.SetTaskOutcome(outcome);
             
-            await _historyService.CreateAsync(Context.WorkflowId, workflowEvent, executorId, description:description, comment:comment, cancellationToken);
+            await HistoryService.CreateAsync(WorkflowId, workflowEvent, executedBy.Id, description:description, comment:comment, ct);
         }
     }
 }

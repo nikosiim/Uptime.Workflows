@@ -2,9 +2,10 @@
 
 namespace Uptime.Workflows.Core;
 
-public sealed class ReplicatorItem(Guid taskGuid, object data)
+// TODO: recheck if the new implementation is correct
+public sealed class ReplicatorItem(Guid taskGuid, IWorkflowTaskContext taskContext)
 {
     public Guid TaskGuid { get; set; } = taskGuid;
-    public object Data { get; set; } = data;
+    public IWorkflowTaskContext TaskContext { get; set; } = taskContext;
     public ReplicatorItemStatus Status { get; set; }
 }

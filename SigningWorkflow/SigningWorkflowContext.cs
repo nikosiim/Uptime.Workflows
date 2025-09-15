@@ -5,8 +5,6 @@ namespace SigningWorkflow;
 
 public class SigningWorkflowContext : BaseWorkflowContext
 {
-    public UserTaskActivityData? SigningTask { get; set; }
-    
     public override void Deserialize(string json)
     {
         var obj = JsonSerializer.Deserialize<SigningWorkflowContext>(json);

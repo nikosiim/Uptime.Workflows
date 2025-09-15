@@ -10,15 +10,14 @@ namespace SigningWorkflow;
 public class SigningWorkflow(
     IWorkflowService workflowService, 
     ITaskService taskService, 
-    IHistoryService historyService, 
+    IHistoryService historyService,
     IPrincipalResolver principalResolver,
-    ILogger<WorkflowBase<SigningWorkflowContext>> logger)
-    : ActivityWorkflowBase<SigningWorkflowContext>(workflowService, taskService, historyService, principalResolver, logger)
+    ILogger<WorkflowBase<BaseWorkflowContext>> logger)
+    : ActivityWorkflowBase<BaseWorkflowContext>(workflowService, taskService, historyService, logger)
 {
     private readonly ITaskService _taskService = taskService;
     private readonly IHistoryService _historyService = historyService;
-    private readonly ILogger<WorkflowBase<SigningWorkflowContext>> _logger = logger;
-    private readonly IPrincipalResolver _principalResolver = principalResolver;
+    private readonly ILogger<WorkflowBase<BaseWorkflowContext>> _logger = logger;
 
     private bool IsTaskRejected { get; set; }
 
@@ -37,25 +36,11 @@ public class SigningWorkflow(
         Machine.Configure(BaseState.Completed);
     }
 
-    protected override Task OnWorkflowActivatedAsync(CancellationToken cancellationToken)
+    protected override async Task OnWorkflowActivatedAsync(CancellationToken cancellationToken)
     {
+        await base.OnWorkflowActivatedAsync(cancellationToken);
+
         WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
-
-        List<string> signerSids = WorkflowContext.GetTaskPrincipalIds();
-        if (signerSids.Count < 1)
-            throw new WorkflowValidationException(ErrorCode.Validation, "Signer PrincipalId could not be resolved.");
-
-        int? dueDays = WorkflowContext.GetTaskDueDays();
-
-        WorkflowContext.SigningTask = new UserTaskActivityData
-        {
-            AssignedByPrincipalId = WorkflowContext.GetInitiatorId(),
-            AssignedToPrincipalId = PrincipalId.Parse(signerSids.FirstOrDefault()),
-            TaskDescription = WorkflowContext.GetTaskDescription(),
-            DueDate = dueDays.HasValue ? DateTime.UtcNow.AddDays(dueDays.Value) : null
-        };
-
-        return Task.CompletedTask;
     }
 
     protected override async Task PrepareInputDataAsync(CancellationToken cancellationToken)
@@ -64,22 +49,20 @@ public class SigningWorkflow(
             ctx => ctx.GetTaskSids(),
             (ctx, ids) => ctx.SetTaskPrincipalIds(ids),
             WorkflowContext,
-            _principalResolver,
+            principalResolver,
             cancellationToken);
     }
 
-    protected override async Task OnTaskAlteredAsync(AlterTaskPayload payload, CancellationToken cancellationToken)
+    protected override async Task OnTaskAlteredAsync(IWorkflowTaskContext taskContext, Principal executedBy,
+        Dictionary<string, string?> inputData, CancellationToken cancellationToken)
     {
-        var taskActivity = new SigningTaskActivity(_taskService, _historyService, payload.Context)
-        {
-            TaskData = WorkflowContext.SigningTask
-        };
+        var activity = new SigningTaskActivity(_taskService, _historyService, taskContext, WorkflowContext);
+        
+        await activity.ChangedTaskAsync(executedBy, inputData, cancellationToken);
 
-        await taskActivity.ChangedTaskAsync(payload.ExecutedByPrincipalId, payload.InputData, cancellationToken);
+        IsTaskRejected = activity.IsTaskRejected;
 
-        IsTaskRejected = taskActivity.IsTaskRejected;
-
-        if (taskActivity.IsCompleted)
+        if (activity.IsCompleted)
         {
             await TriggerTransitionAsync(WorkflowTrigger.TaskCompleted, cancellationToken);
         }
@@ -95,28 +78,24 @@ public class SigningWorkflow(
 
     private async Task StartSigningTask(CancellationToken cancellationToken)
     {
-        _logger.LogSigningTaskCreated(WorkflowDefinition, WorkflowId, AssociationName);
+        List<string> signerSids = WorkflowContext.GetTaskPrincipalIds();
+        if (signerSids.Count < 1)
+            throw new WorkflowValidationException(ErrorCode.Validation, "Signer PrincipalId could not be resolved.");
 
-        if (WorkflowContext.SigningTask == null)
-        {
-            await TriggerTransitionAsync(WorkflowTrigger.TaskCompleted, cancellationToken);
-            return;
-        }
-
-        UserTaskActivityData taskData = WorkflowContext.SigningTask!;
-
-        var workflowTaskContext = new WorkflowTaskContext
-        {
-            WorkflowId = WorkflowId,
-            TaskGuid = Guid.NewGuid()
-        };
-
-        var taskActivity = new SigningTaskActivity(_taskService, _historyService, workflowTaskContext)
-        {
-            TaskData = taskData
-        };
-
+        int? dueDays = WorkflowContext.GetTaskDueDays();
+        DateTime? dueDate = dueDays.HasValue ? DateTime.UtcNow.AddDays(dueDays.Value) : null;
+        
+        WorkflowTaskContext taskContext = WorkflowTaskContextFactory.CreateNew(
+            phaseId : null,
+            assignedTo: PrincipalId.Parse(signerSids.FirstOrDefault()),
+            assignedBy: WorkflowContext.GetInitiatorId(),
+            WorkflowContext.GetTaskDescription(),
+            dueDate);
+        
+        var taskActivity = new SigningTaskActivity(_taskService, _historyService, taskContext, WorkflowContext);
         await taskActivity.ExecuteAsync(cancellationToken);
+
+        _logger.LogSigningTaskCreated(WorkflowDefinition, WorkflowId, AssociationName);
     }
 
     private void OnSigningTaskCompleted()

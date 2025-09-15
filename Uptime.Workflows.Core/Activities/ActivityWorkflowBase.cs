@@ -41,7 +41,15 @@ public abstract class ActivityWorkflowBase<TContext>(
 
         try
         {
-            await OnTaskAlteredAsync(payload, cancellationToken);
+            WorkflowTaskContext context = WorkflowTaskContextFactory.FromDatabase(
+                phaseId: payload.PhaseId,
+                taskGuid: payload.TaskGuid,
+                assignedTo: payload.AssignedTo,
+                assignedBy: payload.AssignedTo,
+                dueDate: null,
+                storageJson: payload.StorageJson);
+
+            await OnTaskAlteredAsync(context, payload.ExecutedBy, payload.InputData, cancellationToken);
             await SaveWorkflowStateAsync(cancellationToken);
         }
         catch (Exception ex)
@@ -53,10 +61,8 @@ public abstract class ActivityWorkflowBase<TContext>(
         return Result<Unit>.Success(new Unit());
     }
     
-    protected virtual Task OnTaskAlteredAsync(AlterTaskPayload payload, CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
-    }
+    protected abstract Task OnTaskAlteredAsync(IWorkflowTaskContext taskContext, Principal executedBy,
+        Dictionary<string, string?> inputData, CancellationToken cancellationToken);
 
     protected override async Task OnWorkflowActivatedAsync(CancellationToken cancellationToken)
     {

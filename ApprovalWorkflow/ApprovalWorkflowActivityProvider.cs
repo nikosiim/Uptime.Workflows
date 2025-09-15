@@ -1,31 +1,24 @@
 ﻿using SigningWorkflow;
 using Uptime.Workflows.Core;
-using Uptime.Workflows.Core.Extensions;
+using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Services;
-using static ApprovalWorkflow.Constants;
 
 namespace ApprovalWorkflow;
 
-public class ApprovalWorkflowActivityProvider(ITaskService taskService, IHistoryService historyService) 
+public class ApprovalWorkflowActivityProvider(ITaskService taskService, IHistoryService historyService, IPrincipalResolver principalResolver, IWorkflowContext workflowContext) 
     : ReplicatorActivityProvider
 {
-    public override IWorkflowActivity CreateActivity(WorkflowTaskContext context, object data)
+    public override IWorkflowActivity CreateActivity(IWorkflowTaskContext taskContext)
     {
-        if (context.PhaseId == ExtendedState.Signing.Value)
+        if (taskContext.PhaseId == ExtendedState.Signing.Value)
         {
-            return new SigningTaskActivity(taskService, historyService, context)
-            {
-                TaskData = data.DeserializeTaskData<UserTaskActivityData>()
-            };
+            return new SigningTaskActivity(taskService, historyService, taskContext, workflowContext);
         }
 
-        return new ApprovalTaskActivity(taskService, historyService, context)
-        {
-            TaskData = data.DeserializeTaskData<ApprovalTaskData>()
-        };
+        return new ApprovalTaskActivity(taskService, historyService, principalResolver, taskContext, workflowContext);
     }
 
-    public override void OnChildInitialized(string phaseId, object data, IWorkflowActivity activity)
+    public override void OnChildInitialized(string phaseId, IWorkflowTaskContext context, IWorkflowActivity activity)
     {
         if (phaseId == ExtendedState.Approval.Value)
         {
@@ -37,7 +30,7 @@ public class ApprovalWorkflowActivityProvider(ITaskService taskService, IHistory
         }
     }
 
-    public override void OnChildCompleted<TContext>(string phaseId, UserTaskActivity activity, TContext workflowContext)
+    public override void OnChildCompleted(string phaseId, IUserTaskActivity activity)
     {
         if (phaseId == ExtendedState.Approval.Value)
         {
@@ -53,13 +46,15 @@ public class ApprovalWorkflowActivityProvider(ITaskService taskService, IHistory
     {
         if (workflowContext is ApprovalWorkflowContext approvalContext)
         {
-            if (activity.IsTaskDelegated)
+            if (activity.TaskDelegatedToPrincipal != null)
             {
-                string assignedTo = activity.Context.Storage.GetValueOrDefault(TaskStorageKeys.TaskDelegatedToSid)!;
-                ApprovalTaskData data = ApprovalTaskData.Copy(activity.TaskData!, assignedTo);
+                //ApprovalTaskData data = ApprovalTaskData.Copy(activity.TaskData!, assignedTo); // TODO: figure out how to copy without taskData object
 
+                string phaseId = ExtendedState.Approval.Value;
                 Guid existingTaskGuid = activity.Context.TaskGuid;
-                approvalContext.ReplicatorStates.InsertItemAfter(ExtendedState.Approval.Value, existingTaskGuid, new ReplicatorItem(Guid.NewGuid(), data));
+                var replicatorItem = new ReplicatorItem(Guid.NewGuid(), activity.Context);
+
+                approvalContext.ReplicatorStates.InsertItemAfter(phaseId, existingTaskGuid, replicatorItem);
             }
             else if (activity.IsTaskRejected)
             {

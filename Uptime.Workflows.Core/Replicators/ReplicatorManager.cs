@@ -1,9 +1,8 @@
-﻿using Uptime.Workflows.Core.Common;
-using Uptime.Workflows.Core.Enums;
+﻿using Uptime.Workflows.Core.Enums;
 
 namespace Uptime.Workflows.Core;
 
-public class ReplicatorManager(WorkflowId workflowId, IReplicatorActivityProvider activityProvider, IWorkflowMachine workflowMachine)
+public class ReplicatorManager(IReplicatorActivityProvider activityProvider, IWorkflowMachine workflowMachine)
 {
     private readonly Dictionary<string, Replicator> _replicators = new();
 
@@ -25,7 +24,7 @@ public class ReplicatorManager(WorkflowId workflowId, IReplicatorActivityProvide
                 Type = state.ReplicatorType,
                 Items = activeItems,
                 ChildActivity = CreateChildActivity,
-                OnChildInitialized = (data, activity) => activityProvider.OnChildInitialized(phaseId, data, activity),
+                OnChildInitialized = (workflowTaskContext, activity) => activityProvider.OnChildInitialized(phaseId, workflowTaskContext, activity),
                 OnAllTasksCompleted = () => workflowMachine.TriggerTransitionAsync(WorkflowTrigger.AllTasksCompleted, cancellationToken)
             };
 
@@ -33,13 +32,7 @@ public class ReplicatorManager(WorkflowId workflowId, IReplicatorActivityProvide
             continue;
 
             // Local factory method keeps lambdas short & readable
-            IWorkflowActivity CreateChildActivity(ReplicatorItem item) =>
-                activityProvider.CreateActivity(new WorkflowTaskContext
-                {
-                    WorkflowId = workflowId,
-                    TaskGuid = item.TaskGuid,
-                    PhaseId = phaseId
-                }, item.Data);
+            IWorkflowActivity CreateChildActivity(ReplicatorItem item) => activityProvider.CreateActivity(item.TaskContext);
         }
     }
 

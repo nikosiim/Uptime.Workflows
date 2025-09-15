@@ -11,14 +11,8 @@ public static class Constants
         public const string Cancellation = "Cancellation";
     }
 
-    // TODO: redesign so all to be similar
     public static class TaskStorageKeys
     {
-        public const string AssociationName = "AssociationName";
-        public const string TaskComment = "TaskComment";
         public const string TaskDelegatedToSid = "TaskDelegatedToSid";
-        public const string TaskOutcome = "TaskOutcome";
-        public const string TaskResult = "TaskResult";
-        public const string TaskTitle = "TaskTitle";
     }
 }

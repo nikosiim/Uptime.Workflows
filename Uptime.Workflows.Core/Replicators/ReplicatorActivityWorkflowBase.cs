@@ -44,8 +44,8 @@ namespace Uptime.Workflows.Core;
 /// </para>
 /// </summary>
 public abstract class ReplicatorActivityWorkflowBase<TContext>(
-    IWorkflowService workflowService, 
-    ITaskService taskService, 
+    IWorkflowService workflowService,
+    ITaskService taskService,
     IHistoryService historyService,
     ILogger<WorkflowBase<TContext>> logger)
     : ActivityWorkflowBase<TContext>(workflowService, taskService, historyService, logger)
@@ -55,19 +55,19 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
     private readonly ILogger<WorkflowBase<TContext>> _logger = logger;
 
     protected abstract IReplicatorActivityProvider ActivityProvider { get; }
-    
+
     protected override Task OnWorkflowActivatedAsync(CancellationToken cancellationToken)
     {
         IReplicatorPhaseBuilder builder = CreateReplicatorPhaseBuilder();
         List<ReplicatorPhase> replicatorPhases = builder.BuildPhases(WorkflowContext);
-        
+
         // Convert phases into replicator states and store them in the workflow context.
         WorkflowContext.ReplicatorStates = replicatorPhases.ToDictionary(
             phase => phase.PhaseName,
             phase => new ReplicatorState
             {
                 ReplicatorType = phase.Type,
-                Items = phase.TaskData.Select(data => new ReplicatorItem(Guid.NewGuid(), data) ).ToList()
+                Items = phase.TaskContext.Select(data => new ReplicatorItem(Guid.NewGuid(), data)).ToList()
             }
         );
 
@@ -100,32 +100,28 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
         return modificationContext;
     }
     
-    protected override async Task OnTaskAlteredAsync(AlterTaskPayload payload, CancellationToken cancellationToken)
+    protected override async Task OnTaskAlteredAsync(IWorkflowTaskContext taskContext, Principal executedBy, Dictionary<string, string?> inputData, CancellationToken cancellationToken)
     {
-        WorkflowTaskContext context = payload.Context;
-
-        if (CreateChildActivity(context) is not { } taskActivity)
-        {
-            throw new InvalidOperationException($"Task {context.TaskId} is not a user-interrupting activity.");
-        }
+        if (CreateChildActivity(taskContext) is not { } taskActivity)
+            throw new InvalidOperationException("Current task is not a user-interrupting activity.");
 
         if (!taskActivity.IsCompleted)
         {
-            await taskActivity.ChangedTaskAsync(payload.ExecutedByPrincipalId, payload.InputData, cancellationToken);
+            await taskActivity.ChangedTaskAsync(executedBy, inputData, cancellationToken);
             
-            string? phase = WorkflowContext.ReplicatorStates.FindPhase(context.TaskGuid);
+            string? phase = WorkflowContext.ReplicatorStates.FindPhase(taskContext.TaskGuid);
 
             if (taskActivity.IsCompleted && !string.IsNullOrWhiteSpace(phase))
             {
-                ActivityProvider.OnChildCompleted(phase, taskActivity, WorkflowContext);
+                ActivityProvider.OnChildCompleted(phase, taskActivity);
 
-                UpdateWorkflowContextReplicatorState(context.TaskGuid, ReplicatorItemStatus.Completed);
+                UpdateWorkflowContextReplicatorState(taskContext.TaskGuid, ReplicatorItemStatus.Completed);
 
                 await RunReplicatorAsync(phase, cancellationToken);
             }
         }
     }
-    
+
     /// <summary>
     /// Creates the phase builder used by this workflow to describe its replicator phases.
     /// <para>
@@ -149,17 +145,17 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
         return new ReplicatorPhaseBuilder(replicatorPhaseConfiguration);
     }
 
-    protected virtual UserTaskActivity? CreateChildActivity(WorkflowTaskContext context)
+    protected virtual UserTaskActivity? CreateChildActivity(IWorkflowTaskContext context)
     {
         ReplicatorItem? item = WorkflowContext.ReplicatorStates.FindReplicatorItem(context.TaskGuid);
         if (item != null)
         {
-            return ActivityProvider.CreateActivity(context, item.Data) as UserTaskActivity;
+            return ActivityProvider.CreateActivity(context) as UserTaskActivity;
         }
 
         return null;
     }
-    
+
     protected virtual void UpdateWorkflowContextReplicatorState(Guid taskGuid, ReplicatorItemStatus status)
     {
         ReplicatorItem? item = WorkflowContext.ReplicatorStates.FindReplicatorItem(taskGuid);
@@ -174,12 +170,12 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
         InitializeReplicatorManagerAsync(cancellationToken);
         await _replicatorManager!.RunReplicatorAsync(phaseName, cancellationToken);
     }
-    
+
     private void InitializeReplicatorManagerAsync(CancellationToken cancellationToken)
     {
         if (_replicatorManager == null)
         {
-            _replicatorManager = new ReplicatorManager(WorkflowId, ActivityProvider, this);
+            _replicatorManager = new ReplicatorManager(ActivityProvider, this);
             _replicatorManager.LoadReplicatorsAsync(WorkflowContext.ReplicatorStates, cancellationToken);
         }
     }

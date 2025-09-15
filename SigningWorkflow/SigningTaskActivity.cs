@@ -1,35 +1,30 @@
 ﻿using Uptime.Workflows.Core;
-using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Extensions;
+using Uptime.Workflows.Core.Models;
 using Uptime.Workflows.Core.Services;
-using static SigningWorkflow.Constants;
+using static Uptime.Workflows.Core.TaskInputPayloadExtensions;
 
 namespace SigningWorkflow;
 
-public class SigningTaskActivity(ITaskService taskService, IHistoryService historyService, WorkflowTaskContext context)
-    : UserTaskActivity(taskService, historyService, context)
+public class SigningTaskActivity(ITaskService taskService, IHistoryService historyService, IWorkflowTaskContext taskContext, IWorkflowContext workflowContext)
+    : UserTaskActivity(taskService, historyService, taskContext, workflowContext)
 {
-    private readonly IHistoryService _historyService = historyService;
-    private string? AssociationName => Context.Storage.GetValueOrDefault(TaskStorageKeys.AssociationName); // TODO: check what setting of AssociationName
-
     public bool IsTaskRejected { get; private set; }
 
     protected override void OnExecuteTask()
     {
-        if (TaskData is null) return;
+        Context.SetTaskTitle("Allkirjastamine");
+        Context.SetTaskOutcome("Ootel");
 
-        Context.Storage.SetValue(TaskStorageKeys.TaskTitle, "Allkirjastamine");
-        Context.Storage.SetValue(TaskStorageKeys.TaskOutcome, "Ootel");
-
-        TaskCreatedHistoryDescription = $"Tööülesanne {AssociationName} on loodud kasutajale {TaskData.AssignedToPrincipalId}";
+        TaskCreatedHistoryDescription = $"Tööülesanne {AssociationName} on loodud kasutajale {Context.AssignedToPrincipalId}";
     }
     
-    protected override async Task OnTaskChangedAsync(PrincipalId executorId, Dictionary<string, string?> payload, CancellationToken cancellationToken)
+    protected override async Task OnTaskChangedAsync(Principal executedBy, Dictionary<string, string?> payload, CancellationToken ct)
     {
-        string? comment = payload.GetValue(TaskStorageKeys.TaskComment);
+        string? comment = payload.GetTaskComment();
         
-        if (payload.TryGetValueAsEnum(TaskStorageKeys.TaskResult, out WorkflowEventType workflowEvent))
+        if (payload.TryGetValueAsEnum(TaskInputKeys.TaskResult, out WorkflowEventType workflowEvent))
         {
             string outcome;
             string description;
@@ -39,22 +34,23 @@ public class SigningTaskActivity(ITaskService taskService, IHistoryService histo
                 case WorkflowEventType.TaskRejected:
                     IsTaskRejected = true;
                     outcome = "Tagasilükatud";
-                    description = $"Kasutaja {TaskData?.AssignedToPrincipalId} on tööülesande {AssociationName} tagasilükanud.";
+                    description = $"Kasutaja {executedBy.Id} on tööülesande {AssociationName} tagasi lükanud.";
                     break;
                 case WorkflowEventType.TaskCompleted:
                     outcome = "Allkirjastatud";
-                    description = $"Kasutajale {TaskData?.AssignedToPrincipalId} määratud tööülesanne on edukalt lõpetatud.";
+                    description = $"Kasutajale {Context.AssignedToPrincipalId} määratud tööülesanne on edukalt lõpetatud.";
                     break;
                 default:
                     return;
             }
             
             IsCompleted = true;
-            Context.TaskStatus = WorkflowTaskStatus.Completed;
-            Context.Storage.SetValue(TaskStorageKeys.TaskComment, comment);
-            Context.Storage.SetValue(TaskStorageKeys.TaskOutcome, outcome);
+
+            Context.SetTaskStatus(WorkflowTaskStatus.Completed);
+            Context.SetTaskComment(comment);
+            Context.SetTaskOutcome(outcome);
             
-            await _historyService.CreateAsync(Context.WorkflowId, workflowEvent, executorId, description:description, comment:comment, cancellationToken);
+            await HistoryService.CreateAsync(WorkflowId, workflowEvent, executedBy.Id, description:description, comment:comment, ct);
         }
     }
 }

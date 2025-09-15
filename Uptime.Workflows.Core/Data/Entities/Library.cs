@@ -2,7 +2,7 @@
 
 namespace Uptime.Workflows.Core.Data;
 
-public class Library : BaseEntity
+public sealed class Library : BaseEntity
 {
     [StringLength(128)]
     public required string Name { get; set; }
@@ -10,6 +10,6 @@ public class Library : BaseEntity
     public bool IsDeleted { get; set; }
 
     // Navigation properties
-    public virtual ICollection<Document>? Documents { get; set; }
-    public virtual ICollection<WorkflowTemplate>? WorkflowTemplates { get; set; }
+    public ICollection<Document>? Documents { get; set; }
+    public ICollection<WorkflowTemplate>? WorkflowTemplates { get; set; }
 }

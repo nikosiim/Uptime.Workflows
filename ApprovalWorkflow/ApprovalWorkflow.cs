@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
-using Uptime.Workflows.Core.Extensions;
 using Uptime.Workflows.Core.Models;
 using Uptime.Workflows.Core.Services;
 
@@ -15,15 +13,15 @@ public class ApprovalWorkflow(
     IHistoryService historyService,
     IPrincipalResolver principalResolver,
     ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
-    : ReplicatorActivityWorkflowBase<ApprovalWorkflowContext>(workflowService, taskService, historyService, principalResolver, logger)
+    : ReplicatorActivityWorkflowBase<ApprovalWorkflowContext>(workflowService, taskService, historyService, logger)
 {
     private readonly ITaskService _taskService = taskService;
     private readonly IHistoryService _historyService = historyService;
-    private readonly IPrincipalResolver _principalResolver = principalResolver;
 
     protected override IWorkflowDefinition WorkflowDefinition => new ApprovalWorkflowDefinition();
     
-    protected override IReplicatorActivityProvider ActivityProvider => new ApprovalWorkflowActivityProvider(_taskService, _historyService);
+    protected override IReplicatorActivityProvider ActivityProvider 
+        => new ApprovalWorkflowActivityProvider(_taskService, _historyService, principalResolver, WorkflowContext);
 
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {
@@ -44,12 +42,12 @@ public class ApprovalWorkflow(
             .OnEntryAsync(() => RunReplicatorAsync(ExtendedState.Signing.Value, cancellationToken))
             .Permit(WorkflowTrigger.AllTasksCompleted, BaseState.Completed);
     }
-
+    
     protected override async Task OnWorkflowActivatedAsync(CancellationToken cancellationToken)
     {
-        WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
-
         await base.OnWorkflowActivatedAsync(cancellationToken);
+        
+        WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
     }
 
     protected override async Task PrepareInputDataAsync(CancellationToken cancellationToken)
@@ -58,14 +56,14 @@ public class ApprovalWorkflow(
             ctx => ctx.GetTaskApproverSids(),
             (ctx, ids) => ctx.SetTaskApproverPrincipalIds(ids),
             WorkflowContext,
-            _principalResolver,
+            principalResolver,
             cancellationToken);
 
         await WorkflowInputPreparerBase.ResolveAndStorePrincipalIdsAsync(
             ctx => ctx.GetTaskSignerSids(),
             (ctx, ids) => ctx.SetTaskSignersPrincipalIds(ids),
             WorkflowContext,
-            _principalResolver,
+            principalResolver,
             cancellationToken);
     }
     
@@ -77,18 +75,17 @@ public class ApprovalWorkflow(
             {
                 ActivityData = ctx =>
                 {
-                    List<string> executorIds = ctx.GetTaskApproverPrincipalIds();
-                    string? taskDescription = ctx.GetTaskApproverDescription();
-                    DateTime dueDate = ctx.GetTaskDueDate();
-                    PrincipalId initiatorId = ctx.GetInitiatorId();
+                    List<string> approverIds = ctx.GetTaskApproverPrincipalIds();
 
-                    return executorIds.Select(id => new ApprovalTaskData
-                    {
-                        AssignedByPrincipalId = initiatorId,
-                        AssignedToPrincipalId = PrincipalId.Parse(id),
-                        TaskDescription = taskDescription,
-                        DueDate = dueDate
-                    });
+                    return approverIds.Select(object (id) =>
+                        WorkflowTaskContextFactory.CreateNew(
+                            phaseId: ExtendedState.Approval.Value,
+                            assignedTo: PrincipalId.Parse(id),
+                            assignedBy: ctx.GetInitiatorId(),
+                            description: ctx.GetTaskApproverDescription(),
+                            dueDate: ctx.GetTaskDueDate()
+                        )
+                    );
                 },
                 ReplicatorType = ctx =>
                 {
@@ -101,17 +98,16 @@ public class ApprovalWorkflow(
                 ActivityData = ctx =>
                 {
                     List<string> signerIds = ctx.GetTaskSignerPrincipalIds();
-                    string? taskDescription = ctx.GetTaskSignerDescription();
-                    DateTime dueDate = ctx.GetTaskDueDate();
-                    PrincipalId initiatorId = ctx.GetInitiatorId();
 
-                    return signerIds.Select(id => new UserTaskActivityData
-                    {
-                        AssignedByPrincipalId = initiatorId,
-                        AssignedToPrincipalId = PrincipalId.Parse(id),
-                        TaskDescription = taskDescription,
-                        DueDate = dueDate
-                    });
+                    return signerIds.Select(object (id) =>
+                        WorkflowTaskContextFactory.CreateNew(
+                            phaseId: ExtendedState.Approval.Value,
+                            assignedTo: PrincipalId.Parse(id),
+                            assignedBy: ctx.GetInitiatorId(),
+                            description: ctx.GetTaskSignerDescription(),
+                            dueDate: ctx.GetTaskDueDate()
+                        )
+                    );
                 },
                 ReplicatorType = _ => ReplicatorType.Sequential
             }
@@ -124,6 +120,7 @@ public class ApprovalWorkflow(
     {
         base.OnWorkflowModification();
 
+        /*
         ReplicatorState replicatorState = WorkflowContext.ReplicatorStates[Machine.State.Value];
 
         List<ReplicatorItem> activeItems = replicatorState.Items
@@ -135,16 +132,21 @@ public class ApprovalWorkflow(
             ApprovalTasks = activeItems.Select(activeItem
                 => new ApprovalTask
                 {
-                    AssignedToPrincipalId = activeItem.Data.DeserializeTaskData<ApprovalTaskData>().AssignedToPrincipalId,
+                    AssignedToPrincipalId = activeItem.TaskContext.DeserializeTaskData<ApprovalTaskData>().AssignedToPrincipalId,
                     TaskGuid = activeItem.TaskGuid.ToString()
                 }).ToList()
         };
 
-        return JsonSerializer.Serialize(context);
+           return JsonSerializer.Serialize(context);
+        */
+        
+        // TODO: fix
+        return string.Empty;
     }
 
     protected override Task<bool> OnWorkflowModifiedAsync(ModificationPayload payload, CancellationToken cancellationToken)
     {
+        /*
         if (!WorkflowContext.ReplicatorStates.TryGetValue(Machine.State.Value, out ReplicatorState? replicatorState))
             return Task.FromResult(false);
 
@@ -159,7 +161,7 @@ public class ApprovalWorkflow(
         if (context == null)
             return Task.FromResult(true);
 
-        ApprovalTaskData currentTaskData = inProgressItem.Data.DeserializeTaskData<ApprovalTaskData>();
+        ApprovalTaskData currentTaskData = inProgressItem.TaskContext.DeserializeTaskData<ApprovalTaskData>();
 
         replicatorState.Items.RemoveAll(item => item.Status == ReplicatorItemStatus.NotStarted);
 
@@ -177,6 +179,9 @@ public class ApprovalWorkflow(
 
             replicatorState.Items.Add(new ReplicatorItem(taskGuid, data));
         }
+        */
+
+        // TODO: fix
 
         return Task.FromResult(true);
     }

@@ -2,7 +2,7 @@
 
 public interface IReplicatorActivityProvider
 {
-    IWorkflowActivity CreateActivity(WorkflowTaskContext context, object data);
-    void OnChildInitialized(string phaseId, object data, IWorkflowActivity activity);
-    void OnChildCompleted<TContext>(string phaseId, UserTaskActivity activity, TContext workflowContext);
+    IWorkflowActivity CreateActivity(IWorkflowTaskContext taskContext);
+    void OnChildInitialized(string phaseId, IWorkflowTaskContext taskContext, IWorkflowActivity activity);
+    void OnChildCompleted(string phaseId, IUserTaskActivity activity);
 }

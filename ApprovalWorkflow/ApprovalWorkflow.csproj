@@ -6,6 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="ApprovalTaskData.cs" />
+  </ItemGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\SigningWorkflow\SigningWorkflow.csproj" />
 		<ProjectReference Include="..\Uptime.Workflows.Core\Uptime.Workflows.Core.csproj" />

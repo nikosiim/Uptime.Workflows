@@ -2,7 +2,7 @@
 
 namespace Uptime.Workflows.Core;
 
-public record UserTaskActivityData : IUserTaskActivityData
+public class UserTaskActivityData : IUserTaskActivityData
 {
     public required PrincipalId AssignedToPrincipalId { get; init; }
     public required PrincipalId AssignedByPrincipalId { get; init; }
