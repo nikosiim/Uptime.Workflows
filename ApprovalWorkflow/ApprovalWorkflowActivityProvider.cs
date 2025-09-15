@@ -1,6 +1,7 @@
 ﻿using SigningWorkflow;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Models;
 using Uptime.Workflows.Core.Services;
 
 namespace ApprovalWorkflow;
@@ -30,29 +31,35 @@ public class ApprovalWorkflowActivityProvider(ITaskService taskService, IHistory
         }
     }
 
-    public override void OnChildCompleted(string phaseId, IUserTaskActivity activity)
+    public override void OnChildCompleted(string phaseId, IUserTaskActivity activity, Principal executedBy)
     {
         if (phaseId == ExtendedState.Approval.Value)
         {
-            HandleApprovalPhaseChildCompleted((ApprovalTaskActivity)activity, workflowContext);
+            HandleApprovalPhaseChildCompleted((ApprovalTaskActivity)activity, workflowContext, executedBy);
         }
         else if (phaseId == ExtendedState.Signing.Value)
         {
-            HandleSigningPhaseChildCompleted((SigningTaskActivity)activity, workflowContext);
+            HandleSigningPhaseChildCompleted((SigningTaskActivity)activity, workflowContext, executedBy);
         }
     }
 
-    private static void HandleApprovalPhaseChildCompleted<TContext>(ApprovalTaskActivity activity, TContext workflowContext)
+    private static void HandleApprovalPhaseChildCompleted<TContext>(ApprovalTaskActivity activity, TContext workflowContext, Principal executedBy)
     {
         if (workflowContext is ApprovalWorkflowContext approvalContext)
         {
             if (activity.TaskDelegatedToPrincipal != null)
             {
-                //ApprovalTaskData data = ApprovalTaskData.Copy(activity.TaskData!, assignedTo); // TODO: figure out how to copy without taskData object
-
                 string phaseId = ExtendedState.Approval.Value;
                 Guid existingTaskGuid = activity.Context.TaskGuid;
-                var replicatorItem = new ReplicatorItem(Guid.NewGuid(), activity.Context);
+
+                WorkflowTaskContext newContext = WorkflowTaskContextFactory.CreateNew(
+                    phaseId: phaseId,
+                    assignedTo: activity.TaskDelegatedToPrincipal.Id,
+                    assignedBy: executedBy.Id,
+                    description: activity.Context.GetTaskDescription(),
+                    dueDate: activity.Context.DueDate);
+                
+                var replicatorItem = new ReplicatorItem(Guid.NewGuid(), newContext);
 
                 approvalContext.ReplicatorStates.InsertItemAfter(phaseId, existingTaskGuid, replicatorItem);
             }

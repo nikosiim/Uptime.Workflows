@@ -113,7 +113,7 @@ public abstract class ReplicatorActivityWorkflowBase<TContext>(
 
             if (taskActivity.IsCompleted && !string.IsNullOrWhiteSpace(phase))
             {
-                ActivityProvider.OnChildCompleted(phase, taskActivity);
+                ActivityProvider.OnChildCompleted(phase, taskActivity, executedBy);
 
                 UpdateWorkflowContextReplicatorState(taskContext.TaskGuid, ReplicatorItemStatus.Completed);
 

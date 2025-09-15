@@ -45,7 +45,7 @@ public class SigningWorkflow(
 
     protected override async Task PrepareInputDataAsync(CancellationToken cancellationToken)
     {
-        await WorkflowInputPreparerBase.ResolveAndStorePrincipalIdsAsync(
+        await WorkflowPrincipalResolver.ResolveAndStorePrincipalIdsAsync(
             ctx => ctx.GetTaskSids(),
             (ctx, ids) => ctx.SetTaskPrincipalIds(ids),
             WorkflowContext,

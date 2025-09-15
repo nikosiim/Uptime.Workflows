@@ -3,8 +3,18 @@ using Uptime.Workflows.Core.Models;
 
 namespace Uptime.Workflows.Core;
 
-public static class WorkflowInputPreparerBase
+public static class WorkflowPrincipalResolver
 {
+    public static async Task<Principal> ResolvePrincipalBySidAsync(IPrincipalResolver resolver, string? sid, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(sid))
+            throw new WorkflowValidationException(ErrorCode.NotFound, "SID not provided");
+
+        Principal? principal = await resolver.ResolveBySidAsync(sid, ct);
+
+        return principal ?? throw new WorkflowValidationException(ErrorCode.NotFound, $"Not found for SID: {sid}");
+    }
+
     public static async Task ResolveAndStorePrincipalIdsAsync(
         Func<IWorkflowContext, List<string>> getSids,
         Action<IWorkflowContext, IEnumerable<string>> setPrincipalIds,

@@ -52,14 +52,14 @@ public class ApprovalWorkflow(
 
     protected override async Task PrepareInputDataAsync(CancellationToken cancellationToken)
     {
-        await WorkflowInputPreparerBase.ResolveAndStorePrincipalIdsAsync(
+        await WorkflowPrincipalResolver.ResolveAndStorePrincipalIdsAsync(
             ctx => ctx.GetTaskApproverSids(),
             (ctx, ids) => ctx.SetTaskApproverPrincipalIds(ids),
             WorkflowContext,
             principalResolver,
             cancellationToken);
 
-        await WorkflowInputPreparerBase.ResolveAndStorePrincipalIdsAsync(
+        await WorkflowPrincipalResolver.ResolveAndStorePrincipalIdsAsync(
             ctx => ctx.GetTaskSignerSids(),
             (ctx, ids) => ctx.SetTaskSignersPrincipalIds(ids),
             WorkflowContext,
