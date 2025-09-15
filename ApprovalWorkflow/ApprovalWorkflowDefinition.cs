@@ -1,4 +1,5 @@
 ﻿using Uptime.Workflows.Core;
+using Uptime.Workflows.Core.Interfaces;
 using static ApprovalWorkflow.Constants;
 
 namespace ApprovalWorkflow;

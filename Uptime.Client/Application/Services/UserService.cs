@@ -1,5 +1,6 @@
 ﻿namespace Uptime.Client.Application.Services;
 
+// TODO: refacto to use SID
 public record User(string Name, string Email, bool IsAdmin)
 {
     public static User Default => new("John Doe", "", false);

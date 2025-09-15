@@ -25,7 +25,7 @@ public class GetWorkflowDetailsQueryHandler(WorkflowDbContext db)
                 Phase = w.Phase,
                 StartDate = w.StartDate,
                 EndDate = w.EndDate,
-                Originator = w.Originator,
+                Originator = w.InitiatedByPrincipal.Name,
                 DocumentId = w.DocumentId,
                 Document = w.Document.Title,
                 WorkflowBaseId = w.WorkflowTemplate.WorkflowBaseId

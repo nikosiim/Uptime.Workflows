@@ -8,7 +8,6 @@ using Uptime.Workflows.Application.DTOs;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
-using Uptime.Workflows.Core.Models;
 
 namespace Uptime.Workflows.Api;
 
@@ -138,15 +137,6 @@ public static class Mapper
                 }).ToList()
         }).ToList();
     }
-    
-    public static ModificationPayload MapToModificationPayload(ModifyWorkflowRequest source)
-    {
-        return new ModificationPayload
-        {
-            Executor = source.Executor,
-            ModificationContext = source.ModificationContext
-        };
-    }
 
     #endregion
 
@@ -221,7 +211,7 @@ public static class Mapper
             WorkflowId = dto.WorkflowId,
             Occurred = dto.Occurred,
             Description = dto.Description,
-            User = dto.PerformedBy,
+            User = dto.ExecutedBy,
             Comment = dto.Comment,
             Event = dto.Event.ToString()
         }).ToList();

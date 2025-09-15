@@ -14,13 +14,9 @@ public class ModifyWorkflowCommandHandler(IApiService apiService, IState<Workflo
 {
     public async Task<Result<bool>> Handle(ModifyWorkflowCommand request, CancellationToken cancellationToken)
     {
-        string executor  = User.GetNameOrSystemAccount(workflowState.Value.CurrentUser);
+        string executorSid  = User.GetNameOrSystemAccount(workflowState.Value.CurrentUser);
 
-        var payload = new ModifyWorkflowRequest
-        {
-            Executor = executor,
-            ModificationContext = request.ModificationContext
-        };
+        var payload = new ModifyWorkflowRequest(executorSid, request.ModificationContext);
 
         string url = ApiRoutes.Workflows.ModifyWorkflow .Replace("{workflowId}", request.WorkflowId.ToString());
         return await apiService.PostAsJsonAsync(url, payload, cancellationToken);

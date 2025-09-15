@@ -1,4 +1,4 @@
-﻿namespace Uptime.Workflows.Core;
+﻿namespace Uptime.Workflows.Core.Interfaces;
 
 /// <summary>
 /// Interface for a builder that constructs all replicator phases (and their tasks) for a given workflow instance.

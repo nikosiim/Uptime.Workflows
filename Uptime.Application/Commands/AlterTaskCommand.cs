@@ -54,6 +54,7 @@ public sealed class AlterTaskCommandHandler(WorkflowDbContext db, IWorkflowFacto
             TaskGuid = task.TaskGuid,
             AssignedTo = (PrincipalId)task.AssignedToPrincipalId,
             DueDate = task.DueDate,
+            Description = task.Description,
             StorageJson = task.StorageJson,
             InputData = request.Payload
         };

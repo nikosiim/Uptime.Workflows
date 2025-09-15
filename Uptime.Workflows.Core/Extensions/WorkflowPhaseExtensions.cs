@@ -1,6 +1,6 @@
 ﻿using Uptime.Workflows.Core.Common;
 
-namespace Uptime.Workflows.Core;
+namespace Uptime.Workflows.Core.Extensions;
 
 public static class WorkflowPhaseExtensions
 {
@@ -11,6 +11,6 @@ public static class WorkflowPhaseExtensions
     /// <returns><c>true</c> if the phase is Completed, Cancelled; otherwise, <c>false</c>.</returns>
     public static bool IsFinal(this BaseState phase)
     {
-        return phase == BaseState.Completed || phase ==  BaseState.Cancelled;
+        return phase.Equals(BaseState.Completed) || phase.Equals(BaseState.Cancelled);
     }
 }

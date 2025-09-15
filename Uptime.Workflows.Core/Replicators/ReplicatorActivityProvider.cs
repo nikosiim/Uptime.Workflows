@@ -1,4 +1,5 @@
-﻿using Uptime.Workflows.Core.Models;
+﻿using Uptime.Workflows.Core.Interfaces;
+using Uptime.Workflows.Core.Models;
 
 namespace Uptime.Workflows.Core;
 

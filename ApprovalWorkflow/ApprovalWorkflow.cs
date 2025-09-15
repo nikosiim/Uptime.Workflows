@@ -2,18 +2,19 @@
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
+using Uptime.Workflows.Core.Extensions;
+using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
-using Uptime.Workflows.Core.Services;
 
 namespace ApprovalWorkflow;
 
-public class ApprovalWorkflow(
+public sealed class ApprovalWorkflow(
     IWorkflowService workflowService,
     ITaskService taskService,
     IHistoryService historyService,
     IPrincipalResolver principalResolver,
     ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
-    : ReplicatorActivityWorkflowBase<ApprovalWorkflowContext>(workflowService, taskService, historyService, logger)
+    : ReplicatorWorkflowBase<ApprovalWorkflowContext>(workflowService, taskService, historyService, logger)
 {
     private readonly ITaskService _taskService = taskService;
     private readonly IHistoryService _historyService = historyService;
@@ -77,7 +78,7 @@ public class ApprovalWorkflow(
                 {
                     List<string> approverIds = ctx.GetTaskApproverPrincipalIds();
 
-                    return approverIds.Select(object (id) =>
+                    return approverIds.Select(id =>
                         WorkflowTaskContextFactory.CreateNew(
                             phaseId: ExtendedState.Approval.Value,
                             assignedTo: PrincipalId.Parse(id),
@@ -99,7 +100,7 @@ public class ApprovalWorkflow(
                 {
                     List<string> signerIds = ctx.GetTaskSignerPrincipalIds();
 
-                    return signerIds.Select(object (id) =>
+                    return signerIds.Select(id =>
                         WorkflowTaskContextFactory.CreateNew(
                             phaseId: ExtendedState.Approval.Value,
                             assignedTo: PrincipalId.Parse(id),

@@ -2,13 +2,13 @@
 
 namespace Uptime.Workflows.Application.DTOs;
 
-public class WorkflowHistoryDto
+public record WorkflowHistoryDto
 {
-    public int Id { get; set; }
-    public WorkflowEventType Event { get; set; }
-    public string? PerformedBy { get; set; }
-    public string? Comment { get; set; }
-    public DateTime Occurred { get; set; }
-    public string? Description { get; set; }
-    public int WorkflowId { get; set; }
+    public int Id { get; init; }
+    public WorkflowEventType Event { get; init; }
+    public string? ExecutedBy { get; init; }
+    public string? Comment { get; init; }
+    public DateTime Occurred { get; init; }
+    public string? Description { get; init; }
+    public int WorkflowId { get; init; }
 }

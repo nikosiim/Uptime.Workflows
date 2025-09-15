@@ -1,7 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using Uptime.Workflows.Core.Enums;
+using Uptime.Workflows.Core.Extensions;
+using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
-using Uptime.Workflows.Core.Services;
 
 namespace Uptime.Workflows.Core;
 
@@ -43,7 +44,7 @@ namespace Uptime.Workflows.Core;
 /// control phase/task creation, and handle transitions via workflow triggers and the activity provider.
 /// </para>
 /// </summary>
-public abstract class ReplicatorActivityWorkflowBase<TContext>(
+public abstract class ReplicatorWorkflowBase<TContext>(
     IWorkflowService workflowService,
     ITaskService taskService,
     IHistoryService historyService,

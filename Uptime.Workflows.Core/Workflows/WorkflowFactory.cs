@@ -1,16 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
 
 namespace Uptime.Workflows.Core;
-
-public interface IWorkflowFactory
-{
-    IWorkflowMachine? TryGetStateMachine(string workflowBaseId);
-    IWorkflowDefinition? TryGetDefinition(Guid workflowBaseId);
-    Task<Result<Unit>> StartWorkflowAsync(string workflowBaseId, StartWorkflowPayload payload, CancellationToken cancellationToken);
-}
 
 /// <summary>
 /// Centrally resolves <c>IWorkflowMachine</c> instances by their

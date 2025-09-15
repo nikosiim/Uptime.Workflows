@@ -1,7 +1,7 @@
 ﻿using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
 
-namespace Uptime.Workflows.Core.Services;
+namespace Uptime.Workflows.Core.Interfaces;
 
 public interface IHistoryService
 {

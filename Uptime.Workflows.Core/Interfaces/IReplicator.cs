@@ -1,6 +1,6 @@
 ﻿using Uptime.Workflows.Core.Enums;
 
-namespace Uptime.Workflows.Core;
+namespace Uptime.Workflows.Core.Interfaces;
 
 public interface IReplicator
 {

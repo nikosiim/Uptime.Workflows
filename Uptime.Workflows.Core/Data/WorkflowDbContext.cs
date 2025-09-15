@@ -10,6 +10,7 @@ public class WorkflowDbContext(DbContextOptions options) : DbContext(options)
     public DbSet<Library> Libraries { get; set; } = null!;
     public DbSet<WorkflowHistory> WorkflowHistories { get; set; } = null!;
     public DbSet<Workflow> Workflows { get; set; } = null!;
+    public DbSet<WorkflowPrincipal> WorkflowPrincipals { get; set; } = null!;
     public DbSet<WorkflowTemplate> WorkflowTemplates { get; set; } = null!;
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)

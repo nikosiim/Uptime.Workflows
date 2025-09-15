@@ -1,4 +1,5 @@
 ﻿using Uptime.Workflows.Core.Enums;
+using Uptime.Workflows.Core.Interfaces;
 
 namespace Uptime.Workflows.Core
 {
@@ -23,6 +24,6 @@ namespace Uptime.Workflows.Core
     public class ReplicatorPhaseConfiguration
     {
         public required Func<IWorkflowContext, ReplicatorType> ReplicatorType { get; init; }
-        public required Func<IWorkflowContext, IEnumerable<object>> ActivityData { get; init; }
+        public required Func<IWorkflowContext, IEnumerable<IWorkflowTaskContext>> ActivityData { get; init; }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Uptime.Workflows.Core.Common;
 
-namespace Uptime.Workflows.Core.Services;
+namespace Uptime.Workflows.Core.Interfaces;
 
 public interface ITaskService
 {

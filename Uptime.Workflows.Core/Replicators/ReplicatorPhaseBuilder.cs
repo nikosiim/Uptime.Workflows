@@ -1,4 +1,6 @@
-﻿namespace Uptime.Workflows.Core;
+﻿using Uptime.Workflows.Core.Interfaces;
+
+namespace Uptime.Workflows.Core;
 
 /// <summary>
 /// Default implementation of <see cref="IReplicatorPhaseBuilder"/>.

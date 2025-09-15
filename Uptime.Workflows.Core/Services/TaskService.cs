@@ -3,6 +3,8 @@ using System.Text.Json;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Enums;
+using Uptime.Workflows.Core.Extensions;
+using Uptime.Workflows.Core.Interfaces;
 
 namespace Uptime.Workflows.Core.Services;
 
@@ -27,6 +29,7 @@ public class TaskService(IDbContextFactory<WorkflowDbContext> factory) : ITaskSe
             AssignedToPrincipalId = taskContext.AssignedToPrincipalId.Value,
             AssignedByPrincipalId = taskContext.AssignedByPrincipalId.Value,
             DueDate = taskContext.DueDate,
+            Description = taskContext.Description,
             Status = status.ToString(),
             InternalStatus = status,
             PhaseId = taskContext.PhaseId,
@@ -56,6 +59,7 @@ public class TaskService(IDbContextFactory<WorkflowDbContext> factory) : ITaskSe
 
         task.TaskGuid = taskContext.TaskGuid;
         task.DueDate = taskContext.DueDate;
+        task.Description = taskContext.Description;
         task.Status = status.ToString();
         task.InternalStatus = status;
         task.AssignedToPrincipalId = taskContext.AssignedToPrincipalId.Value;

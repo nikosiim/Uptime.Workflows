@@ -1,8 +1,9 @@
 ﻿using SigningWorkflow;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Extensions;
+using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
-using Uptime.Workflows.Core.Services;
 
 namespace ApprovalWorkflow;
 
@@ -39,7 +40,7 @@ public class ApprovalWorkflowActivityProvider(ITaskService taskService, IHistory
         }
         else if (phaseId == ExtendedState.Signing.Value)
         {
-            HandleSigningPhaseChildCompleted((SigningTaskActivity)activity, workflowContext, executedBy);
+            HandleSigningPhaseChildCompleted((SigningTaskActivity)activity, workflowContext);
         }
     }
 
@@ -56,7 +57,7 @@ public class ApprovalWorkflowActivityProvider(ITaskService taskService, IHistory
                     phaseId: phaseId,
                     assignedTo: activity.TaskDelegatedToPrincipal.Id,
                     assignedBy: executedBy.Id,
-                    description: activity.Context.GetTaskDescription(),
+                    description: approvalContext.GetTaskApproverDescription(),
                     dueDate: activity.Context.DueDate);
                 
                 var replicatorItem = new ReplicatorItem(Guid.NewGuid(), newContext);

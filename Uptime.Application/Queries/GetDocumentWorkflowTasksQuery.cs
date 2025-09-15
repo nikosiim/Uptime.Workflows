@@ -16,14 +16,15 @@ public class GetDocumentWorkflowTasksQueryHandler(WorkflowDbContext db)
         if (ct.IsCancellationRequested)
             return Result<List<DocumentWorkflowTaskDto>>.Cancelled();
 
-        List<DocumentWorkflowTaskDto> dtos = await db.Workflows.AsNoTracking()
+        List<DocumentWorkflowTaskDto> dtos = await db.Workflows
+            .AsNoTracking()
             .Where(wi => wi.DocumentId == request.DocumentId.Value)
-            .SelectMany(wi => wi.WorkflowTasks ?? new List<WorkflowTask>())
+            .SelectMany(wi => wi.WorkflowTasks!) 
             .Select(task => new DocumentWorkflowTaskDto
             {
                 TaskId = task.Id,
                 WorkflowId = task.WorkflowId,
-                AssignedTo = task.AssignedTo,
+                AssignedTo = task.AssignedTo.Name, // Not needed include as .Select over navigation properties will handle it.
                 Status = task.Status,
                 WorkflowTaskStatus = task.InternalStatus,
                 TaskDescription = task.Description,

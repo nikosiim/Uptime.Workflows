@@ -8,7 +8,6 @@ using Uptime.Workflows.Application.DTOs;
 using Uptime.Workflows.Application.Queries;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
-using Uptime.Workflows.Core.Models;
 using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.Workflows.Api.Controllers;
@@ -82,9 +81,13 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     [HttpPost("{workflowId:int}/modify-workflow")]
     public async Task<ActionResult> ModifyWorkflow(int workflowId, [FromBody] ModifyWorkflowRequest request, CancellationToken ct)
     {
-        ModificationPayload payload = Mapper.MapToModificationPayload(request);
-
-        var cmd = new ModifyWorkflowCommand((WorkflowId)workflowId, payload);
+        var cmd = new ModifyWorkflowCommand
+        {
+            WorkflowId = (WorkflowId)workflowId,
+            ExecutedBySid = request.ExecutorSid,
+            InputContext = request.ModificationContext
+        };
+        
         Result<Unit> result = await mediator.Send(cmd, ct);
 
         return this.ToActionResult(result);

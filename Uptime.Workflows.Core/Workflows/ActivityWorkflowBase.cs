@@ -1,7 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Extensions;
+using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
-using Uptime.Workflows.Core.Services;
 
 namespace Uptime.Workflows.Core;
 
@@ -47,6 +48,7 @@ public abstract class ActivityWorkflowBase<TContext>(
                 assignedTo: payload.AssignedTo,
                 assignedBy: payload.AssignedTo,
                 dueDate: null,
+                description: payload.Description,
                 storageJson: payload.StorageJson);
 
             await OnTaskAlteredAsync(context, payload.ExecutedBy, payload.InputData, cancellationToken);

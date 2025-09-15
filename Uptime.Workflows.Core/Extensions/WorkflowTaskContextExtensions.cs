@@ -1,8 +1,8 @@
 ﻿using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
-using Uptime.Workflows.Core.Extensions;
+using Uptime.Workflows.Core.Interfaces;
 
-namespace Uptime.Workflows.Core;
+namespace Uptime.Workflows.Core.Extensions;
 
 public static class WorkflowTaskContextExtensions
 {
@@ -13,16 +13,6 @@ public static class WorkflowTaskContextExtensions
 
     public static void SetTaskComment(this IWorkflowTaskContext context, string? comment)
         => context.Storage.SetValue(StorageKeys.TaskComment, comment);
-
-    #endregion
-
-    #region Description
-
-    public static string? GetTaskDescription(this IWorkflowTaskContext context)
-        => context.Storage.GetValue(StorageKeys.TaskDescription);
-
-    public static void SetTaskDescription(this IWorkflowTaskContext context, string? outcome)
-        => context.Storage.SetValue(StorageKeys.TaskDescription, outcome);
 
     #endregion
 
@@ -38,10 +28,6 @@ public static class WorkflowTaskContextExtensions
 
     #region Outcome
 
-    /// <summary>
-    /// Gets the outcome/result string for this task (e.g. "Ootel", "Tagasilükatud", "Allkirjastatud").
-    /// Returns null if not set.
-    /// </summary>
     public static string? GetTaskOutcome(this IWorkflowTaskContext context)
         => context.Storage.GetValue(StorageKeys.TaskOutcome);
 
@@ -73,7 +59,6 @@ public static class WorkflowTaskContextExtensions
     private static class StorageKeys
     {
         public const string TaskComment = "Task.Comment";
-        public const string TaskDescription = "Task.Description";
         public const string TaskId = "Task.Id";
         public const string TaskOutcome = "Task.Outcome";
         public const string TaskStatus = "Task.Status";

@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
+using Uptime.Workflows.Core.Extensions;
 
 namespace Uptime.Workflows.Core;
 
@@ -14,17 +15,17 @@ public static class WorkflowTaskContextFactory
             TaskGuid = Guid.NewGuid(),
             PhaseId = phaseId,
             DueDate = dueDate,
+            Description = description,
             AssignedToPrincipalId = assignedTo,
             AssignedByPrincipalId = assignedBy
         };
 
-        ctx.SetTaskDescription(description);
         ctx.SetTaskStatus(WorkflowTaskStatus.NotStarted);
     
         return ctx;
     }
 
-    public static WorkflowTaskContext FromDatabase(string? phaseId, Guid taskGuid, 
+    public static WorkflowTaskContext FromDatabase(string? phaseId, Guid taskGuid, string? description,
         PrincipalId assignedTo, PrincipalId assignedBy, DateTime? dueDate, string? storageJson)
     {
         return new WorkflowTaskContext
@@ -34,7 +35,10 @@ public static class WorkflowTaskContextFactory
             AssignedToPrincipalId = assignedTo,
             AssignedByPrincipalId = assignedBy,
             DueDate = dueDate,
+            Description = description,
+            #pragma warning disable CS0618
             Storage = JsonSerializer.Deserialize<Dictionary<string, string?>>(storageJson ?? "{}") ?? new Dictionary<string, string?>()
+            #pragma warning restore CS0618
         };
     }
 }

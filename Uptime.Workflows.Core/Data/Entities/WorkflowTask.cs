@@ -6,17 +6,16 @@ namespace Uptime.Workflows.Core.Data;
 public sealed class WorkflowTask : BaseEntity
 {
     public Guid TaskGuid { get; set; }
+    public WorkflowTaskStatus InternalStatus { get; set; }
     /// <summary>
-    /// Readable representation of the status, e.q "NotStarted, Completed, Cancelled".
+    /// Readable representation of the InternalStatus.
     /// </summary>
     [StringLength(32)]
     public string Status { get; set; } = null!;
-    /// <summary>
-    /// Status value enum representation, e.q "1, 2, 3".
-    /// </summary>
-    public WorkflowTaskStatus InternalStatus { get; set; }
     public DateTime? DueDate { get; set; }
     public DateTime? EndDate { get; set; }
+    [StringLength(2048)]
+    public string? Description { get; set; }
     [StringLength(4096)]
     public string? StorageJson { get; set; }
     [StringLength(32)]

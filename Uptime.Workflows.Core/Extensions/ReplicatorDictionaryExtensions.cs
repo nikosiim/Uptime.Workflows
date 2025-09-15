@@ -1,6 +1,6 @@
 ﻿using Uptime.Workflows.Core.Enums;
 
-namespace Uptime.Workflows.Core; 
+namespace Uptime.Workflows.Core.Extensions; 
 
 public static class ReplicatorDictionaryExtensions
 {

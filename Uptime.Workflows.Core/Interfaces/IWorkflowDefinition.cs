@@ -1,4 +1,4 @@
-﻿namespace Uptime.Workflows.Core;
+﻿namespace Uptime.Workflows.Core.Interfaces;
 
 /// <summary>
 /// Base interface for all workflow definitions.

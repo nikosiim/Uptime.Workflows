@@ -1,7 +1,8 @@
 ﻿using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
 
-namespace Uptime.Workflows.Core;
+namespace Uptime.Workflows.Core.Extensions;
 
 /// <summary>
 /// Provides strongly-typed extension methods for working with the <see cref="IWorkflowContext.Storage"/> dictionary.
@@ -29,16 +30,9 @@ namespace Uptime.Workflows.Core;
 public static class WorkflowContextExtensions
 {
     #region AssociationName
+
     public static string? GetAssociationName(this IWorkflowContext context)
         => context.Storage.GetValueOrDefault(StorageKeys.AssociationName);
-
-    public static void SetAssociationName(this IWorkflowContext context, string? value)
-    {
-        if (value == null)
-            context.Storage.Remove(StorageKeys.AssociationName);
-        else
-            context.Storage[StorageKeys.AssociationName] = value;
-    }
 
     #endregion
 
@@ -56,11 +50,7 @@ public static class WorkflowContextExtensions
     public static void SetInitiator(this IWorkflowContext context, Principal principal)
     {
         context.Storage[StorageKeys.InitiatorSid] = principal.Sid;
-        context.Storage[StorageKeys.InitiatorName] = principal.Name;
         context.Storage[StorageKeys.InitiatorPrincipalId] = principal.Id.ToString();
-
-        if (!string.IsNullOrEmpty(principal.Email))
-            context.Storage[StorageKeys.InitiatorEmail] = principal.Email;
     }
 
     public static PrincipalId GetInitiatorId(this IWorkflowContext context)
@@ -68,11 +58,6 @@ public static class WorkflowContextExtensions
         if (!context.Storage.TryGetValue(StorageKeys.InitiatorPrincipalId, out string? value) || string.IsNullOrWhiteSpace(value))
             throw new InvalidOperationException("Initiator PrincipalId is missing from WorkflowContext.Storage.");
         return PrincipalId.Parse(value);
-    }
-
-    public static string? GetInitiatorName(this IWorkflowContext context)
-    {
-        return context.Storage.GetValueOrDefault(StorageKeys.InitiatorName);
     }
 
     #endregion
@@ -97,16 +82,6 @@ public static class WorkflowContextExtensions
 
     #endregion
 
-    #region Custom
-
-    public static void SetCustomField(this IWorkflowContext context, string key, string? value)
-    => context.Storage[key] = value;
-
-    public static string? GetCustomField(this IWorkflowContext context, string key)
-        => context.Storage.GetValueOrDefault(key);
-
-    #endregion
-
     #region Storage Helpers
 
     /// <summary>
@@ -122,14 +97,12 @@ public static class WorkflowContextExtensions
 
     private static class StorageKeys
     {
-        public const string WorkflowId = "WorkflowId";
-        public const string DocumentId = "DocumentId";
-        public const string WorkflowTemplateId = "WorkflowTemplateId";
         public const string AssociationName = "AssociationName";
+        public const string DocumentId = "DocumentId";
+        public const string WorkflowId = "WorkflowId";
+        public const string WorkflowTemplateId = "WorkflowTemplateId";
 
         public const string InitiatorPrincipalId = "Initiator.PrincipalId";
-        public const string InitiatorName = "Initiator.Name";
         public const string InitiatorSid = "Initiator.Sid";
-        public const string InitiatorEmail = "Initiator.Email"; 
     }
 }

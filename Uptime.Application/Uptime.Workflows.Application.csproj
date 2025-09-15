@@ -20,6 +20,7 @@
   <ItemGroup>
     <Compile Remove="Behaviors\AuthorizeTaskBehavior.cs" />
     <Compile Remove="Commands\CreateUserTaskCommand.cs" />
+    <Compile Remove="Commands\CreateWorkflowInstanceCommand.cs" />
     <Compile Remove="Commands\UpdateUserTaskCommand.cs" />
     <Compile Remove="Commands\UpdateWorkflowStateCommand.cs" />
     <Compile Remove="DTOs\ModificationContext.cs" />
@@ -29,9 +30,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediatR" Version="12.5.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="9.0.4" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.4" />
+    <PackageReference Include="MediatR" Version="13.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.9" />
   </ItemGroup>
 
   <ItemGroup>

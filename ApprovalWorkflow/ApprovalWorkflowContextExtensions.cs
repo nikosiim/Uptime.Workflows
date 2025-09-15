@@ -1,6 +1,6 @@
-﻿using Uptime.Workflows.Core;
-using Uptime.Workflows.Core.Enums;
+﻿using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Extensions;
+using Uptime.Workflows.Core.Interfaces;
 
 namespace ApprovalWorkflow;
 
