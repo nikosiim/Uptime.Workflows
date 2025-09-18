@@ -1,4 +1,5 @@
-﻿using Uptime.Client.Resources;
+﻿using Uptime.Client.Contracts;
+using Uptime.Client.Resources;
 
 namespace Uptime.Client.Application.Common;
 

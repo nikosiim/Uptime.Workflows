@@ -1,7 +1,7 @@
 ﻿using Fluxor;
 using Uptime.Client.Application.Common;
 using Uptime.Client.Application.Services;
-using Uptime.Shared.Models.Workflows;
+using Uptime.Client.Contracts;
 
 namespace Uptime.Client.StateManagement.Workflow;
 

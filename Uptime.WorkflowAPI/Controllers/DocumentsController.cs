@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Uptime.Shared.Models.Documents;
+using Uptime.Workflows.Api.Contracts;
 using Uptime.Workflows.Api.Extensions;
 using Uptime.Workflows.Application.DTOs;
 using Uptime.Workflows.Application.Queries;
@@ -18,9 +18,20 @@ public class DocumentsController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<List<DocumentWorkflowsResponse>>> GetDocumentWorkflows(int documentId, CancellationToken ct)
     {
         var query = new GetDocumentWorkflowsQuery((DocumentId)documentId);
-        List<DocumentWorkflowDto> workflows = await mediator.Send(query, ct);
+        List<DocumentWorkflowDto> items = await mediator.Send(query, ct);
+
+        List<DocumentWorkflowsResponse> result = items.Select(dto => new DocumentWorkflowsResponse
+        {
+            Id = dto.Id,
+            TemplateId = dto.TemplateId,
+            WorkflowTemplateName = dto.WorkflowTemplateName,
+            StartDate = dto.StartDate,
+            EndDate = dto.EndDate,
+            Outcome = dto.Outcome,
+            IsActive = dto.IsActive
+        }).ToList();
         
-        return Ok(Mapper.MapToDocumentWorkflowsResponse(workflows));
+        return Ok(result);
     }
 
     [HttpGet("workflow-tasks")]
@@ -28,7 +39,7 @@ public class DocumentsController(IMediator mediator) : ControllerBase
     {
         var query = new GetDocumentWorkflowTasksQuery((DocumentId)documentId);
         Result<List<DocumentWorkflowTaskDto>> result = await mediator.Send(query, ct);
-
+        
         return this.ToActionResult(result, Mapper.MapToDocumentTasksResponse);
     }
 }

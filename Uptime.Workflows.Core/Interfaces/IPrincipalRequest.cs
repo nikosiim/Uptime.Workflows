@@ -4,6 +4,6 @@ namespace Uptime.Workflows.Core.Interfaces;
 
 public interface IPrincipalRequest
 {
-    string ExecutedBySid { get; }
+    string ExecutorSid { get; }
     Principal ExecutedBy { get; set; }
 }

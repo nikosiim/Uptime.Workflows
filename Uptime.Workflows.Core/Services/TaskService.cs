@@ -10,7 +10,7 @@ namespace Uptime.Workflows.Core.Services;
 
 public class TaskService(IDbContextFactory<WorkflowDbContext> factory) : ITaskService
 {
-    public async Task<TaskId> CreateAsync(WorkflowId workflowId, IWorkflowTaskContext taskContext, CancellationToken cancellationToken)
+    public async Task<TaskId> CreateAsync(WorkflowId workflowId, IWorkflowActivityContext activityContext, CancellationToken cancellationToken)
     {
         await using WorkflowDbContext db = await factory.CreateDbContextAsync(cancellationToken);
 
@@ -25,15 +25,15 @@ public class TaskService(IDbContextFactory<WorkflowDbContext> factory) : ITaskSe
         var workflowTask = new WorkflowTask
         {
             WorkflowId = workflowId.Value,
-            TaskGuid = taskContext.TaskGuid,
-            AssignedToPrincipalId = taskContext.AssignedToPrincipalId.Value,
-            AssignedByPrincipalId = taskContext.AssignedByPrincipalId.Value,
-            DueDate = taskContext.DueDate,
-            Description = taskContext.Description,
+            TaskGuid = activityContext.TaskGuid,
+            AssignedToPrincipalId = activityContext.AssignedToPrincipalId.Value,
+            AssignedByPrincipalId = activityContext.AssignedByPrincipalId.Value,
+            DueDate = activityContext.DueDate,
+            Description = activityContext.Description,
             Status = status.ToString(),
             InternalStatus = status,
-            PhaseId = taskContext.PhaseId,
-            StorageJson = JsonSerializer.Serialize(taskContext.Storage)
+            PhaseId = activityContext.PhaseId,
+            StorageJson = JsonSerializer.Serialize(activityContext.Storage)
         };
 
         db.WorkflowTasks.Add(workflowTask);
@@ -42,9 +42,9 @@ public class TaskService(IDbContextFactory<WorkflowDbContext> factory) : ITaskSe
         return (TaskId)workflowTask.Id;
     }
     
-    public async Task UpdateAsync(IWorkflowTaskContext taskContext, CancellationToken cancellationToken)
+    public async Task UpdateAsync(IWorkflowActivityContext activityContext, CancellationToken cancellationToken)
     {
-        int taskId = taskContext.GetTaskId().Value;
+        int taskId = activityContext.GetTaskId().Value;
 
         await using WorkflowDbContext db = await factory.CreateDbContextAsync(cancellationToken);
 
@@ -55,16 +55,16 @@ public class TaskService(IDbContextFactory<WorkflowDbContext> factory) : ITaskSe
             throw new KeyNotFoundException($"Task with ID {taskId} not found.");
         }
 
-        WorkflowTaskStatus status = taskContext.GetTaskStatus();
+        WorkflowTaskStatus status = activityContext.GetTaskStatus();
 
-        task.TaskGuid = taskContext.TaskGuid;
-        task.DueDate = taskContext.DueDate;
-        task.Description = taskContext.Description;
+        task.TaskGuid = activityContext.TaskGuid;
+        task.DueDate = activityContext.DueDate;
+        task.Description = activityContext.Description;
         task.Status = status.ToString();
         task.InternalStatus = status;
-        task.AssignedToPrincipalId = taskContext.AssignedToPrincipalId.Value;
-        task.AssignedByPrincipalId = taskContext.AssignedByPrincipalId.Value;
-        task.StorageJson = JsonSerializer.Serialize(taskContext.Storage);
+        task.AssignedToPrincipalId = activityContext.AssignedToPrincipalId.Value;
+        task.AssignedByPrincipalId = activityContext.AssignedByPrincipalId.Value;
+        task.StorageJson = JsonSerializer.Serialize(activityContext.Storage);
 
         await db.SaveChangesAsync(cancellationToken);
     }

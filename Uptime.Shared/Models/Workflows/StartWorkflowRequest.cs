@@ -1,9 +1,6 @@
 ﻿namespace Uptime.Shared.Models.Workflows;
 
-public record StartWorkflowRequest
+public record StartWorkflowRequest(string InitiatorSid, int DocumentId, int WorkflowTemplateId)
 {
-    public required string InitiatorSid { get; init; }
-    public required int DocumentId { get; init; }
-    public required int WorkflowTemplateId { get; init; }
     public Dictionary<string, string?> Storage { get; init; } = new();
 }

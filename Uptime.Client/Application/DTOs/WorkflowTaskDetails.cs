@@ -1,4 +1,4 @@
-﻿using Uptime.Client.Application.Common;
+﻿using Uptime.Client.Contracts;
 
 namespace Uptime.Client.Application.DTOs;
 

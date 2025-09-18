@@ -1,43 +1,27 @@
-﻿using Uptime.Shared.Models.Documents;
-using Uptime.Shared.Models.Libraries;
-using Uptime.Shared.Models.Tasks;
-using Uptime.Shared.Models.Workflows;
-using Uptime.Shared.Models.WorkflowTemplates;
-using Uptime.Workflows.Application.Commands;
+﻿using Uptime.Shared.Models.WorkflowTemplates;
+using Uptime.Workflows.Api.Contracts;
 using Uptime.Workflows.Application.DTOs;
-using Uptime.Workflows.Core;
-using Uptime.Workflows.Core.Common;
-using Uptime.Workflows.Core.Enums;
+using DomainWorkflowDefinition = Uptime.Workflows.Core.WorkflowDefinition;
+using DomainWorkflowEventType = Uptime.Workflows.Core.Enums.WorkflowEventType;
+using DomainWorkflowTaskStatus = Uptime.Workflows.Core.Enums.WorkflowTaskStatus;
 
 namespace Uptime.Workflows.Api;
 
+public static class EnumMapper
+{
+    public static DomainWorkflowTaskStatus? MapToDomain(WorkflowTaskStatus? status)
+    {
+        return status.HasValue ? (DomainWorkflowTaskStatus)status.Value : null;
+    }
+
+    public static DomainWorkflowEventType MapToDomain(WorkflowEventType action)
+    {
+        return (DomainWorkflowEventType)action;
+    }
+}
+
 public static class Mapper
 {
-    #region Enums
-
-    public static WorkflowTaskStatus? ToDomain(string? workflowTaskStatus)
-    {
-        return Enum.TryParse(workflowTaskStatus, ignoreCase: true, out WorkflowTaskStatus parsed) ? parsed : null;
-    }
-    
-    #endregion
-
-    #region Documents
-
-    public static List<DocumentWorkflowsResponse> MapToDocumentWorkflowsResponse(List<DocumentWorkflowDto> source)
-    {
-        return source.Select(dto => new DocumentWorkflowsResponse
-        {
-            Id = dto.Id,
-            TemplateId = dto.TemplateId,
-            WorkflowTemplateName = dto.WorkflowTemplateName,
-            StartDate = dto.StartDate,
-            EndDate = dto.EndDate,
-            Outcome = dto.Outcome,
-            IsActive = dto.IsActive
-        }).ToList();
-    }
-
     public static List<DocumentTasksResponse> MapToDocumentTasksResponse(List<DocumentWorkflowTaskDto> source)
     {
         return source.Select(dto => new DocumentTasksResponse
@@ -51,37 +35,6 @@ public static class Mapper
             EndDate = dto.EndDate
         }).ToList();
     }
-
-    #endregion
-
-    #region Libraries
-
-    public static List<LibraryDocumentResponse> MapToLibraryDocumentResponse(List<LibraryDocumentDto> source)
-    {
-        return source.Select(dto => new LibraryDocumentResponse
-        {
-            Id = dto.Id,
-            Title = dto.Title,
-            Description = dto.Description,
-            LibraryId = dto.LibraryId
-        }).ToList();
-    }
-
-    public static List<LibraryWorkflowTemplateResponse> MapToLibraryWorkflowTemplateResponse(List<LibraryWorkflowTemplateDto> source)
-    {
-        return source.Select(dto => new LibraryWorkflowTemplateResponse
-        {
-            Id = dto.Id,
-            Name = dto.Name,
-            WorkflowBaseId = dto.WorkflowBaseId,
-            AssociationDataJson = dto.AssociationDataJson,
-            Created = dto.Created
-        }).ToList();
-    }
-
-    #endregion
-
-    #region Workflows
     
     public static WorkflowDetailsResponse MapToWorkflowDetailsResponse(WorkflowDetailsDto source)
     {
@@ -115,7 +68,7 @@ public static class Mapper
         }).ToList();
     }
     
-    public static List<WorkflowDefinitionResponse> MapToWorkflowDefinitionResponse(List<WorkflowDefinition>? source)
+    public static List<WorkflowDefinitionResponse> MapToWorkflowDefinitionResponse(List<DomainWorkflowDefinition>? source)
     {
         if (source is null)
             return [];
@@ -137,11 +90,7 @@ public static class Mapper
                 }).ToList()
         }).ToList();
     }
-
-    #endregion
-
-    #region WorkflowTasks
-
+    
     public static WorkflowTaskResponse MapToWorkflowTaskResponse(WorkflowTaskDetailsDto source)
     {
         return new WorkflowTaskResponse
@@ -160,35 +109,7 @@ public static class Mapper
             WorkflowBaseId = source.WorkflowBaseId
         };
     }
-
-    #endregion
-
-    #region WorkflowTemplates
-
-    public static CreateWorkflowTemplateCommand MapToCreateWorkflowTemplateCommand(WorkflowTemplateCreateRequest source)
-    {
-        return new CreateWorkflowTemplateCommand
-        {
-            TemplateName = source.TemplateName,
-            WorkflowName = source.WorkflowName,
-            WorkflowBaseId = source.WorkflowBaseId,
-            LibraryId = (LibraryId)source.LibraryId,
-            AssociationDataJson = source.AssociationDataJson
-        };
-    }
-
-    public static UpdateWorkflowTemplateCommand MapToUpdateWorkflowTemplateCommand(WorkflowTemplateUpdateRequest source, int templateId)
-    {
-        return new UpdateWorkflowTemplateCommand
-        {
-            TemplateId = (WorkflowTemplateId)templateId,
-            TemplateName = source.TemplateName,
-            WorkflowName = source.WorkflowName,
-            WorkflowBaseId = source.WorkflowBaseId,
-            AssociationDataJson = source.AssociationDataJson
-        };
-    }
-
+    
     public static WorkflowTemplateResponse MapToWorkflowTemplateResponse(WorkflowTemplateDto dto)
     {
         return new WorkflowTemplateResponse
@@ -199,21 +120,5 @@ public static class Mapper
             AssociationDataJson = dto.AssociationDataJson,
             Created = dto.Created
         };
-    }
-
-    #endregion
-
-    public static List<WorkflowHistoryResponse> MapToWorkflowHistoryResponse(List<WorkflowHistoryDto> source)
-    {
-        return source.Select(dto => new WorkflowHistoryResponse
-        {
-            Id = dto.Id,
-            WorkflowId = dto.WorkflowId,
-            Occurred = dto.Occurred,
-            Description = dto.Description,
-            User = dto.ExecutedBy,
-            Comment = dto.Comment,
-            Event = dto.Event.ToString()
-        }).ToList();
     }
 }

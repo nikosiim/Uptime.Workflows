@@ -20,13 +20,22 @@ public class WorkflowTemplatesController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<WorkflowTemplateResponse>> GetWorkflowTemplate(int templateId, CancellationToken ct)
     {
         Result<WorkflowTemplateDto> result = await mediator.Send(new GetWorkflowTemplateQuery((WorkflowTemplateId)templateId), ct);
+        
         return this.ToActionResult(result, Mapper.MapToWorkflowTemplateResponse);
     }
 
     [HttpPost("")]
     public async Task<ActionResult<CreateWorkflowTemplateResponse>> CreateWorkflowTemplate([FromBody] WorkflowTemplateCreateRequest request, CancellationToken ct)
     {
-        CreateWorkflowTemplateCommand cmd = Mapper.MapToCreateWorkflowTemplateCommand(request);
+        var cmd = new CreateWorkflowTemplateCommand
+        {
+            TemplateName = request.TemplateName,
+            WorkflowName = request.WorkflowName,
+            WorkflowBaseId = request.WorkflowBaseId,
+            LibraryId = (LibraryId)request.LibraryId,
+            AssociationDataJson = request.AssociationDataJson
+        };
+
         WorkflowTemplateId templateId = await mediator.Send(cmd, ct);
 
         return CreatedAtAction(nameof(CreateWorkflowTemplate), new CreateWorkflowTemplateResponse(templateId.Value));
@@ -35,7 +44,15 @@ public class WorkflowTemplatesController(IMediator mediator) : ControllerBase
     [HttpPost("{templateId:int}")]
     public async Task<ActionResult> UpdateWorkflowTemplate(int templateId, [FromBody] WorkflowTemplateUpdateRequest request, CancellationToken ct)
     {
-        UpdateWorkflowTemplateCommand cmd = Mapper.MapToUpdateWorkflowTemplateCommand(request, templateId);
+        var cmd = new UpdateWorkflowTemplateCommand
+        {
+            TemplateId = (WorkflowTemplateId)templateId,
+            TemplateName = request.TemplateName,
+            WorkflowName = request.WorkflowName,
+            WorkflowBaseId = request.WorkflowBaseId,
+            AssociationDataJson = request.AssociationDataJson
+        };
+
         Result<Unit> result = await mediator.Send(cmd, ct);
 
         return this.ToActionResult(result);

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Extensions;
 using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
@@ -30,7 +31,7 @@ public abstract class ActivityWorkflowBase<TContext>(
 {
     private readonly ILogger<WorkflowBase<TContext>> _logger = logger;
 
-    public async Task<Result<Unit>> AlterTaskAsync(AlterTaskPayload payload, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> AlterTaskAsync(WorkflowEventType action, AlterTaskPayload payload, CancellationToken cancellationToken)
     {
         _logger.LogAlterTaskTriggered(WorkflowDefinition, WorkflowId, AssociationName);
 
@@ -42,7 +43,7 @@ public abstract class ActivityWorkflowBase<TContext>(
 
         try
         {
-            WorkflowTaskContext context = WorkflowTaskContextFactory.FromDatabase(
+            WorkflowActivityContext context = WorkflowTaskContextFactory.FromDatabase(
                 phaseId: payload.PhaseId,
                 taskGuid: payload.TaskGuid,
                 assignedTo: payload.AssignedTo,
@@ -51,7 +52,7 @@ public abstract class ActivityWorkflowBase<TContext>(
                 description: payload.Description,
                 storageJson: payload.StorageJson);
 
-            await OnTaskAlteredAsync(context, payload.ExecutedBy, payload.InputData, cancellationToken);
+            await OnTaskAlteredAsync(action, context, payload.ExecutedBy, payload.InputData, cancellationToken);
             await SaveWorkflowStateAsync(cancellationToken);
         }
         catch (Exception ex)
@@ -63,7 +64,7 @@ public abstract class ActivityWorkflowBase<TContext>(
         return Result<Unit>.Success(new Unit());
     }
     
-    protected abstract Task OnTaskAlteredAsync(IWorkflowTaskContext taskContext, Principal executedBy,
+    protected abstract Task OnTaskAlteredAsync(WorkflowEventType action, IWorkflowActivityContext activityContext, Principal executedBy,
         Dictionary<string, string?> inputData, CancellationToken cancellationToken);
 
     protected override async Task OnWorkflowActivatedAsync(CancellationToken cancellationToken)

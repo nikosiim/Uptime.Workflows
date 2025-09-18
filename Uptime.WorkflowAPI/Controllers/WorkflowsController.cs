@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Uptime.Shared.Models.Workflows;
+using Uptime.Workflows.Api.Contracts;
 using Uptime.Workflows.Api.Extensions;
 using Uptime.Workflows.Application.Commands;
 using Uptime.Workflows.Application.DTOs;
@@ -36,9 +36,9 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     }
     
     [HttpGet("{workflowId:int}/workflow-tasks")]
-    public async Task<ActionResult<IEnumerable<WorkflowTasksResponse>>> GetWorkflowTasks(int workflowId, CancellationToken ct, [FromQuery] string? workflowTaskStatus = null)
+    public async Task<ActionResult<IEnumerable<WorkflowTasksResponse>>> GetWorkflowTasks(int workflowId, CancellationToken ct, [FromQuery] WorkflowTaskStatus? status = null)
     {
-        var query = new GetWorkflowTasksQuery((WorkflowId)workflowId, Mapper.ToDomain(workflowTaskStatus));
+        var query = new GetWorkflowTasksQuery((WorkflowId)workflowId, EnumMapper.MapToDomain(status));
         Result<List<WorkflowTaskDto>> result = await mediator.Send(query, ct);
 
         return this.ToActionResult(result, Mapper.MapToWorkflowTasksResponse);
@@ -49,8 +49,19 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     {
         var query = new GetWorkflowHistoryQuery((WorkflowId)workflowId);
         List<WorkflowHistoryDto> items = await mediator.Send(query, ct);
+
+        List<WorkflowHistoryResponse> result = items.Select(dto => new WorkflowHistoryResponse
+        {
+            Id = dto.Id,
+            WorkflowId = dto.WorkflowId,
+            Occurred = dto.Occurred,
+            Description = dto.Description,
+            User = dto.ExecutedBy,
+            Comment = dto.Comment,
+            Event = dto.Event.ToString()
+        }).ToList();
       
-        return Ok(Mapper.MapToWorkflowHistoryResponse(items));
+        return Ok(result);
     }
     
     [HttpGet("{workflowId:int}/workflow-context")]
@@ -67,7 +78,7 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     {
         var cmd = new StartWorkflowCommand
         {
-            ExecutedBySid = request.InitiatorSid,
+            ExecutorSid = request.InitiatorSid,
             DocumentId = (DocumentId)request.DocumentId,
             WorkflowTemplateId = (WorkflowTemplateId)request.WorkflowTemplateId,
             Storage = request.Storage
@@ -84,7 +95,7 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
         var cmd = new ModifyWorkflowCommand
         {
             WorkflowId = (WorkflowId)workflowId,
-            ExecutedBySid = request.ExecutorSid,
+            ExecutorSid = request.ExecutorSid,
             InputContext = request.ModificationContext
         };
         
@@ -98,7 +109,7 @@ public class WorkflowsController(IMediator mediator) : ControllerBase
     {
         var cmd = new CancelWorkflowCommand
         {
-            ExecutedBySid = request.ExecutorSid,
+            ExecutorSid = request.ExecutorSid,
             WorkflowId = (WorkflowId)workflowId,
             Comment = request.Comment
         };

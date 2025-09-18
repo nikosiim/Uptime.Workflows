@@ -1,4 +1,6 @@
-﻿namespace Uptime.Client.Application.Common;
+﻿using Uptime.Client.Contracts;
+
+namespace Uptime.Client.Application.Common;
 
 public class ApprovalFormModel : IWorkflowFormModel
 {

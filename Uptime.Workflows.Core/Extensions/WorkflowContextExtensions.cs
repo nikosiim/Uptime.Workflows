@@ -27,7 +27,7 @@ namespace Uptime.Workflows.Core.Extensions;
 /// </code>
 /// </para>
 /// </summary>
-public static class WorkflowContextExtensions
+public static class WorkflowContextExtensionsCore
 {
     #region AssociationName
 

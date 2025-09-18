@@ -4,9 +4,9 @@ using Uptime.Workflows.Core.Interfaces;
 namespace Uptime.Workflows.Core;
 
 // TODO: recheck if the new implementation is correct
-public sealed class ReplicatorItem(Guid taskGuid, IWorkflowTaskContext taskContext)
+public sealed class ReplicatorItem(Guid taskGuid, IWorkflowActivityContext activityContext)
 {
     public Guid TaskGuid { get; set; } = taskGuid;
-    public IWorkflowTaskContext TaskContext { get; set; } = taskContext;
+    public IWorkflowActivityContext ActivityContext { get; set; } = activityContext;
     public ReplicatorItemStatus Status { get; set; }
 }

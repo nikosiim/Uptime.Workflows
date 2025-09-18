@@ -23,8 +23,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Uptime.Application\Uptime.Workflows.Application.csproj" />
-    <ProjectReference Include="..\Uptime.Client\Uptime.Client.csproj" />
-    <ProjectReference Include="..\Uptime.Shared\Uptime.Shared.csproj" />
   </ItemGroup>
 
 </Project>

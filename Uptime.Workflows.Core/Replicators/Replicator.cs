@@ -26,7 +26,7 @@ public class Replicator : IReplicator
     /// <summary>
     /// Event triggered when a child activity is initialized.
     /// </summary>
-    public Action<IWorkflowTaskContext, IWorkflowActivity>? OnChildInitialized { get; set; }
+    public Action<IWorkflowActivityContext, IWorkflowActivity>? OnChildInitialized { get; set; }
     
     /// <summary>
     /// Event triggered when all tasks in the replicator are completed.
@@ -111,7 +111,7 @@ public class Replicator : IReplicator
     private async Task<IWorkflowActivity> InitializeActivityAsync(ReplicatorItem item, CancellationToken cancellationToken)
     {
         IWorkflowActivity activity = ChildActivity(item);
-        OnChildInitialized?.Invoke(item.TaskContext, activity);
+        OnChildInitialized?.Invoke(item.ActivityContext, activity);
         await activity.ExecuteAsync(cancellationToken);
 
         return activity;

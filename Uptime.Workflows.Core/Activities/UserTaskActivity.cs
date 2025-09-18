@@ -27,10 +27,10 @@ namespace Uptime.Workflows.Core;
 public abstract class UserTaskActivity(
     ITaskService taskService, 
     IHistoryService historyService, 
-    IWorkflowTaskContext taskContext, 
+    IWorkflowActivityContext activityContext, 
     IWorkflowContext workflowContext) : IUserTaskActivity 
 {
-    public IWorkflowTaskContext Context => taskContext;
+    public IWorkflowActivityContext Context => activityContext;
     
     protected readonly IHistoryService HistoryService = historyService;
     protected string? AssociationName => workflowContext.GetAssociationName();
@@ -53,7 +53,7 @@ public abstract class UserTaskActivity(
         await HistoryService.CreateAsync(
             WorkflowId,
             WorkflowEventType.TaskCreated,
-            taskContext.AssignedByPrincipalId,
+            activityContext.AssignedByPrincipalId,
             description: TaskCreatedHistoryDescription,
             cancellationToken: cancellationToken
         );
@@ -61,14 +61,14 @@ public abstract class UserTaskActivity(
         TaskId = await taskService.CreateAsync(WorkflowId, Context, cancellationToken);
     }
 
-    public virtual async Task ChangedTaskAsync(Principal executedBy, Dictionary<string, string?> payload, CancellationToken cancellationToken)
+    public virtual async Task ChangedTaskAsync(WorkflowEventType action, Principal executedBy, Dictionary<string, string?> payload, CancellationToken cancellationToken)
     {
-        await OnTaskChangedAsync(executedBy, payload, cancellationToken);
+        await OnTaskChangedAsync(action, executedBy, payload, cancellationToken);
         
         await taskService.UpdateAsync(Context, cancellationToken);
     }
 
     protected abstract void OnExecuteTask();
 
-    protected abstract Task OnTaskChangedAsync(Principal executedBy, Dictionary<string, string?> payload, CancellationToken ct);
+    protected abstract Task OnTaskChangedAsync(WorkflowEventType action, Principal executedBy, Dictionary<string, string?> payload, CancellationToken ct);
 }

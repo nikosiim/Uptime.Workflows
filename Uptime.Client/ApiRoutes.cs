@@ -6,7 +6,7 @@ public static class ApiRoutes
 
     public static class Libraries
     {
-        public const string Base = "api/libraries";
+        private const string Base = "api/libraries";
         public const string GetLibrary = $"{Base}/{{libraryId}}";
         public const string GetDocuments = $"{Base}/{{libraryId}}/documents";
         public const string GetWorkflowTemplates = $"{Base}/{{libraryId}}/workflow-templates";
@@ -14,14 +14,14 @@ public static class ApiRoutes
 
     public static class Documents
     {
-        public const string Base = "api/documents";
+        private const string Base = "api/documents";
         public const string GetWorkflows = $"{Base}/{{documentId}}/workflows";
         public const string GetTasks = $"{Base}/{{documentId}}/workflow-tasks";
     }
 
     public static class Tasks
     {
-        public const string Base = "api/workflow-tasks";
+        private const string Base = "api/workflow-tasks";
         public const string GetTask = $"{Base}/{{taskId}}";
         public const string AlterTask = $"{Base}/{{taskId}}/update";
     }

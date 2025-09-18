@@ -38,10 +38,9 @@
     {
         var input = new Dictionary<string, string?>();
 
-        string taskEditor = User.GetNameOrSystemAccount(WorkflowState.Value.CurrentUser);
+        User taskEditor = User.OrSystemAccount(WorkflowState.Value.CurrentUser);
         
         input[TaskStorageKeys.TaskComment] = _comment;
-        input[TaskStorageKeys.TaskEditor] = taskEditor;
         input[TaskStorageKeys.TaskResult] = EventType.ToString();
 
         if (EventType == WorkflowEventType.TaskDelegated)
@@ -51,7 +50,9 @@
 
         var command = new AlterTaskCommand
         {
+            Executor = taskEditor,
             TaskId = TaskId,
+            Action = EventType,
             Input = input
         };
 

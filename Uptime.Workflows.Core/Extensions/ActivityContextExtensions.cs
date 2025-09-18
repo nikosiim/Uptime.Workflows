@@ -1,0 +1,33 @@
+﻿using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Enums;
+using Uptime.Workflows.Core.Interfaces;
+
+namespace Uptime.Workflows.Core.Extensions;
+
+public static class ActivityContextExtensionsCore
+{
+    public static TaskId GetTaskId(this IWorkflowActivityContext context)
+        => TaskId.Parse(context.Storage.GetValueOrDefault(StorageKeys.TaskId));
+
+    public static void SetTaskId(this IWorkflowActivityContext context, TaskId id)
+        => context.Storage[StorageKeys.TaskId] = id.Value.ToString();
+
+    public static string? GetTaskOutcome(this IWorkflowActivityContext context)
+        => context.Storage.GetValue(StorageKeys.TaskOutcome);
+
+    public static void SetTaskOutcome(this IWorkflowActivityContext context, string? outcome)
+        => context.Storage.SetValue(StorageKeys.TaskOutcome, outcome);
+
+    public static WorkflowTaskStatus GetTaskStatus(this IWorkflowActivityContext context)
+        => context.Storage.TryGetValueAsEnum(StorageKeys.TaskStatus, out WorkflowTaskStatus status) ? status : WorkflowTaskStatus.NotStarted;
+
+    public static void SetTaskStatus(this IWorkflowActivityContext context, WorkflowTaskStatus status)
+        => context.Storage.SetValue(StorageKeys.TaskStatus, status.ToString());
+    
+    private static class StorageKeys
+    {
+        public const string TaskId = "Task.Id";
+        public const string TaskOutcome = "Task.Outcome";
+        public const string TaskStatus = "Task.Status";
+    }
+}

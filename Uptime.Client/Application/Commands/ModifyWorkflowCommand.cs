@@ -2,8 +2,8 @@
 using MediatR;
 using Uptime.Client.Application.Common;
 using Uptime.Client.Application.Services;
+using Uptime.Client.Contracts;
 using Uptime.Client.StateManagement.Workflow;
-using Uptime.Shared.Models.Workflows;
 
 namespace Uptime.Client.Application.Commands;
 
@@ -14,11 +14,11 @@ public class ModifyWorkflowCommandHandler(IApiService apiService, IState<Workflo
 {
     public async Task<Result<bool>> Handle(ModifyWorkflowCommand request, CancellationToken cancellationToken)
     {
-        string executorSid  = User.GetNameOrSystemAccount(workflowState.Value.CurrentUser);
+        User executor  = User.OrSystemAccount(workflowState.Value.CurrentUser);
 
-        var payload = new ModifyWorkflowRequest(executorSid, request.ModificationContext);
+        var payload = new ModifyWorkflowRequest(executor.Sid, request.ModificationContext);
 
-        string url = ApiRoutes.Workflows.ModifyWorkflow .Replace("{workflowId}", request.WorkflowId.ToString());
+        string url = ApiRoutes.Workflows.ModifyWorkflow.Replace("{workflowId}", request.WorkflowId.ToString());
         return await apiService.PostAsJsonAsync(url, payload, cancellationToken);
     }
 }

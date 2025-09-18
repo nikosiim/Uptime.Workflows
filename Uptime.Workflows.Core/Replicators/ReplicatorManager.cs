@@ -33,7 +33,7 @@ public class ReplicatorManager(IReplicatorActivityProvider activityProvider, IWo
             continue;
 
             // Local factory method keeps lambdas short & readable
-            IWorkflowActivity CreateChildActivity(ReplicatorItem item) => activityProvider.CreateActivity(item.TaskContext);
+            IWorkflowActivity CreateChildActivity(ReplicatorItem item) => activityProvider.CreateActivity(item.ActivityContext);
         }
     }
 

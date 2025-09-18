@@ -2,7 +2,7 @@
 using Uptime.Client.Application.Common;
 using Uptime.Client.Application.DTOs;
 using Uptime.Client.Application.Services;
-using Uptime.Shared.Models.WorkflowTemplates;
+using Uptime.Client.Contracts;
 
 namespace Uptime.Client.Application.Queries;
 

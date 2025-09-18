@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Uptime.Shared.Models.Tasks;
+using Uptime.Workflows.Api.Contracts;
 using Uptime.Workflows.Api.Extensions;
 using Uptime.Workflows.Application.Commands;
 using Uptime.Workflows.Application.DTOs;
@@ -28,8 +28,9 @@ public class WorkflowTasksController(IMediator mediator) : ControllerBase
     {
         var cmd = new AlterTaskCommand
         {
-            ExecutedBySid = request.CallerSid,
             TaskId = (TaskId)taskId,
+            ExecutorSid = request.ExecutorSid,
+            Action = EnumMapper.MapToDomain(request.Action),
             Payload = request.Input
         }; 
         

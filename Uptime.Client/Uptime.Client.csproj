@@ -33,10 +33,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Uptime.Shared\Uptime.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Resources\WorkflowHistoryResource.Designer.cs">
       <DependentUpon>WorkflowHistoryResource.resx</DependentUpon>
       <DesignTime>True</DesignTime>

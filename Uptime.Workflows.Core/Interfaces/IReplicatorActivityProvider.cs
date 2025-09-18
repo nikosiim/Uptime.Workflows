@@ -4,7 +4,7 @@ namespace Uptime.Workflows.Core.Interfaces;
 
 public interface IReplicatorActivityProvider
 {
-    IWorkflowActivity CreateActivity(IWorkflowTaskContext taskContext);
-    void OnChildInitialized(string phaseId, IWorkflowTaskContext taskContext, IWorkflowActivity activity);
+    IWorkflowActivity CreateActivity(IWorkflowActivityContext activityContext);
+    void OnChildInitialized(string phaseId, IWorkflowActivityContext activityContext, IWorkflowActivity activity);
     void OnChildCompleted(string phaseId, IUserTaskActivity activity, Principal executedBy);
 }

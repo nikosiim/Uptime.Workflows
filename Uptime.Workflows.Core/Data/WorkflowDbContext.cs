@@ -57,5 +57,6 @@ public class WorkflowDbContext(DbContextOptions options) : DbContext(options)
         // Apply configurations
         modelBuilder.ApplyConfiguration(new DocumentConfiguration());
         modelBuilder.ApplyConfiguration(new LibraryConfiguration());
+        modelBuilder.ApplyConfiguration(new WorkflowPrincipalConfiguration());
     }
 }

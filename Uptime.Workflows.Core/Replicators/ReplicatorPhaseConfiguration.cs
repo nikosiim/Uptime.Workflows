@@ -24,6 +24,6 @@ namespace Uptime.Workflows.Core
     public class ReplicatorPhaseConfiguration
     {
         public required Func<IWorkflowContext, ReplicatorType> ReplicatorType { get; init; }
-        public required Func<IWorkflowContext, IEnumerable<IWorkflowTaskContext>> ActivityData { get; init; }
+        public required Func<IWorkflowContext, IEnumerable<IWorkflowActivityContext>> ActivityData { get; init; }
     }
 }

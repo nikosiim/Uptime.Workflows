@@ -2,6 +2,7 @@
 using MediatR;
 using Uptime.Client.Application.Common;
 using Uptime.Client.Application.Services;
+using Uptime.Client.Contracts;
 using Uptime.Client.StateManagement.Workflow;
 
 namespace Uptime.Client.Application.Commands;
@@ -13,13 +14,9 @@ public class CancelWorkflowCommandHandler(IApiService apiService, IState<Workflo
 {
     public async Task<Result<bool>> Handle(CancelWorkflowCommand request, CancellationToken cancellationToken)
     {
-        string executor  = User.GetNameOrSystemAccount(workflowState.Value.CurrentUser);
+        User executor = User.OrSystemAccount(workflowState.Value.CurrentUser);
 
-        var payload = new
-        {
-            executor, 
-            request.Comment
-        };
+        var payload = new CancelWorkflowRequest (executor.Sid, request.Comment);
 
         string url = ApiRoutes.Workflows.CancelWorkflow.Replace("{workflowId}", request.WorkflowId.ToString());
         return await apiService.PostAsJsonAsync(url, payload, cancellationToken);

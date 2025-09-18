@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Interfaces;
@@ -13,7 +12,7 @@ namespace Uptime.Workflows.Application.Commands;
 public record ModifyWorkflowCommand : IRequest<Result<Unit>>, IPrincipalRequest
 {
     public required WorkflowId WorkflowId { get; init; }
-    public required string ExecutedBySid { get; init; }
+    public required string ExecutorSid { get; init; }
     public string? InputContext { get; init; }
 
     // Will be populated by pipeline

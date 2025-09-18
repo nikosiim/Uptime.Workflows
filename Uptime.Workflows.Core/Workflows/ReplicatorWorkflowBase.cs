@@ -101,22 +101,23 @@ public abstract class ReplicatorWorkflowBase<TContext>(
         return modificationContext;
     }
     
-    protected override async Task OnTaskAlteredAsync(IWorkflowTaskContext taskContext, Principal executedBy, Dictionary<string, string?> inputData, CancellationToken cancellationToken)
+    protected override async Task OnTaskAlteredAsync(WorkflowEventType action, IWorkflowActivityContext activityContext, Principal executedBy, 
+        Dictionary<string, string?> inputData, CancellationToken cancellationToken)
     {
-        if (CreateChildActivity(taskContext) is not { } taskActivity)
+        if (CreateChildActivity(activityContext) is not { } taskActivity)
             throw new InvalidOperationException("Current task is not a user-interrupting activity.");
 
         if (!taskActivity.IsCompleted)
         {
-            await taskActivity.ChangedTaskAsync(executedBy, inputData, cancellationToken);
+            await taskActivity.ChangedTaskAsync(action, executedBy, inputData, cancellationToken);
             
-            string? phase = WorkflowContext.ReplicatorStates.FindPhase(taskContext.TaskGuid);
+            string? phase = WorkflowContext.ReplicatorStates.FindPhase(activityContext.TaskGuid);
 
             if (taskActivity.IsCompleted && !string.IsNullOrWhiteSpace(phase))
             {
                 ActivityProvider.OnChildCompleted(phase, taskActivity, executedBy);
 
-                UpdateWorkflowContextReplicatorState(taskContext.TaskGuid, ReplicatorItemStatus.Completed);
+                UpdateWorkflowContextReplicatorState(activityContext.TaskGuid, ReplicatorItemStatus.Completed);
 
                 await RunReplicatorAsync(phase, cancellationToken);
             }
@@ -146,7 +147,7 @@ public abstract class ReplicatorWorkflowBase<TContext>(
         return new ReplicatorPhaseBuilder(replicatorPhaseConfiguration);
     }
 
-    protected virtual UserTaskActivity? CreateChildActivity(IWorkflowTaskContext context)
+    protected virtual UserTaskActivity? CreateChildActivity(IWorkflowActivityContext context)
     {
         ReplicatorItem? item = WorkflowContext.ReplicatorStates.FindReplicatorItem(context.TaskGuid);
         if (item != null)

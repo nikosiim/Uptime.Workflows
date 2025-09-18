@@ -1,9 +1,9 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
+using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
 using Unit = Uptime.Workflows.Core.Common.Unit;
@@ -13,7 +13,8 @@ namespace Uptime.Workflows.Application.Commands;
 public sealed record AlterTaskCommand : IRequest<Result<Unit>>, IPrincipalRequest
 {
     public required TaskId TaskId { get; init; }
-    public required string ExecutedBySid { get; init; }
+    public required string ExecutorSid { get; init; }
+    public required WorkflowEventType Action { get; init; }
     public required Dictionary<string, string?> Payload { get; init; }
 
     // Will be populated by pipeline
@@ -59,6 +60,6 @@ public sealed class AlterTaskCommandHandler(WorkflowDbContext db, IWorkflowFacto
             InputData = request.Payload
         };
         
-        return await machine.AlterTaskAsync(input, ct);
+        return await machine.AlterTaskAsync(request.Action, input, ct);
     }
 }

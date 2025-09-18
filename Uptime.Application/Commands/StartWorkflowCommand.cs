@@ -1,6 +1,5 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Interfaces;
@@ -11,7 +10,7 @@ namespace Uptime.Workflows.Application.Commands;
 
 public record StartWorkflowCommand : IRequest<Result<Unit>>, IPrincipalRequest
 {
-    public required string ExecutedBySid { get; init; }
+    public required string ExecutorSid { get; init; }
     public required DocumentId DocumentId { get; init; }
     public required WorkflowTemplateId WorkflowTemplateId { get; init; }
     public Dictionary<string, string?> Storage { get; init; } = new();

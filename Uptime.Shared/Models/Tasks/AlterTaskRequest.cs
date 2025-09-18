@@ -1,7 +1,6 @@
 ﻿namespace Uptime.Shared.Models.Tasks;
 
-public record AlterTaskRequest
+public record AlterTaskRequest(string ExecutorSid)
 {
-    public required string CallerSid { get; init; }
     public Dictionary<string, string?> Input { get; init; } = new();
 }

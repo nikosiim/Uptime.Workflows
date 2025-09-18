@@ -5,9 +5,9 @@ namespace Uptime.Workflows.Core;
 
 public abstract class ReplicatorActivityProvider : IReplicatorActivityProvider
 {
-    public abstract IWorkflowActivity CreateActivity(IWorkflowTaskContext context);
+    public abstract IWorkflowActivity CreateActivity(IWorkflowActivityContext context);
 
-    public virtual void OnChildInitialized(string phaseId, IWorkflowTaskContext context, IWorkflowActivity activity)
+    public virtual void OnChildInitialized(string phaseId, IWorkflowActivityContext context, IWorkflowActivity activity)
     {
     }
     

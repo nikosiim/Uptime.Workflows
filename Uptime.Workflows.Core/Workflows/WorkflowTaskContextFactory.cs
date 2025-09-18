@@ -7,10 +7,10 @@ namespace Uptime.Workflows.Core;
 
 public static class WorkflowTaskContextFactory
 {
-    public static WorkflowTaskContext CreateNew(string? phaseId, 
+    public static WorkflowActivityContext CreateNew(string? phaseId, 
         PrincipalId assignedTo, PrincipalId assignedBy, string? description, DateTime? dueDate)
     {
-        var ctx = new WorkflowTaskContext
+        var ctx = new WorkflowActivityContext
         {
             TaskGuid = Guid.NewGuid(),
             PhaseId = phaseId,
@@ -25,10 +25,10 @@ public static class WorkflowTaskContextFactory
         return ctx;
     }
 
-    public static WorkflowTaskContext FromDatabase(string? phaseId, Guid taskGuid, string? description,
+    public static WorkflowActivityContext FromDatabase(string? phaseId, Guid taskGuid, string? description,
         PrincipalId assignedTo, PrincipalId assignedBy, DateTime? dueDate, string? storageJson)
     {
-        return new WorkflowTaskContext
+        return new WorkflowActivityContext
         {
             TaskGuid = taskGuid,
             PhaseId = phaseId,

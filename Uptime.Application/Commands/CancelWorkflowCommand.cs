@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Interfaces;
@@ -12,7 +11,7 @@ namespace Uptime.Workflows.Application.Commands;
 
 public record CancelWorkflowCommand : IRequest<Result<Unit>>, IPrincipalRequest
 {
-    public required string ExecutedBySid { get; init; }
+    public required string ExecutorSid { get; init; }
     public required WorkflowId WorkflowId { get; init; }
     public required string Comment { get; init; }
 

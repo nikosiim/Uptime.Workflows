@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Uptime.Shared.Models.Libraries;
+using Uptime.Workflows.Api.Contracts;
 using Uptime.Workflows.Api.Extensions;
 using Uptime.Workflows.Application.DTOs;
 using Uptime.Workflows.Application.Queries;
@@ -27,9 +27,17 @@ namespace Uptime.Workflows.Api.Controllers
         public async Task<ActionResult<List<LibraryDocumentResponse>>> GetDocuments(int libraryId, CancellationToken ct)
         {
             var query = new GetLibraryDocumentsQuery((LibraryId)libraryId);
-            List<LibraryDocumentDto> dtos = await mediator.Send(query, ct);
+            List<LibraryDocumentDto> items = await mediator.Send(query, ct);
+
+            List<LibraryDocumentResponse> result = items.Select(dto => new LibraryDocumentResponse
+            {
+                Id = dto.Id,
+                Title = dto.Title,
+                Description = dto.Description,
+                LibraryId = dto.LibraryId
+            }).ToList();
             
-            return Ok(Mapper.MapToLibraryDocumentResponse(dtos));
+            return Ok(result);
         }
 
         [HttpGet("workflow-templates")]
@@ -37,8 +45,17 @@ namespace Uptime.Workflows.Api.Controllers
         {
             var query = new GetLibraryWorkflowTemplatesQuery((LibraryId)libraryId);
             List<LibraryWorkflowTemplateDto> templates = await mediator.Send(query, ct);
+
+            List<LibraryWorkflowTemplateResponse> result = templates.Select(dto => new LibraryWorkflowTemplateResponse
+            {
+                Id = dto.Id,
+                Name = dto.Name,
+                WorkflowBaseId = dto.WorkflowBaseId,
+                AssociationDataJson = dto.AssociationDataJson,
+                Created = dto.Created
+            }).ToList();
             
-            return Ok(Mapper.MapToLibraryWorkflowTemplateResponse(templates));
+            return Ok(result);
         }
     }
 }
