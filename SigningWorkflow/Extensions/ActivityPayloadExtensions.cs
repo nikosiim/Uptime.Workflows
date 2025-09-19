@@ -3,10 +3,10 @@
 public static class ActivityPayloadExtensions
 {
     public static string? GetTaskComment(this Dictionary<string, string?> inputData)
-        => inputData.GetValueOrDefault(PayloadInputKeys.TaskComment);
+        => inputData.GetValueOrDefault(StorageKeys.TaskComment);
     
-    private static class PayloadInputKeys
+    private static class StorageKeys
     {
-        public const string TaskComment = "Task.Comment";
+        public const string TaskComment = "Payload.Signing.Task.Comment";
     }
 }

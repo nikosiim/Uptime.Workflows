@@ -17,5 +17,5 @@ public record WorkflowTaskData
     public string? DisplayStatus { get; init; }
     public WorkflowTaskStatus InternalStatus { get; init; }
 
-    public string? Title => StorageJson.GetValue(Constants.TaskStorageKeys.TaskTitle);
+    public string? Title => StorageJson.GetValue(Constants.StorageKeys.Activity.Approval.TaskTitle);
 }

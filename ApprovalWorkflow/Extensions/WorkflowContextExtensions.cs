@@ -4,19 +4,31 @@ using Uptime.Workflows.Core.Interfaces;
 
 namespace ApprovalWorkflow;
 
+public enum TaskPhase
+{
+    Approver,
+    Signer
+}
+
 internal static class WorkflowContextExtensions
 {
     public static ReplicatorType? GetReplicatorType(this IWorkflowContext context)
     {
-        if (context.Storage.TryGetValueAsEnum(StorageKeys.ReplicatorType, out ReplicatorType type))
+        if (context.Storage.TryGetValueAsEnum(StorageKeys.ApprovalReplicatorType, out ReplicatorType type))
             return type;
 
         return null;
     }
-    
-    public static DateTime GetTaskDueDate(this IWorkflowContext context)
+
+    public static DateTime GetTaskDueDate(this IWorkflowContext context, TaskPhase phase)
     {
-        return context.Storage.GetValueAsDateTime(StorageKeys.TaskDueDate);
+        string key = phase switch
+        {
+            TaskPhase.Approver => StorageKeys.TaskApprovalDueDate,
+            TaskPhase.Signer   => StorageKeys.TaskSignerDueDate,
+            _ => throw new ArgumentOutOfRangeException(nameof(phase), phase, null)
+        };
+        return context.Storage.GetValueAsDateTime(key);
     }
 
     #region ApproverTask
@@ -69,15 +81,15 @@ internal static class WorkflowContextExtensions
 
     private static class StorageKeys
     {
-        public const string ReplicatorType = "Workflow.ReplicatorType";
-        public const string TaskDueDate = "Task.DueDate";
-
-        public const string TaskApproverDescription = "Task.Approver.Description";
-        public const string TaskApproverSids = "Task.Approver.Sids";
-        public const string TaskApproverPrincipalIds = "Task.Approver.PrincipalIds";
-
-        public const string TaskSignerSids = "Task.Signer.Sids";
-        public const string TaskSignerDescription = "Task.Signer.Description";
-        public const string TaskSignerPrincipalIds = "Task.Signer.PrincipalIds";
+        public const string ApprovalReplicatorType   = "Workflow.Approval.Task.Approver.ReplicatorType";
+        public const string TaskApprovalDueDate      = "Workflow.Approval.Task.Approver.DueDate";
+        public const string TaskApproverDescription  = "Workflow.Approval.Task.Approver.Description";
+        public const string TaskApproverSids         = "Workflow.Approval.Task.Approver.Sids";
+        public const string TaskApproverPrincipalIds = "Workflow.Approval.Task.Approver.PrincipalIds";
+                                                     
+        public const string TaskSignerDueDate        = "Workflow.Approval.Task.Signer.DueDate";
+        public const string TaskSignerDescription    = "Workflow.Approval.Task.Signer.Description";
+        public const string TaskSignerSids           = "Workflow.Approval.Task.Signer.Sids";
+        public const string TaskSignerPrincipalIds   = "Workflow.Approval.Task.Signer.PrincipalIds";
     }
 }

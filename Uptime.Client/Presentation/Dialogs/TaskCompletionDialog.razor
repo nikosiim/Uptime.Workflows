@@ -40,12 +40,11 @@
 
         User taskEditor = User.OrSystemAccount(WorkflowState.Value.CurrentUser);
         
-        input[TaskStorageKeys.TaskComment] = _comment;
-        input[TaskStorageKeys.TaskResult] = EventType.ToString();
+        input[StorageKeys.Payload.Approval.TaskComment] = _comment;
 
         if (EventType == WorkflowEventType.TaskDelegated)
         {
-            input[TaskStorageKeys.TaskDelegatedTo] = _delegatedUser;
+            input[StorageKeys.Payload.Approval.TaskDelegatedToSid] = _delegatedUser;
         }
 
         var command = new AlterTaskCommand

@@ -10,10 +10,10 @@ public static class ActivityContextExtensions
     
     public static void SetTaskTitle(this IWorkflowActivityContext context, string? title)
         => context.Storage.SetValue(StorageKeys.TaskTitle, title);
-    
+
     private static class StorageKeys
     {
-        public const string TaskComment = "Task.Comment";
-        public const string TaskTitle = "Task.Title";
+        public const string TaskTitle   = "Activity.Signing.Task.Title";
+        public const string TaskComment = "Activity.Signing.Task.Comment";
     }
 }

@@ -24,9 +24,9 @@ internal static class WorkflowContextExtensions
 
     private static class StorageKeys
     {
-        public const string TaskDueDays = "Task.DueDays";
-        public const string TaskDescription = "Task.Description";
-        public const string TaskPrincipalIds = "Task.PrincipalIds";
-        public const string TaskSids = "Task.Sids";
+        public const string TaskDueDays      = "Workflow.Signing.Task.DueDays";
+        public const string TaskDescription  = "Workflow.Signing.Task.Description";
+        public const string TaskPrincipalIds = "Workflow.Signing.Task.PrincipalIds";
+        public const string TaskSids         = "Workflow.Signing.Task.Sids";
     }
 }

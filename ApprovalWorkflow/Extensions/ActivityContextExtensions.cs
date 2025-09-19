@@ -13,7 +13,7 @@ public static class ActivityContextExtensions
     
     private static class StorageKeys
     {
-        public const string TaskComment = "Task.Comment";
-        public const string TaskTitle = "Task.Title";
+        public const string TaskTitle   = "Activity.Approval.Task.Title";
+        public const string TaskComment = "Activity.Approval.Task.Comment";
     }
 }

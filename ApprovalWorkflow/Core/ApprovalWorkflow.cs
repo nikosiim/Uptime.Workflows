@@ -84,7 +84,7 @@ public sealed class ApprovalWorkflow(
                             assignedTo: PrincipalId.Parse(id),
                             assignedBy: ctx.GetInitiatorId(),
                             description: ctx.GetTaskApproverDescription(),
-                            dueDate: ctx.GetTaskDueDate()
+                            dueDate: ctx.GetTaskDueDate(TaskPhase.Approver)
                         )
                     );
                 },
@@ -106,7 +106,7 @@ public sealed class ApprovalWorkflow(
                             assignedTo: PrincipalId.Parse(id),
                             assignedBy: ctx.GetInitiatorId(),
                             description: ctx.GetTaskSignerDescription(),
-                            dueDate: ctx.GetTaskDueDate()
+                            dueDate: ctx.GetTaskDueDate(TaskPhase.Signer)
                         )
                     );
                 },

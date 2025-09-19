@@ -95,14 +95,21 @@ public static class WorkflowContextExtensionsCore
 
     #endregion
 
+    /// <summary>
+    /// Workflow context storage keys.
+    /// Naming: Workflow.[Workflow].[Phase].[Field]
+    /// - [Workflow]: Workflow type (e.g. Approval, Signing)
+    /// - [Phase]: Logical phase or role (e.g. Approval, Signing)
+    /// - [Field]: Field name (DueDate, Sids, PrincipalIds, etc)
+    /// Always include [Phase] if the key is phase-specific.
+    /// </summary>
     private static class StorageKeys
     {
-        public const string AssociationName = "AssociationName";
-        public const string DocumentId = "DocumentId";
-        public const string WorkflowId = "WorkflowId";
-        public const string WorkflowTemplateId = "WorkflowTemplateId";
-
-        public const string InitiatorPrincipalId = "Initiator.PrincipalId";
-        public const string InitiatorSid = "Initiator.Sid";
+        public const string AssociationName      = "Workflow.Association.Name";
+        public const string DocumentId           = "Workflow.Document.Id";
+        public const string WorkflowId           = "Workflow.Id";
+        public const string InitiatorPrincipalId = "Workflow.Initiator.PrincipalId";
+        public const string InitiatorSid         = "Workflow.Initiator.Sid";
+        public const string WorkflowTemplateId   = "Workflow.Template.Id";
     }
 }

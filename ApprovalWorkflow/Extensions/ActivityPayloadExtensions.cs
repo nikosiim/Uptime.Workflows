@@ -3,14 +3,22 @@
 public static class ActivityPayloadExtensions
 {
     public static string? GetTaskComment(this Dictionary<string, string?> inputData)
-        => inputData.GetValueOrDefault(PayloadInputKeys.TaskComment);
+        => inputData.GetValueOrDefault(StorageKeys.TaskComment);
 
     public static string? GetTaskDelegatedToSid(this Dictionary<string, string?> inputData)
-        => inputData.GetValueOrDefault(PayloadInputKeys.TaskDelegatedToSid);
+        => inputData.GetValueOrDefault(StorageKeys.TaskDelegatedToSid);
 
-    private static class PayloadInputKeys
+    /// <summary>
+    /// Activity payload storage keys.
+    /// Naming: Payload.[Workflow].[Phase].[Field]
+    /// - [Workflow]: Workflow type
+    /// - [Phase]: Phase or activity name (if needed)
+    /// - [Field]: Specific input or output field
+    /// Only include phase if payload varies per phase/activity.
+    /// </summary>
+    private static class StorageKeys
     {
-        public const string TaskComment = "Task.Comment";
-        public const string TaskDelegatedToSid = "Task.DelegatedToSid";
+        public const string TaskComment        = "Payload.Approval.Task.Comment";
+        public const string TaskDelegatedToSid = "Payload.Approval.Task.DelegatedTo.Sid";
     }
 }

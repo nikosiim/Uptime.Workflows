@@ -53,17 +53,17 @@
 
         var storage = new Dictionary<string, string?>
         {
-            [WorkflowStorageKeys.ReplicatorType] = ReplicatorType.ToString(),
-            [WorkflowStorageKeys.AssociationName] = FormModel.TemplateName,
-            [TaskStorageKeys.TaskDescription] = FormModel.TaskDescription
+            [StorageKeys.Workflow.Core.AssociationName] = FormModel.TemplateName,
+            [StorageKeys.Workflow.Approval.ReplicatorType] = ReplicatorType.ToString(),
+            [StorageKeys.Workflow.Approval.TaskApproverDescription] = FormModel.TaskDescription
         };
 
-        storage.SetValueAsDateTime(TaskStorageKeys.TaskDueDate, FormModel.DueDate);
-        storage.SetValueAsList(TaskStorageKeys.TaskExecutors, FormModel.AssignedTo);
+        storage.SetValueAsDateTime(StorageKeys.Workflow.Approval.TaskApprovalDueDate, FormModel.DueDate);
+        storage.SetValueAsList(StorageKeys.Workflow.Approval.TaskApproverSids, FormModel.AssignedTo);
 
         if (!string.IsNullOrWhiteSpace(FormModel.Signer))
         {
-            storage.SetValueAsList(TaskStorageKeys.TaskSigners, [FormModel.Signer]);
+            storage.SetValueAsList(StorageKeys.Workflow.Approval.TaskSignerSids, [FormModel.Signer]);
         }
 
         var command = new StartWorkflowCommand

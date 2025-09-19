@@ -24,10 +24,18 @@ public static class ActivityContextExtensionsCore
     public static void SetTaskStatus(this IWorkflowActivityContext context, WorkflowTaskStatus status)
         => context.Storage.SetValue(StorageKeys.TaskStatus, status.ToString());
     
+    /// <summary>
+    /// Activity context storage keys.
+    /// Naming: Activity.[Workflow].[Phase].[Field]
+    /// - [Workflow]: Workflow type
+    /// - [Phase]: Activity phase or role
+    /// - [Field]: Field name (Title, Comment, Status, etc)
+    /// Use [Phase] to distinguish keys if activity repeats across phases.
+    /// </summary>
     private static class StorageKeys
     {
-        public const string TaskId = "Task.Id";
-        public const string TaskOutcome = "Task.Outcome";
-        public const string TaskStatus = "Task.Status";
+        public const string TaskId      = "Activity.Task.Id";
+        public const string TaskOutcome = "Activity.Task.Outcome";
+        public const string TaskStatus  = "Activity.Task.Status";
     }
 }
