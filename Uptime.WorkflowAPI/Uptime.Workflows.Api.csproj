@@ -9,6 +9,12 @@
 		<RootNamespace>Uptime.Workflows.Api</RootNamespace>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <Compile Remove="Configuration\MembershipValidationServiceOptions.cs" />
+	  <Compile Remove="Configuration\OnPremSharePointOptions.cs" />
+	  <Compile Remove="Configuration\SpoOnlineOptions.cs" />
+	</ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.16.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.9" />

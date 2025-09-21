@@ -8,7 +8,7 @@ builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
 builder.Services.AddCoreServices(builder.Configuration);
 builder.Services.AddApplicationServices();
-builder.Services.AddWorkflowAuthentication(builder.Configuration, builder.Environment);
+builder.Services.AddWorkflowAuthentication(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddWorkflowSwagger();
 

@@ -11,9 +11,13 @@ using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.Workflows.Api.Controllers;
 
+/// <summary>
+/// API Requires client credentials token from SharePoint Gateway.
+/// End user authentication is handled by the gateway.
+/// </summary>
 [ApiController]
 [Route("api/workflow-tasks/{taskId:int}")]
-[Authorize]
+[Authorize(Policy = "TrustedApp")]
 public class WorkflowTasksController(IMediator mediator) : ControllerBase
 {
     [HttpGet("")]
