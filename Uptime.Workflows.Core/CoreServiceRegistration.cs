@@ -8,6 +8,7 @@ namespace Uptime.Workflows.Core;
 public static class ConnectionStrings
 {
     public const string DefaultConnection = "UptimeDbConnection";
+    public const string DefaultConnectionDev = "UptimeDbConnection_dev";
 }
 
 public static class CoreServiceRegistration

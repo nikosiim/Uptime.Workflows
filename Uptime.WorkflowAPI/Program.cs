@@ -8,7 +8,12 @@ builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
 builder.Services.AddCoreServices(builder.Configuration);
 builder.Services.AddApplicationServices();
-builder.Services.AddWorkflowAuthentication(builder.Configuration);
+
+// For Azure deployment
+builder.Services.AddAzureWorkflowAuthentication(builder.Configuration);
+// For IIS/on-prem deployment
+// builder.Services.AddIisWorkflowAuthentication(builder.Configuration);
+
 builder.Services.AddControllers();
 builder.Services.AddWorkflowSwagger();
 

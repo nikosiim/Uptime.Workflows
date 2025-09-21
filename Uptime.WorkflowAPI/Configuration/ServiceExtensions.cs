@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Server.IISIntegration;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 
@@ -8,62 +6,43 @@ namespace Uptime.Workflows.Api.Configuration;
 
 internal static class ServiceExtensions
 {
-    public static IServiceCollection AddWorkflowAuthentication(this IServiceCollection services, IConfiguration cfg)
+    public static IServiceCollection AddAzureWorkflowAuthentication(this IServiceCollection services, IConfiguration cfg)
     {
-        AzureAdSettings ad = cfg.GetSection("AzureAd").Get<AzureAdSettings>()
-                             ?? throw new InvalidOperationException("AzureAd configuration section missing.");
+        AzureAdSettings ad = cfg.GetSection("Api:AAD").Get<AzureAdSettings>()
+                             ?? throw new InvalidOperationException("Api:AAD configuration section missing.");
 
-        // This "Hybrid" policy scheme will automatically use Bearer if Authorization header is present,
-        // otherwise will fall back to Windows Authentication
-        services.AddAuthentication(options =>
-        {
-            options.DefaultScheme = "HybridAuth";
-        })
-        .AddPolicyScheme("HybridAuth", "Windows or Bearer", options =>
-        {
-            options.ForwardDefaultSelector = context =>
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
-                var hasBearer = context.Request.Headers["Authorization"].FirstOrDefault()?.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) == true;
-                return hasBearer ? JwtBearerDefaults.AuthenticationScheme : "Negotiate";
-            };
-        })
-        // JWT Bearer for Azure-based/cloud callers
-        .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-        {
-            options.Authority = ad.Authority;
-            options.Audience = ad.ApiClientId;
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidIssuer = ad.Authority,
-                ValidateAudience = true,
-                ValidAudience = ad.ApiClientId,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true
-            };
-        })
-        // Windows Auth for IIS/on-prem callers
-        .AddNegotiate(); // works with IIS Windows Auth
+                options.Authority = ad.Instance + ad.Domain;
+                options.Audience = ad.ApiClientId;
+            });
 
-        // Authorization: allow either scheme if user is authenticated,
-        // and require correct scope for Bearer tokens (Azure)
         services.AddAuthorization(options =>
         {
             options.AddPolicy("TrustedApp", policy =>
             {
-                // This allows either:
-                // - a successfully authenticated Windows user, OR
-                // - a valid Bearer token with "access_as_admin" scope
                 policy.RequireAssertion(context =>
                 {
-                    // Windows Auth (Negotiate)
-                    if (context.User.Identity is { AuthenticationType: "Negotiate", IsAuthenticated: true })
-                        return true;
-
-                    // Bearer token
-                    var hasScope = context.User.HasClaim(c => c.Type == "scp" && c.Value.Contains("access_as_admin"));
+                    bool hasScope = context.User.HasClaim(c => c.Type == "scp" && c.Value.Contains("access_as_admin"));
                     return context.User.Identity?.AuthenticationType == JwtBearerDefaults.AuthenticationScheme && hasScope;
                 });
+            });
+        });
+
+        return services;
+    }
+
+    public static IServiceCollection AddIisWorkflowAuthentication(this IServiceCollection services, IConfiguration cfg)
+    {
+        services.AddAuthentication("Negotiate")
+            .AddNegotiate();
+
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy("TrustedApp", policy =>
+            {
+                policy.RequireAssertion(context => context.User.Identity is { AuthenticationType: "Negotiate", IsAuthenticated: true });
             });
         });
 

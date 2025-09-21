@@ -12,7 +12,7 @@ public class WorkflowDbContext(DbContextOptions options) : DbContext(options)
     public DbSet<Workflow> Workflows { get; set; } = null!;
     public DbSet<WorkflowPrincipal> WorkflowPrincipals { get; set; } = null!;
     public DbSet<WorkflowTemplate> WorkflowTemplates { get; set; } = null!;
-    
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -33,28 +33,63 @@ public class WorkflowDbContext(DbContextOptions options) : DbContext(options)
             .HasForeignKey(wt => wt.LibraryId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Document -> WorkflowInstances (Cascade delete)
+        // Document -> Workflows (Cascade delete)
         modelBuilder.Entity<Workflow>()
-            .HasOne(wi => wi.Document)
+            .HasOne(w => w.Document)
             .WithMany(d => d.Workflows)
-            .HasForeignKey(wi => wi.DocumentId)
+            .HasForeignKey(w => w.DocumentId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // WorkflowTemplate -> WorkflowInstances (No cascade delete)
+        // WorkflowTemplate -> Workflows (No cascade, restrict delete)
         modelBuilder.Entity<Workflow>()
-            .HasOne(wi => wi.WorkflowTemplate)
+            .HasOne(w => w.WorkflowTemplate)
             .WithMany(wt => wt.Workflows)
-            .HasForeignKey(wi => wi.WorkflowTemplateId)
-            .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete to avoid cycles
+            .HasForeignKey(w => w.WorkflowTemplateId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        // WorkflowInstance -> WorkflowTasks (Cascade delete)
+        // Workflow -> WorkflowTasks (Cascade delete)
         modelBuilder.Entity<WorkflowTask>()
-            .HasOne(wt => wt.Workflow)
-            .WithMany(wi => wi.WorkflowTasks)
-            .HasForeignKey(wt => wt.WorkflowId)
-            .OnDelete(DeleteBehavior.Cascade); // Tasks should be deleted when a workflow instance is deleted
+            .HasOne(t => t.Workflow)
+            .WithMany(w => w.WorkflowTasks)
+            .HasForeignKey(t => t.WorkflowId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        // Apply configurations
+        // Workflow -> WorkflowHistories (Cascade delete)
+        modelBuilder.Entity<WorkflowHistory>()
+            .HasOne(h => h.Workflow)
+            .WithMany(w => w.WorkflowHistories)
+            .HasForeignKey(h => h.WorkflowId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // WorkflowTask -> WorkflowPrincipal (AssignedTo, Restrict delete)
+        modelBuilder.Entity<WorkflowTask>()
+            .HasOne(t => t.AssignedTo)
+            .WithMany()
+            .HasForeignKey(t => t.AssignedToPrincipalId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // WorkflowTask -> WorkflowPrincipal (AssignedBy, Restrict delete)
+        modelBuilder.Entity<WorkflowTask>()
+            .HasOne(t => t.AssignedBy)
+            .WithMany()
+            .HasForeignKey(t => t.AssignedByPrincipalId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Workflow -> WorkflowPrincipal (InitiatedBy, Restrict delete)
+        modelBuilder.Entity<Workflow>()
+            .HasOne(w => w.InitiatedByPrincipal)
+            .WithMany()
+            .HasForeignKey(w => w.InitiatedByPrincipalId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // WorkflowHistory -> WorkflowPrincipal (PerformedBy, Restrict delete, nullable FK)
+        modelBuilder.Entity<WorkflowHistory>()
+            .HasOne(h => h.PerformedByPrincipal)
+            .WithMany()
+            .HasForeignKey(h => h.PerformedByPrincipalId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Apply configurations if any (e.g., for seeding or property configs)
         modelBuilder.ApplyConfiguration(new DocumentConfiguration());
         modelBuilder.ApplyConfiguration(new LibraryConfiguration());
         modelBuilder.ApplyConfiguration(new WorkflowPrincipalConfiguration());
