@@ -51,7 +51,15 @@ public abstract class WorkflowBase<TContext>(
 
     protected WorkflowId WorkflowId
     {
-        get => WorkflowContext.GetWorkflowId();
+        get
+        {
+            string? idStr = WorkflowContext.Storage.GetValueOrDefault("WorkflowId");
+            if (string.IsNullOrWhiteSpace(idStr))
+            {
+                logger.LogError("WorkflowId was accessed before initialization! Callstack:{Stack}", Environment.StackTrace);
+            }
+            return WorkflowContext.GetWorkflowId();
+        }
         private set => WorkflowContext.SetWorkflowId(value);
     }
 
@@ -67,7 +75,7 @@ public abstract class WorkflowBase<TContext>(
         {
             InitializeWorkflowContext(payload);
             InitializeStateMachine(BaseState.NotStarted, cancellationToken);
-            
+
             await RegisterWorkflowInstanceAsync(cancellationToken);
             await OnWorkflowActivatedAsync(cancellationToken);
             

@@ -1,9 +1,9 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Workflows.Api.Contracts;
 using Uptime.Workflows.Api.Extensions;
 using Uptime.Workflows.Application.DTOs;
+using Uptime.Workflows.Application.Messaging;
 using Uptime.Workflows.Application.Queries;
 using Uptime.Workflows.Core.Common;
 
@@ -16,7 +16,7 @@ namespace Uptime.Workflows.Api.Controllers;
 [ApiController]
 [Route("api/[controller]/{documentId:int}")]
 [Authorize(Policy = "TrustedApp")]
-public class DocumentsController(IMediator mediator) : ControllerBase
+public class DocumentsController(ISender mediator) : ControllerBase
 {
     [HttpGet("workflows")]
     public async Task<ActionResult<List<DocumentWorkflowsResponse>>> GetDocumentWorkflows(int documentId, CancellationToken ct)

@@ -33,6 +33,9 @@ builder.Services.AddCors(options =>
 
 WebApplication app = builder.Build();
 
+ILogger logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("AuthDebug");
+AuthDebug.Logger = logger;
+
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Workflow API v1"));
 

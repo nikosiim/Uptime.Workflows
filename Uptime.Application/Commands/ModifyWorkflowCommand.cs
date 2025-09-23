@@ -1,6 +1,6 @@
-﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Uptime.Workflows.Application.Messaging;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Interfaces;
@@ -9,7 +9,7 @@ using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.Workflows.Application.Commands;
 
-public record ModifyWorkflowCommand : IRequest<Result<Unit>>, IPrincipalRequest
+public record ModifyWorkflowCommand : IRequest<Result<Unit>>, IRequiresPrincipal
 {
     public required WorkflowId WorkflowId { get; init; }
     public required string ExecutorSid { get; init; }

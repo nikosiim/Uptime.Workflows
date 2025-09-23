@@ -1,5 +1,5 @@
-﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Uptime.Workflows.Application.Messaging;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Interfaces;
@@ -8,7 +8,7 @@ using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.Workflows.Application.Commands;
 
-public record StartWorkflowCommand : IRequest<Result<Unit>>, IPrincipalRequest
+public record StartWorkflowCommand : IRequiresPrincipal, IRequest<Result<Unit>>
 {
     public required string ExecutorSid { get; init; }
     public required DocumentId DocumentId { get; init; }
@@ -34,7 +34,10 @@ public class StartWorkflowCommandHandler(WorkflowDbContext db, IWorkflowFactory 
          
         if (string.IsNullOrEmpty(workflowBaseIdString))
             return Result<Unit>.Failure(ErrorCode.NotFound, $"Workflow template with ID {request.WorkflowTemplateId.Value} not found.");
-        
+
+        if (request.ExecutedBy == null)
+            throw new WorkflowValidationException(ErrorCode.Validation, "Initiator principal is missing.");
+
         var payload = new StartWorkflowPayload
         {
             ExecutedBy = request.ExecutedBy,

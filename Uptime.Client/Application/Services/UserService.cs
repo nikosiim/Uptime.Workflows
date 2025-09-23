@@ -4,7 +4,7 @@ public record User(string Sid, string Name, string Email, bool IsAdmin)
 {
     private static User System => new("S-1-5-21-1", "System", "", true);
 
-    public static User Default => new("S-1-5-21-10000", "John Doe", "", false);
+    public static User Default => new("S-1-5-21-10000", "Priit Siimo", "", false);
 
     /// <summary>
     /// Returns the given user if not null; otherwise, returns the system account.

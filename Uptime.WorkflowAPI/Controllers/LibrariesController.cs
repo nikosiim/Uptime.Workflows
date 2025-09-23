@@ -1,9 +1,9 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Workflows.Api.Contracts;
 using Uptime.Workflows.Api.Extensions;
 using Uptime.Workflows.Application.DTOs;
+using Uptime.Workflows.Application.Messaging;
 using Uptime.Workflows.Application.Queries;
 using Uptime.Workflows.Core.Common;
 
@@ -16,7 +16,7 @@ namespace Uptime.Workflows.Api.Controllers
     [ApiController]
     [Route("api/[controller]/{libraryId:int}")]
     [Authorize(Policy = "TrustedApp")]
-    public class LibrariesController(IMediator mediator) : ControllerBase
+    public class LibrariesController(ISender mediator) : ControllerBase
     {
         [HttpGet("")]
         public async Task<ActionResult<LibraryResponse>> GetLibrary(int libraryId, CancellationToken ct)

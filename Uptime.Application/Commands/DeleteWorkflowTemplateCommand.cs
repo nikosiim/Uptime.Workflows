@@ -1,6 +1,6 @@
-﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Uptime.Workflows.Application.Messaging;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 using Unit = Uptime.Workflows.Core.Common.Unit;

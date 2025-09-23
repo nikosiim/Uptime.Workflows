@@ -1,0 +1,27 @@
+﻿@page "/debug-token"
+@inject IAccessTokenProvider TokenProvider
+
+<button @onclick="LogToken">Log Access Token</button>
+
+@if (!string.IsNullOrEmpty(_tokenValue))
+{
+    <MudText Typo="Typo.body2">@_tokenValue</MudText>
+}
+
+@code {
+    string? _tokenValue;
+
+    private async Task LogToken()
+    {
+        var result = await TokenProvider.RequestAccessToken();
+        if (result.TryGetToken(out AccessToken? token))
+        {
+            _tokenValue = token.Value; // Shows on UI
+            Console.WriteLine(token.Value); // F12 Console
+        }
+        else
+        {
+            _tokenValue = "Failed to get token";
+        }
+    }
+}

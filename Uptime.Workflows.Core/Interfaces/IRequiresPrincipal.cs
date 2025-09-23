@@ -2,7 +2,7 @@
 
 namespace Uptime.Workflows.Core.Interfaces;
 
-public interface IPrincipalRequest
+public interface IRequiresPrincipal
 {
     string ExecutorSid { get; }
     Principal ExecutedBy { get; set; }

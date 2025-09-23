@@ -1,4 +1,4 @@
-﻿using MediatR;
+﻿using Uptime.Workflows.Application.Messaging;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 

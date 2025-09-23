@@ -14,7 +14,7 @@ internal static class ServiceExtensions
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
-                options.Authority = ad.Instance + ad.Domain;
+                options.Authority = ad.Instance + ad.Domain + "/v2.0";
                 options.Audience = ad.ApiClientId;
             });
 
@@ -24,8 +24,11 @@ internal static class ServiceExtensions
             {
                 policy.RequireAssertion(context =>
                 {
-                    bool hasScope = context.User.HasClaim(c => c.Type == "scp" && c.Value.Contains("access_as_admin"));
-                    return context.User.Identity?.AuthenticationType == JwtBearerDefaults.AuthenticationScheme && hasScope;
+                    string? scopes =
+                        context.User.FindFirst("scp")?.Value ??
+                        context.User.FindFirst("http://schemas.microsoft.com/identity/claims/scope")?.Value;
+                    
+                    return scopes != null && scopes.Contains("access_as_admin");
                 });
             });
         });
@@ -73,4 +76,9 @@ internal static class ServiceExtensions
             c.OperationFilter<SecureEndpointAuthRequirementFilter>();
         });
     }
+}
+
+public static class AuthDebug
+{
+    public static ILogger? Logger { get; set; }
 }

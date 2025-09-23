@@ -16,8 +16,6 @@ builder.Logging.SetMinimumLevel(LogLevel.Warning);
 
 builder.Services.AddMsalAuthentication(options =>
 {
-    builder.Configuration.Bind("Client:AAD", options.ProviderOptions.Authentication);
-
     // Optional but common for WASM in production:
     options.ProviderOptions.LoginMode = "redirect";
 

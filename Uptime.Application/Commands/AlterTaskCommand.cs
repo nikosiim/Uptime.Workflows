@@ -1,6 +1,6 @@
-﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Uptime.Workflows.Application.Messaging;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Enums;
@@ -10,7 +10,7 @@ using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.Workflows.Application.Commands;
 
-public sealed record AlterTaskCommand : IRequest<Result<Unit>>, IPrincipalRequest
+public sealed record AlterTaskCommand : IRequest<Result<Unit>>, IRequiresPrincipal
 {
     public required TaskId TaskId { get; init; }
     public required string ExecutorSid { get; init; }

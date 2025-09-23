@@ -1,27 +1,26 @@
-﻿using MediatR;
-using Microsoft.Extensions.Logging;
+﻿using Uptime.Workflows.Application.Messaging;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
 
 namespace Uptime.Workflows.Application.Behaviors;
 
-public sealed class PrincipalResolutionBehavior<TReq, TRes>(IPrincipalResolver resolver, ILogger<PrincipalResolutionBehavior<TReq, TRes>> log)
-    : IPipelineBehavior<TReq, Result<TRes>> where TReq : IRequest<Result<TRes>>
+public sealed class PrincipalResolutionBehavior<TRequest, TResponse>(IPrincipalResolver resolver)
+    : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
 {
-    public async Task<Result<TRes>> Handle(TReq request, RequestHandlerDelegate<Result<TRes>> next, CancellationToken ct)
+    public async Task<TResponse> Handle(TRequest request, Func<CancellationToken, Task<TResponse>> next, CancellationToken cancellationToken)
     {
-        if (request is not IPrincipalRequest principalRequest)
-            return await next(ct);
-
-        Principal? principal = await resolver.ResolveBySidAsync(principalRequest.ExecutorSid, ct);
-        if (principal is null)
+        if (request is IRequiresPrincipal principalRequest)
         {
-            log.LogWarning("Principal with SID {ExecutedBySid} not found.", principalRequest.ExecutorSid);
-            return Result<TRes>.Failure(ErrorCode.NotFound, $"Principal with SID {principalRequest.ExecutorSid} not found.");
+            Principal? principal = await resolver.ResolveBySidAsync(principalRequest.ExecutorSid, cancellationToken);
+            if (principal == null)
+            {
+                throw new WorkflowValidationException(ErrorCode.NotFound, $"Principal with SID {principalRequest.ExecutorSid} not found.");
+            }
+
+            principalRequest.ExecutedBy = principal;
         }
 
-        principalRequest.ExecutedBy = principal;
-        return await next(ct);
+        return await next(cancellationToken);
     }
 }

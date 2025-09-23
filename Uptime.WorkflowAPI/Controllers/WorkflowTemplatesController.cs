@@ -1,13 +1,12 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Shared.Models.WorkflowTemplates;
 using Uptime.Workflows.Api.Extensions;
 using Uptime.Workflows.Application.Commands;
 using Uptime.Workflows.Application.DTOs;
+using Uptime.Workflows.Application.Messaging;
 using Uptime.Workflows.Application.Queries;
 using Uptime.Workflows.Core.Common;
-using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.Workflows.Api.Controllers;
 
@@ -18,7 +17,7 @@ namespace Uptime.Workflows.Api.Controllers;
 [ApiController]
 [Route("api/workflow-templates")]
 [Authorize(Policy = "TrustedApp")]
-public class WorkflowTemplatesController(IMediator mediator) : ControllerBase
+public class WorkflowTemplatesController(ISender mediator) : ControllerBase
 {
     [HttpGet("{templateId:int}")]
     public async Task<ActionResult<WorkflowTemplateResponse>> GetWorkflowTemplate(int templateId, CancellationToken ct)

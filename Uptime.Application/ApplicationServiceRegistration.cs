@@ -1,10 +1,11 @@
-﻿using MediatR;
+﻿using ApprovalWorkflow;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Reflection;
-using ApprovalWorkflow;
 using SigningWorkflow;
+using System;
 using Uptime.Workflows.Application.Behaviors;
+using Uptime.Workflows.Application.Commands;
+using Uptime.Workflows.Application.Messaging;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Interfaces;
@@ -16,15 +17,18 @@ public static class ApplicationServiceRegistration
 {
     public static void AddApplicationServices(this IServiceCollection services)
     {
-        services.AddMediatR(config => config.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly()));
+        // Register pipeline
+        services.AddSingleton<ISender, DefaultSender>();
+        services.AddSlimMediator(typeof(StartWorkflowCommand).Assembly);
+
+        // Register ExceptionHandlingBehavior *first* so it is the outermost pipeline and can catch exceptions from all inner behaviors and handlers.
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ExceptionHandlingBehavior<,>));
+        // Register other pipeline behaviors below (these will be wrapped by ExceptionHandlingBehavior)
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PrincipalResolutionBehavior<,>));
 
         // Support services
         services.AddScoped<IPrincipalResolver, PrincipalResolver>();
 
-        // Pipeline behaviors
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ExceptionHandlingBehavior<,>));
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PrincipalResolutionBehavior<,>));
-        
         // Core services
         services.AddScoped<IWorkflowMachine, ApprovalWorkflow.ApprovalWorkflow>();
         services.AddSingleton<IWorkflowDefinition, ApprovalWorkflowDefinition>();
