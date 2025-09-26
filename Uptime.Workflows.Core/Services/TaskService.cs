@@ -45,11 +45,14 @@ public class TaskService(IDbContextFactory<WorkflowDbContext> factory) : ITaskSe
     public async Task UpdateAsync(IWorkflowActivityContext activityContext, CancellationToken cancellationToken)
     {
         int taskId = activityContext.GetTaskId().Value;
+        if (taskId <= 0)
+        {
+            throw new ArgumentException("Invalid TaskId value on activity context before UpdateAsync.");
+        }
 
         await using WorkflowDbContext db = await factory.CreateDbContextAsync(cancellationToken);
 
         WorkflowTask? task = await db.WorkflowTasks.FirstOrDefaultAsync(t => t.Id == taskId, cancellationToken);
-
         if (task == null)
         {
             throw new KeyNotFoundException($"Task with ID {taskId} not found.");

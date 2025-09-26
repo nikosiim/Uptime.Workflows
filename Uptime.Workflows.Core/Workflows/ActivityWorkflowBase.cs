@@ -52,6 +52,8 @@ public abstract class ActivityWorkflowBase<TContext>(
                 description: payload.Description,
                 storageJson: payload.StorageJson);
 
+            context.SetTaskId(payload.TaskId);
+
             await OnTaskAlteredAsync(action, context, payload.ExecutedBy, payload.InputData, cancellationToken);
             await SaveWorkflowStateAsync(cancellationToken);
         }

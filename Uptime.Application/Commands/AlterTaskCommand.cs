@@ -50,6 +50,7 @@ public sealed class AlterTaskCommandHandler(WorkflowDbContext db, IWorkflowFacto
         
         var input = new AlterTaskPayload
         {
+            TaskId = (TaskId)task.Id,
             ExecutedBy = request.ExecutedBy,
             PhaseId = task.PhaseId,
             TaskGuid = task.TaskGuid,
