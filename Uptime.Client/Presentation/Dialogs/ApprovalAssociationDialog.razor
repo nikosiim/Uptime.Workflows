@@ -8,9 +8,9 @@
             <MudTextField T="string" Label="Töövoo kordumatu nimi" Variant="Variant.Outlined" @bind-Value="FormModel.TemplateName" Required="true" />
             <MudSelect T="string" Label="Kinnitajad" Variant="Variant.Outlined" Placeholder="Vali kinnitajad"
                        @bind-SelectedValues="FormModel.AssignedTo" MultiSelection="true">
-                @foreach (string name in UserService.GetUsers().Select(u => u.Name))
+                @foreach (User user in UserService.GetUsers())
                 {
-                    <MudSelectItem T="string" Value="@name">@name</MudSelectItem>
+                    <MudSelectItem T="string" Value="@user.Sid">@user.Name</MudSelectItem>
                 }
             </MudSelect>
             <MudTextField T="string" Label="Ülesanne" Variant="Variant.Outlined" @bind-Value="FormModel.TaskDescription" Lines="4" />

@@ -10,9 +10,9 @@
     <MudForm @ref="Form" Spacing="1">
         <MudSelect T="string" Label="Allkirjastaja" Variant="Variant.Outlined" Placeholder="Vali allkirjastaja"
                    @bind-Value="FormModel.Signer" MultiSelection="false">
-            @foreach (string name in UserService.GetUsers().Select(u => u.Name))
+            @foreach (User user in UserService.GetUsers())
             {
-                <MudSelectItem T="string" Value="@name">@name</MudSelectItem>
+                <MudSelectItem T="string" Value="@user.Sid">@user.Name</MudSelectItem>
             }
         </MudSelect>
         <MudTextField T="string" Label="Ülesanne" Variant="Variant.Outlined" @bind-Value="FormModel.TaskDescription" Lines="4" />

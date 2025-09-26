@@ -7,21 +7,23 @@ namespace Uptime.Workflows.Core.Common;
 
 public interface IPrincipalResolver
 {
-    Task<Principal?> ResolveBySidAsync(string sid, CancellationToken ct);
+    Task<Principal?> ResolveBySidAsync(string sid, CancellationToken cancellationToken);
 }
 
-public sealed class PrincipalResolver(WorkflowDbContext db, ILogger<PrincipalResolver> logger) : IPrincipalResolver
+public sealed class PrincipalResolver(IDbContextFactory<WorkflowDbContext> factory, ILogger<PrincipalResolver> logger) : IPrincipalResolver
 {
-    public async Task<Principal?> ResolveBySidAsync(string sid, CancellationToken ct)
+    public async Task<Principal?> ResolveBySidAsync(string sid, CancellationToken cancellationToken)
     {
         logger.LogInformation("PrincipalResolver called for SID: {Sid}", sid);
 
         if (string.IsNullOrWhiteSpace(sid))
             return null;
 
+        await using WorkflowDbContext db = await factory.CreateDbContextAsync(cancellationToken);
+
         WorkflowPrincipal? e = await db.Set<WorkflowPrincipal>()
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.ExternalId == sid, ct);
+            .FirstOrDefaultAsync(p => p.ExternalId == sid, cancellationToken);
 
         if (e is null)
         {

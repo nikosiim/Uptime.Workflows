@@ -9,9 +9,9 @@
         @if (EventType == WorkflowEventType.TaskDelegated)
         {
             <MudSelect T="string" Label="Ülesande saaja" Variant="Variant.Outlined" Placeholder="Vali kasutaja" @bind-Value="_delegatedUser">
-                @foreach (string name in UserService.GetUsers().Select(u => u.Name))
+                @foreach (User user in UserService.GetUsers())
                 {
-                    <MudSelectItem T="string" Value="@name">@name</MudSelectItem>
+                    <MudSelectItem T="string" Value="@user.Sid">@user.Name</MudSelectItem>
                 }
             </MudSelect>
         }

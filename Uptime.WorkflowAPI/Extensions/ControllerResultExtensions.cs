@@ -42,6 +42,8 @@ public static class ControllerResultExtensions
         {
             case ErrorCode.NotFound:
                 return controller.NotFound(new { result.Details });
+            case ErrorCode.Conflict:
+                return controller.Conflict(new { result.Details });
             case ErrorCode.Forbidden:
                 return controller.Forbid();
             case ErrorCode.Validation:

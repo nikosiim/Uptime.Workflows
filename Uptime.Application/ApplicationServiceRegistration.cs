@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SigningWorkflow;
-using System;
 using Uptime.Workflows.Application.Behaviors;
 using Uptime.Workflows.Application.Commands;
 using Uptime.Workflows.Application.Messaging;
@@ -17,13 +16,10 @@ public static class ApplicationServiceRegistration
 {
     public static void AddApplicationServices(this IServiceCollection services)
     {
-        // Register pipeline
-        services.AddSingleton<ISender, DefaultSender>();
         services.AddSlimMediator(typeof(StartWorkflowCommand).Assembly);
 
         // Register ExceptionHandlingBehavior *first* so it is the outermost pipeline and can catch exceptions from all inner behaviors and handlers.
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ExceptionHandlingBehavior<,>));
-        // Register other pipeline behaviors below (these will be wrapped by ExceptionHandlingBehavior)
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PrincipalResolutionBehavior<,>));
 
         // Support services

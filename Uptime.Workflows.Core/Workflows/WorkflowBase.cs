@@ -53,10 +53,18 @@ public abstract class WorkflowBase<TContext>(
     {
         get
         {
-            string? idStr = WorkflowContext.Storage.GetValueOrDefault("WorkflowId");
-            if (string.IsNullOrWhiteSpace(idStr))
+            WorkflowId wrkId = WorkflowContext.GetWorkflowId();
+
+            if (wrkId.Value == 0)
             {
-                logger.LogError("WorkflowId was accessed before initialization! Callstack:{Stack}", Environment.StackTrace);
+                logger.LogError(
+                    "[WorkflowId not initialized] Type: {Type} | Instance: {Hash} | Storage keys: {Keys} | WorkflowId in storage: {WorkflowIdValue}\nStack: {Stack}",
+                    WorkflowContext.GetType().Name,
+                    WorkflowContext.GetHashCode(),
+                    string.Join(", ", WorkflowContext.Storage.Keys),
+                    wrkId.Value,
+                    Environment.StackTrace
+                );
             }
             return WorkflowContext.GetWorkflowId();
         }
@@ -74,9 +82,9 @@ public abstract class WorkflowBase<TContext>(
         try
         {
             InitializeWorkflowContext(payload);
-            InitializeStateMachine(BaseState.NotStarted, cancellationToken);
-
             await RegisterWorkflowInstanceAsync(cancellationToken);
+
+            InitializeStateMachine(BaseState.NotStarted, cancellationToken);
             await OnWorkflowActivatedAsync(cancellationToken);
             
             logger.LogStarted(WorkflowDefinition, WorkflowId, AssociationName);

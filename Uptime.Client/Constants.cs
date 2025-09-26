@@ -84,16 +84,15 @@ public static class Constants
 
         public static class Activity
         {
+            public const string TaskTitle = "Activity.Task.Title";
+            public const string TaskComment = "Activity.Task.Comment";
+
             public static class Approval
             {
-                public const string TaskTitle   = "Activity.Approval.Task.Title";
-                public const string TaskComment = "Activity.Approval.Task.Comment";
             }
 
             public static class Signing
             {
-                public const string TaskTitle   = "Activity.Signing.Task.Title";
-                public const string TaskComment = "Activity.Signing.Task.Comment";
             }
         }
 

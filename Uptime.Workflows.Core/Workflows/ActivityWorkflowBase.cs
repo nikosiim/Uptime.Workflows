@@ -47,7 +47,7 @@ public abstract class ActivityWorkflowBase<TContext>(
                 phaseId: payload.PhaseId,
                 taskGuid: payload.TaskGuid,
                 assignedTo: payload.AssignedTo,
-                assignedBy: payload.AssignedTo,
+                assignedBy: payload.ExecutedBy.Id,
                 dueDate: null,
                 description: payload.Description,
                 storageJson: payload.StorageJson);

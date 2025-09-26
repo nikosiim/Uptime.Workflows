@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using System.Reflection;
 
@@ -7,23 +6,19 @@ namespace Uptime.Workflows.Application.Messaging;
 
 internal sealed class DefaultSender(IServiceProvider sp) : ISender
 {
-    private readonly ILogger<DefaultSender>? _logger = sp.GetService<ILogger<DefaultSender>>();
     private static readonly ConcurrentDictionary<(Type, Type), Func<object, object, CancellationToken, Task<object>>> HandlerCache = new();
-    
+
     public async Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken ct = default)
     {
         Type requestType = request.GetType();
         Type responseType = typeof(TResponse);
-        (Type requestType, Type responseType) key = (requestType, responseType);
 
-        // Resolve handler
         Type handlerType = typeof(IRequestHandler<,>).MakeGenericType(requestType, responseType);
         object handler = sp.GetService(handlerType) ?? throw new InvalidOperationException($"No handler for {requestType.Name}.");
+        
+        (Type requestType, Type responseType) cacheKey = (requestType, responseType);
+        Func<object, object, CancellationToken, Task<object>> handlerFunc = HandlerCache.GetOrAdd(cacheKey, _ => BuildHandlerDelegate(handlerType));
 
-        // Get or create cached handler delegate
-        Func<object, object, CancellationToken, Task<object>> handlerFunc = HandlerCache.GetOrAdd(key, _ => BuildHandlerDelegate(handlerType));
-
-        // Compose pipeline behaviors (reflection for behaviors, as they're rare)
         Type behaviorType = typeof(IPipelineBehavior<,>).MakeGenericType(requestType, responseType);
         IEnumerable<object?> behaviors = sp.GetServices(behaviorType);
         
@@ -32,7 +27,7 @@ internal sealed class DefaultSender(IServiceProvider sp) : ISender
 
         foreach (object behavior in behaviors.Cast<object>().Reverse())
         {
-            object b = behavior; // closure capture
+            object b = behavior;
             Func<CancellationToken, Task<TResponse>> prev = pipeline;
             pipeline = ct2 =>
             {

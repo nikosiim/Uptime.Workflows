@@ -42,7 +42,7 @@ public class BaseWorkflowContext : IWorkflowContext
 {
     [JsonIgnore] 
     public WorkflowOutcome Outcome { get; set; } = WorkflowOutcome.None;
-    public Dictionary<string, string?> Storage { get; protected set; } = new();
+    public Dictionary<string, string?> Storage { get; set; } = new();
     public virtual string Serialize() => JsonSerializer.Serialize(this);
     public virtual void Deserialize(string json)
     {

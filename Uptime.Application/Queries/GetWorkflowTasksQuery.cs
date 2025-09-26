@@ -16,7 +16,7 @@ public class GetWorkflowTasksQueryHandler(WorkflowDbContext db)
     {
         if (ct.IsCancellationRequested)
             return Result<List<WorkflowTaskDto>>.Cancelled();
-
+        
         List<WorkflowTaskDto> dtos = await db.WorkflowTasks.AsNoTracking()
             .Where(task => task.WorkflowId == request.WorkflowId.Value && (request.Status == null || task.InternalStatus == request.Status))
             .Select(task => new WorkflowTaskDto
@@ -33,8 +33,6 @@ public class GetWorkflowTasksQueryHandler(WorkflowDbContext db)
             })
             .ToListAsync(ct);
 
-        return dtos.Count > 0
-            ? Result<List<WorkflowTaskDto>>.Success(dtos)
-            : Result<List<WorkflowTaskDto>>.Failure(ErrorCode.NotFound);
+        return Result<List<WorkflowTaskDto>>.Success(dtos);
     }
 }

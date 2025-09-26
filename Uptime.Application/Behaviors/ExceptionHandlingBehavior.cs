@@ -10,15 +10,6 @@ public sealed class ExceptionHandlingBehavior<TRequest, TResponse>(ILogger<Excep
 {
     public async Task<TResponse> Handle(TRequest request, Func<CancellationToken, Task<TResponse>> next, CancellationToken ct)
     {
-        // If TRes is Result<>, handle exceptions and wrap result, else just continue
-        Type resType = typeof(TResponse);
-        bool isResult = resType.IsGenericType && resType.GetGenericTypeDefinition() == typeof(Result<>);
-
-        if (!isResult)
-        {
-            return await next(ct);
-        }
-
         try
         {
             return await next(ct);

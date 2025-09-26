@@ -4,7 +4,7 @@ public record User(string Sid, string Name, string Email, bool IsAdmin)
 {
     private static User System => new("S-1-5-21-1", "System", "", true);
 
-    public static User Default => new("S-1-5-21-10000", "Priit Siimo", "", false);
+    public static User Default => new("S-1-5-21-10000", "Priit Siimo", "priit.siimo@uptime.eu", true);
 
     /// <summary>
     /// Returns the given user if not null; otherwise, returns the system account.
@@ -40,7 +40,8 @@ public class UserService : IUserService
         new("S-1-5-21-10015", "Riin Koppel", "riin.koppel@example.com", true),
         new("S-1-5-21-10016", "Lauri Saar", "lauri.saar@example.com", true),
         new("S-1-5-21-10017", "Viljar Laine", "viljar.laine@example.com", true),
-        new("S-1-5-21-10018", "Kristina Kroon", "kristina.kroon@example.com", true)
+        new("S-1-5-21-10018", "Kristina Kroon", "kristina.kroon@example.com", true),
+        new("S-1-5-21-10000", "Priit Siimo", "priit.siimo@uptime.eu", true)
     ];
 
     public List<User> GetUsers()

@@ -23,7 +23,13 @@ public static class ActivityContextExtensionsCore
 
     public static void SetTaskStatus(this IWorkflowActivityContext context, WorkflowTaskStatus status)
         => context.Storage.SetValue(StorageKeys.TaskStatus, status.ToString());
-    
+
+    public static void SetTaskComment(this IWorkflowActivityContext context, string? comment)
+        => context.Storage.SetValue(StorageKeys.TaskComment, comment);
+
+    public static void SetTaskTitle(this IWorkflowActivityContext context, string? title)
+        => context.Storage.SetValue(StorageKeys.TaskTitle, title);
+
     /// <summary>
     /// Activity context storage keys.
     /// Naming: Activity.[Workflow].[Phase].[Field]
@@ -37,5 +43,7 @@ public static class ActivityContextExtensionsCore
         public const string TaskId      = "Activity.Task.Id";
         public const string TaskOutcome = "Activity.Task.Outcome";
         public const string TaskStatus  = "Activity.Task.Status";
+        public const string TaskTitle   = "Activity.Task.Title";
+        public const string TaskComment = "Activity.Task.Comment";
     }
 }

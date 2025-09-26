@@ -7,7 +7,7 @@ public static class MessagingServiceCollectionExtensions
 {
     public static IServiceCollection AddSlimMediator(this IServiceCollection services, params Assembly[] assemblies)
     {
-        services.AddSingleton<ISender, DefaultSender>();
+        services.AddScoped<ISender, DefaultSender>();
 
         foreach (Assembly asm in assemblies)
         {

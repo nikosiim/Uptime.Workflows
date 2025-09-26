@@ -23,13 +23,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Fluxor.Blazor.Web" Version="6.7.0-Beta1" />
+    <PackageReference Include="Fluxor.Blazor.Web" Version="6.8.0" />
     <PackageReference Include="MediatR" Version="12.5.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.5" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.5" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Authentication.WebAssembly.Msal" Version="9.0.5" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.5" />
-    <PackageReference Include="MudBlazor" Version="8.6.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.9" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Authentication.WebAssembly.Msal" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.9" />
+    <PackageReference Include="MudBlazor" Version="8.12.0" />
   </ItemGroup>
 
   <ItemGroup>

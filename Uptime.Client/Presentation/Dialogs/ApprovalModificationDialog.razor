@@ -7,9 +7,9 @@
         <MudForm @ref="Form">
             <MudSelect T="string" Label="Kinnitajad" Variant="Variant.Outlined" Placeholder="Muuda kinnitajaid"
             @bind-SelectedValues="_selectedUsers" MultiSelection="true">
-                @foreach (string name in UserService.GetUsers().Select(u => u.Name))
+                @foreach (User user in UserService.GetUsers())
                 {
-                    <MudSelectItem T="string" Value="@name">@name</MudSelectItem>
+                    <MudSelectItem T="string" Value="@user.Sid">@user.Name</MudSelectItem>
                 }
             </MudSelect>
         </MudForm>
