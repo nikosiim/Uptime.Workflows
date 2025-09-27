@@ -27,7 +27,7 @@
     private string? _comment;
     private string? _delegatedUser;
 
-    [Parameter] public int TaskId { get; set; }
+    [Parameter] public Guid TaskGuid { get; set; }
     [Parameter] public string? Document { get; set; }
     [Parameter] public WorkflowEventType EventType { get; set; }
 
@@ -50,7 +50,7 @@
         var command = new AlterTaskCommand
         {
             Executor = taskEditor,
-            TaskId = TaskId,
+            TaskGuid = TaskGuid,
             Action = EventType,
             Input = input
         };

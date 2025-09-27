@@ -89,6 +89,29 @@ public class WorkflowDbContext(DbContextOptions options) : DbContext(options)
             .HasForeignKey(h => h.PerformedByPrincipalId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // WorkflowTask model configuration (TaskGuid as external ID)
+        modelBuilder.Entity<WorkflowTask>(b =>
+        {
+            // PK stays Id (clustered by default)
+            b.HasKey(t => t.Id);
+
+            // TaskGuid: required, generated on insert if not set, immutable after save
+            b.Property(t => t.TaskGuid)
+                .IsRequired()
+                .ValueGeneratedOnAdd()
+                .HasDefaultValueSql("NEWSEQUENTIALID()");
+            b.Property(t => t.TaskGuid).Metadata.SetAfterSaveBehavior(
+                Microsoft.EntityFrameworkCore.Metadata.PropertySaveBehavior.Throw);
+
+            // Alternate key for public lookups
+            b.HasIndex(t => t.TaskGuid).IsUnique();
+
+            // Helpful query indexes (tune as needed)
+            b.HasIndex(t => new { t.AssignedToPrincipalId, t.InternalStatus });
+            b.HasIndex(t => new { t.WorkflowId, t.InternalStatus });
+            b.HasIndex(t => t.PhaseId);
+        });
+
         // Apply configurations if any (e.g., for seeding or property configs)
         modelBuilder.ApplyConfiguration(new DocumentConfiguration());
         modelBuilder.ApplyConfiguration(new LibraryConfiguration());

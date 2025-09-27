@@ -56,7 +56,7 @@ public static class Mapper
     {
         return source.Select(dto => new WorkflowTasksResponse
         {
-            Id = dto.Id,
+            TaskGuid = dto.TaskGuid,
             AssignedTo = dto.AssignedTo,
             AssignedBy = dto.AssignedBy,
             DisplayStatus = dto.DisplayStatus,
@@ -95,7 +95,7 @@ public static class Mapper
     {
         return new WorkflowTaskResponse
         {
-            Id = source.Id,
+            TaskGuid = source.TaskGuid,
             //AssignedTo = source.AssignedTo, // TODO: fix later
             //AssignedBy = source.AssignedBy,
             InternalStatus = (int)source.InternalStatus,

@@ -22,8 +22,8 @@ public static class ApiRoutes
     public static class Tasks
     {
         private const string Base = "api/workflow-tasks";
-        public const string GetTask = $"{Base}/{{taskId}}";
-        public const string AlterTask = $"{Base}/{{taskId}}/update";
+        public const string GetTask = $"{Base}/{{taskGuid}}";
+        public const string AlterTask = $"{Base}/{{taskGuid}}/update";
     }
 
     public static class Workflows

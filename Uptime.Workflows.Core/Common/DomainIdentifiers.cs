@@ -28,16 +28,6 @@ public readonly record struct WorkflowId(int Value)
         => DomainIdParser.Parse(text, nameof(WorkflowId), v => new WorkflowId(v));
 }
 
-public readonly record struct TaskId(int Value)
-{
-    public override string ToString() => Value.ToString();
-    public static explicit operator TaskId(int id) => new(id);
-    public static explicit operator int(TaskId id) => id.Value;
-
-    public static TaskId Parse(string? text)
-        => DomainIdParser.Parse(text, nameof(TaskId), v => new TaskId(v));
-}
-
 public readonly record struct DocumentId(int Value)
 {
     public override string ToString() => Value.ToString();

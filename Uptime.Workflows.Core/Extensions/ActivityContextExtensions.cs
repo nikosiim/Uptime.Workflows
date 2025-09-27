@@ -1,17 +1,10 @@
-﻿using Uptime.Workflows.Core.Common;
-using Uptime.Workflows.Core.Enums;
+﻿using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Interfaces;
 
 namespace Uptime.Workflows.Core.Extensions;
 
 public static class ActivityContextExtensionsCore
 {
-    public static TaskId GetTaskId(this IWorkflowActivityContext context)
-        => TaskId.Parse(context.Storage.GetValueOrDefault(StorageKeys.TaskId));
-
-    public static void SetTaskId(this IWorkflowActivityContext context, TaskId id)
-        => context.Storage[StorageKeys.TaskId] = id.Value.ToString();
-
     public static string? GetTaskOutcome(this IWorkflowActivityContext context)
         => context.Storage.GetValue(StorageKeys.TaskOutcome);
 
@@ -40,7 +33,6 @@ public static class ActivityContextExtensionsCore
     /// </summary>
     private static class StorageKeys
     {
-        public const string TaskId      = "Activity.Task.Id";
         public const string TaskOutcome = "Activity.Task.Outcome";
         public const string TaskStatus  = "Activity.Task.Status";
         public const string TaskTitle   = "Activity.Task.Title";

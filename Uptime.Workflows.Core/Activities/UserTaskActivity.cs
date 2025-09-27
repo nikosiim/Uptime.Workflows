@@ -35,13 +35,7 @@ public abstract class UserTaskActivity(
     protected readonly IHistoryService HistoryService = historyService;
     protected string? AssociationName => workflowContext.GetAssociationName();
     protected WorkflowId WorkflowId => workflowContext.GetWorkflowId();
-
-    protected TaskId TaskId
-    {
-        get => Context.GetTaskId();
-        private set => Context.SetTaskId(value);
-    }
-
+    
     public bool IsCompleted { get; protected set; }
     
     protected virtual string? TaskCreatedHistoryDescription { get; set; }
@@ -58,7 +52,7 @@ public abstract class UserTaskActivity(
             cancellationToken: cancellationToken
         );
 
-        TaskId = await taskService.CreateAsync(WorkflowId, Context, cancellationToken);
+        await taskService.CreateAsync(WorkflowId, Context, cancellationToken);
     }
 
     public virtual async Task ChangedTaskAsync(WorkflowEventType action, Principal executedBy, Dictionary<string, string?> payload, CancellationToken cancellationToken)

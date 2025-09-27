@@ -12,7 +12,7 @@ namespace Uptime.Workflows.Application.Commands;
 
 public sealed record AlterTaskCommand : IRequest<Result<Unit>>, IRequiresPrincipal
 {
-    public required TaskId TaskId { get; init; }
+    public required Guid TaskGuid { get; init; }
     public required string ExecutorSid { get; init; }
     public required WorkflowEventType Action { get; init; }
     public required Dictionary<string, string?> Payload { get; init; }
@@ -32,10 +32,10 @@ public sealed class AlterTaskCommandHandler(WorkflowDbContext db, IWorkflowFacto
         WorkflowTask? task = await db.WorkflowTasks
             .Include(x => x.Workflow)
             .ThenInclude(w => w.WorkflowTemplate)
-            .FirstOrDefaultAsync(task => task.Id == request.TaskId.Value, ct);
+            .FirstOrDefaultAsync(task => task.TaskGuid == request.TaskGuid, ct);
 
         if (task is null)
-            return Result<Unit>.Failure(ErrorCode.NotFound, $"Workflow task {request.TaskId.Value} not found.");
+            return Result<Unit>.Failure(ErrorCode.NotFound, $"Workflow task {request.TaskGuid} not found.");
 
         IWorkflowMachine? sm = workflowFactory.TryGetStateMachine(task.Workflow.WorkflowTemplate.WorkflowBaseId);
         if (sm is not IActivityWorkflowMachine machine)
@@ -50,10 +50,9 @@ public sealed class AlterTaskCommandHandler(WorkflowDbContext db, IWorkflowFacto
         
         var input = new AlterTaskPayload
         {
-            TaskId = (TaskId)task.Id,
+            TaskGuid = task.TaskGuid,
             ExecutedBy = request.ExecutedBy,
             PhaseId = task.PhaseId,
-            TaskGuid = task.TaskGuid,
             AssignedTo = (PrincipalId)task.AssignedToPrincipalId,
             DueDate = task.DueDate,
             Description = task.Description,

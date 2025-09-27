@@ -68,7 +68,7 @@ public abstract class ReplicatorWorkflowBase<TContext>(
             phase => new ReplicatorState
             {
                 ReplicatorType = phase.Type,
-                Items = phase.TaskContext.Select(data => new ReplicatorItem(Guid.NewGuid(), data)).ToList()
+                Items = phase.TaskContext.Select(data => new ReplicatorItem(Guid.CreateVersion7(), data)).ToList()
             }
         );
 

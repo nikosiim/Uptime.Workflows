@@ -21,7 +21,7 @@ public class GetWorkflowTasksQueryHandler(WorkflowDbContext db)
             .Where(task => task.WorkflowId == request.WorkflowId.Value && (request.Status == null || task.InternalStatus == request.Status))
             .Select(task => new WorkflowTaskDto
             {
-                Id = task.Id,
+                TaskGuid = task.TaskGuid,
                 AssignedTo = task.AssignedTo.Name, // TODO: Decide whether to return just the name or the name with the ID
                 AssignedBy = task.AssignedBy.Name, // TODO: Decide whether to return just the name or the name with the ID
                 DisplayStatus = task.Status,

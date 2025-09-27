@@ -5,7 +5,7 @@ namespace Uptime.Workflows.Core.Data;
 
 public sealed class WorkflowTask : BaseEntity
 {
-    public Guid TaskGuid { get; set; }
+    public Guid TaskGuid { get; private set; }
     public WorkflowTaskStatus InternalStatus { get; set; }
     /// <summary>
     /// Readable representation of the InternalStatus.
@@ -29,4 +29,11 @@ public sealed class WorkflowTask : BaseEntity
     public WorkflowPrincipal AssignedTo { get; set; } = null!;
     public int AssignedByPrincipalId { get; set; }
     public WorkflowPrincipal AssignedBy { get; set; } = null!;
+
+    public void SetTaskGuid(Guid value)
+    {
+        if (TaskGuid != Guid.Empty && TaskGuid != value) 
+            throw new InvalidOperationException("TaskGuid is immutable once set.");
+        TaskGuid = value;
+    }
 }

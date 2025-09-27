@@ -102,7 +102,7 @@ public static class WorkflowReducers
 
         List<WorkflowTaskData> result = response.Select(task => new WorkflowTaskData
         {
-            Id = task.Id,
+            TaskGuid = task.TaskGuid,
             AssignedTo = task.AssignedTo,
             Description = task.Description,
             DueDate = task.DueDate,

@@ -6,14 +6,14 @@ using Uptime.Client.Contracts;
 
 namespace Uptime.Client.Application.Queries;
 
-public record GetWorkflowTaskQuery(int TaskId) : IRequest<Result<WorkflowTaskDetails>>;
+public record GetWorkflowTaskQuery(Guid TaskGuid) : IRequest<Result<WorkflowTaskDetails>>;
 
 public class GetWorkflowTaskQueryHandler(IApiService apiService) 
     : IRequestHandler<GetWorkflowTaskQuery, Result<WorkflowTaskDetails>>
 {
     public async Task<Result<WorkflowTaskDetails>> Handle(GetWorkflowTaskQuery request, CancellationToken cancellationToken)
     {
-        string url = ApiRoutes.Tasks.GetTask.Replace("{taskId}", request.TaskId.ToString());
+        string url = ApiRoutes.Tasks.GetTask.Replace("{taskGuid}", request.TaskGuid.ToString());
         Result<WorkflowTaskResponse> result = await apiService.ReadFromJsonAsync<WorkflowTaskResponse>(url, cancellationToken);
 
         if (!result.Succeeded)
@@ -25,7 +25,7 @@ public class GetWorkflowTaskQueryHandler(IApiService apiService)
 
         var template = new WorkflowTaskDetails
         {
-            Id = task.Id,
+            TaskGuid = task.TaskGuid,
             AssignedTo = task.AssignedTo,
             AssignedBy = task.AssignedBy,
             Description = task.Description,

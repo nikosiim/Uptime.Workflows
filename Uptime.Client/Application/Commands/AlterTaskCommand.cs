@@ -8,7 +8,7 @@ namespace Uptime.Client.Application.Commands;
 public record AlterTaskCommand : IRequest<Result<bool>>
 {
     public User? Executor { get; init; }
-    public required int TaskId { get; init; }
+    public required Guid TaskGuid { get; init; }
     public required WorkflowEventType Action { get; init; }
     public Dictionary<string, string?> Input { get; init; } = new();
 }
@@ -24,7 +24,7 @@ public class AlterTaskCommandHandler(IApiService apiService) : IRequestHandler<A
             Input = request.Input
         };
         
-        string url = ApiRoutes.Tasks.AlterTask.Replace("{taskId}", request.TaskId.ToString());
+        string url = ApiRoutes.Tasks.AlterTask.Replace("{taskGuid}", request.TaskGuid.ToString());
         return await apiService.PostAsJsonAsync(url, payload, cancellationToken);
     }
 }

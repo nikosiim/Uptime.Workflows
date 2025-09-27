@@ -5,7 +5,7 @@ namespace Uptime.Client.Application.DTOs;
 
 public record WorkflowTaskData
 {
-    public int Id { get; init; }
+    public required Guid TaskGuid { get; init; }
     public string? AssignedTo { get; init; }
     public string? AssignedBy { get; init; }
     public string? Description { get; init; }

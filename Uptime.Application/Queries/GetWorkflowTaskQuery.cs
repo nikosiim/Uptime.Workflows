@@ -6,7 +6,7 @@ using Uptime.Workflows.Core.Data;
 
 namespace Uptime.Workflows.Application.Queries;
 
-public record GetWorkflowTaskQuery(TaskId TaskId) : IRequest<Result<WorkflowTaskDetailsDto>>;
+public record GetWorkflowTaskQuery(Guid TaskGuid) : IRequest<Result<WorkflowTaskDetailsDto>>;
 
 public class GetWorkflowTaskQueryHandler(WorkflowDbContext db)
     : IRequestHandler<GetWorkflowTaskQuery, Result<WorkflowTaskDetailsDto>>
@@ -18,10 +18,9 @@ public class GetWorkflowTaskQueryHandler(WorkflowDbContext db)
 
         WorkflowTaskDetailsDto? dto = await db.WorkflowTasks
             .AsNoTracking()
-            .Where(t => t.Id == request.TaskId.Value)
+            .Where(t => t.TaskGuid == request.TaskGuid)
             .Select(task => new WorkflowTaskDetailsDto
             {
-                Id = task.Id,
                 TaskGuid = task.TaskGuid,
                 AssignedTo = (PrincipalId)task.AssignedToPrincipalId,
                 AssignedBy = (PrincipalId)task.AssignedByPrincipalId,

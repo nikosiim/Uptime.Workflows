@@ -1,4 +1,4 @@
-﻿@page "/workflow-task/{taskId:int}"
+﻿@page "/workflow-task/{taskGuid:guid}"
 @inherits FluxorComponent
 
 @inject IMediator Mediator
@@ -120,7 +120,7 @@
 @code {
     private WorkflowTaskDetails? _task;
 
-    [Parameter] public int TaskId { get; set; }
+    [Parameter] public Guid TaskGuid { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -131,7 +131,7 @@
             Dispatcher.Dispatch(new LoadWorkflowHistoryAction(_task.WorkflowId));
         }
 
-        Result<WorkflowTaskDetails> result = await Mediator.Send(new GetWorkflowTaskQuery(TaskId));
+        Result<WorkflowTaskDetails> result = await Mediator.Send(new GetWorkflowTaskQuery(TaskGuid));
         if (result.Succeeded)
         {
             _task = result.Value;
@@ -152,7 +152,7 @@
     {
         var parameters = new DialogParameters<TaskCompletionDialog>
         {
-            { x => x.TaskId, task.Id },
+            { x => x.TaskGuid, task.TaskGuid },
             { x => x.Document, task.Document },
             { x => x.EventType, eventType }
         };

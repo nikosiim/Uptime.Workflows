@@ -2,7 +2,7 @@
 
 public record WorkflowTasksResponse
 {
-    public int Id { get; init; }
+    public required Guid TaskGuid { get; init; }
     public string? AssignedTo { get; init; }
     public string? AssignedBy { get; init; }
     public required string DisplayStatus { get; init; }

@@ -12,7 +12,7 @@ public static class WorkflowTaskContextFactory
     {
         var ctx = new WorkflowActivityContext
         {
-            TaskGuid = Guid.NewGuid(),
+            TaskGuid = Guid.CreateVersion7(),
             PhaseId = phaseId,
             DueDate = dueDate,
             Description = description,
@@ -25,7 +25,7 @@ public static class WorkflowTaskContextFactory
         return ctx;
     }
 
-    public static WorkflowActivityContext FromDatabase(string? phaseId, Guid taskGuid, string? description,
+    public static WorkflowActivityContext FromDatabase(Guid taskGuid, string? phaseId, string? description,
         PrincipalId assignedTo, PrincipalId assignedBy, DateTime? dueDate, string? storageJson)
     {
         return new WorkflowActivityContext

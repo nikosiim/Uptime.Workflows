@@ -175,7 +175,7 @@ public sealed class ApprovalWorkflow(
             Guid taskGuid = Guid.Parse(task.TaskGuid);
             if (taskGuid.Equals(Guid.Empty))
             {
-                taskGuid = Guid.NewGuid();
+                taskGuid = Guid.CreateVersion7();
             }
 
             replicatorState.Items.Add(new ReplicatorItem(taskGuid, data));

@@ -59,7 +59,7 @@ public class ApprovalWorkflowActivityProvider(ITaskService taskService, IHistory
                     description: approvalContext.GetTaskApproverDescription(),
                     dueDate: activity.Context.DueDate);
                 
-                var replicatorItem = new ReplicatorItem(Guid.NewGuid(), newContext);
+                var replicatorItem = new ReplicatorItem(Guid.CreateVersion7(), newContext);
 
                 approvalContext.ReplicatorStates.InsertItemAfter(phaseId, existingTaskGuid, replicatorItem);
             }

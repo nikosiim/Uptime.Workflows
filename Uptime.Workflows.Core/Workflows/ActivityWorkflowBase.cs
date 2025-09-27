@@ -44,15 +44,13 @@ public abstract class ActivityWorkflowBase<TContext>(
         try
         {
             WorkflowActivityContext context = WorkflowTaskContextFactory.FromDatabase(
-                phaseId: payload.PhaseId,
                 taskGuid: payload.TaskGuid,
+                phaseId: payload.PhaseId,
                 assignedTo: payload.AssignedTo,
                 assignedBy: payload.ExecutedBy.Id,
                 dueDate: null,
                 description: payload.Description,
                 storageJson: payload.StorageJson);
-
-            context.SetTaskId(payload.TaskId);
 
             await OnTaskAlteredAsync(action, context, payload.ExecutedBy, payload.InputData, cancellationToken);
             await SaveWorkflowStateAsync(cancellationToken);

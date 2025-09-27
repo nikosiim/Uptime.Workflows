@@ -15,23 +15,23 @@ namespace Uptime.Workflows.Api.Controllers;
 /// End user authentication is handled by the gateway.
 /// </summary>
 [ApiController]
-[Route("api/workflow-tasks/{taskId:int}")]
+[Route("api/workflow-tasks/{taskGuid:guid}")]
 [Authorize(Policy = "TrustedApp")]
 public class WorkflowTasksController(ISender mediator) : ControllerBase
 {
     [HttpGet("")]
-    public async Task<ActionResult<WorkflowTaskResponse>> GetTask(int taskId, CancellationToken ct)
+    public async Task<ActionResult<WorkflowTaskResponse>> GetTask(Guid taskGuid, CancellationToken ct)
     {
-        Result<WorkflowTaskDetailsDto> result = await mediator.Send(new GetWorkflowTaskQuery((TaskId)taskId), ct);
+        Result<WorkflowTaskDetailsDto> result = await mediator.Send(new GetWorkflowTaskQuery(taskGuid), ct);
         return this.ToActionResult(result, Mapper.MapToWorkflowTaskResponse);
     }
 
     [HttpPost("update")]
-    public async Task<ActionResult> AlterTask(int taskId, [FromBody] AlterTaskRequest request, CancellationToken ct)
+    public async Task<ActionResult> AlterTask(Guid taskGuid, [FromBody] AlterTaskRequest request, CancellationToken ct)
     {
         var cmd = new AlterTaskCommand
         {
-            TaskId = (TaskId)taskId,
+            TaskGuid = taskGuid,
             ExecutorSid = request.ExecutorSid,
             Action = EnumMapper.MapToDomain(request.Action),
             Payload = request.Input
