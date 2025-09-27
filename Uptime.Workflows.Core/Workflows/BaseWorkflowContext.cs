@@ -58,6 +58,7 @@ public class BaseWorkflowContext : IWorkflowContext
     {
         if (string.IsNullOrWhiteSpace(json))
             return new TContext();
+
         try
         {
             return JsonSerializer.Deserialize<TContext>(json) ?? new TContext();

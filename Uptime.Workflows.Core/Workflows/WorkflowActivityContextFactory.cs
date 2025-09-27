@@ -5,7 +5,7 @@ using Uptime.Workflows.Core.Extensions;
 
 namespace Uptime.Workflows.Core;
 
-public static class WorkflowTaskContextFactory
+public static class WorkflowActivityContextFactory
 {
     public static WorkflowActivityContext CreateNew(string? phaseId, 
         PrincipalId assignedTo, PrincipalId assignedBy, string? description, DateTime? dueDate)

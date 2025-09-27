@@ -54,7 +54,7 @@ public class SigningWorkflow(
             cancellationToken);
     }
 
-    protected override async Task OnTaskAlteredAsync(WorkflowEventType action, IWorkflowActivityContext activityContext, Principal executedBy,
+    protected override async Task OnTaskAlteredAsync(WorkflowEventType action, WorkflowActivityContext activityContext, Principal executedBy,
         Dictionary<string, string?> inputData, CancellationToken cancellationToken)
     {
         var activity = new SigningTaskActivity(_taskService, _historyService, activityContext, WorkflowContext);
@@ -86,7 +86,7 @@ public class SigningWorkflow(
         int? dueDays = WorkflowContext.GetTaskDueDays();
         DateTime? dueDate = dueDays.HasValue ? DateTime.UtcNow.AddDays(dueDays.Value) : null;
         
-        WorkflowActivityContext activityContext = WorkflowTaskContextFactory.CreateNew(
+        WorkflowActivityContext activityContext = WorkflowActivityContextFactory.CreateNew(
             phaseId : null,
             assignedTo: PrincipalId.Parse(signerSids.FirstOrDefault()),
             assignedBy: WorkflowContext.GetInitiatorId(),

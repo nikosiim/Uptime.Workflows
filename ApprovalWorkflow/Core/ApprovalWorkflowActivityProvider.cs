@@ -52,14 +52,14 @@ public class ApprovalWorkflowActivityProvider(ITaskService taskService, IHistory
                 string phaseId = ExtendedState.Approval.Value;
                 Guid existingTaskGuid = activity.Context.TaskGuid;
 
-                WorkflowActivityContext newContext = WorkflowTaskContextFactory.CreateNew(
+                WorkflowActivityContext newContext = WorkflowActivityContextFactory.CreateNew(
                     phaseId: phaseId,
                     assignedTo: activity.TaskDelegatedToPrincipal.Id,
                     assignedBy: executedBy.Id,
                     description: approvalContext.GetTaskApproverDescription(),
                     dueDate: activity.Context.DueDate);
                 
-                var replicatorItem = new ReplicatorItem(Guid.CreateVersion7(), newContext);
+                var replicatorItem = new ReplicatorItem(newContext);
 
                 approvalContext.ReplicatorStates.InsertItemAfter(phaseId, existingTaskGuid, replicatorItem);
             }

@@ -79,7 +79,7 @@ public sealed class ApprovalWorkflow(
                     List<string> approverIds = ctx.GetTaskApproverPrincipalIds();
 
                     return approverIds.Select(id =>
-                        WorkflowTaskContextFactory.CreateNew(
+                        WorkflowActivityContextFactory.CreateNew(
                             phaseId: ExtendedState.Approval.Value,
                             assignedTo: PrincipalId.Parse(id),
                             assignedBy: ctx.GetInitiatorId(),
@@ -101,8 +101,8 @@ public sealed class ApprovalWorkflow(
                     List<string> signerIds = ctx.GetTaskSignerPrincipalIds();
 
                     return signerIds.Select(id =>
-                        WorkflowTaskContextFactory.CreateNew(
-                            phaseId: ExtendedState.Approval.Value,
+                        WorkflowActivityContextFactory.CreateNew(
+                            phaseId: ExtendedState.Signing.Value,
                             assignedTo: PrincipalId.Parse(id),
                             assignedBy: ctx.GetInitiatorId(),
                             description: ctx.GetTaskSignerDescription(),
