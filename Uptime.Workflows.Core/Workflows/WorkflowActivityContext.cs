@@ -5,10 +5,9 @@ namespace Uptime.Workflows.Core;
 
 public class WorkflowActivityContext : IWorkflowActivityContext
 {
-    public string? PhaseId { get; init; }
+    public string? PhaseId { get; init; } // TODO: consider use ExtendedState or remove at all
     public required Guid TaskGuid { get; init; }
-    public PrincipalId AssignedToPrincipalId { get; init; }
-    public PrincipalId AssignedByPrincipalId { get; init; }
+    public required PrincipalSid AssignedToSid { get; init; }
     public DateTime? DueDate { get; init; }
     public string? Description { get; init; }
 

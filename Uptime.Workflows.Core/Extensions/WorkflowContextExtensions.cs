@@ -1,6 +1,5 @@
 ﻿using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Interfaces;
-using Uptime.Workflows.Core.Models;
 
 namespace Uptime.Workflows.Core.Extensions;
 
@@ -47,21 +46,20 @@ public static class WorkflowContextExtensionsCore
 
     #region Initiator
 
-    public static void SetInitiator(this IWorkflowContext context, Principal principal)
+    public static void SetInitiatorSid(this IWorkflowContext context, PrincipalSid principalSid)
     {
-        context.Storage[StorageKeys.InitiatorSid] = principal.Sid;
-        context.Storage[StorageKeys.InitiatorPrincipalId] = principal.Id.ToString();
+        context.Storage[StorageKeys.InitiatorSid] = principalSid.Value;
     }
 
-    public static PrincipalId GetInitiatorId(this IWorkflowContext context)
+    public static PrincipalSid GetInitiatorSid(this IWorkflowContext context)
     {
-        if (!context.Storage.TryGetValue(StorageKeys.InitiatorPrincipalId, out string? value) || string.IsNullOrWhiteSpace(value))
-            throw new InvalidOperationException("Initiator PrincipalId is missing from WorkflowContext.Storage.");
-        return PrincipalId.Parse(value);
+        if (!context.Storage.TryGetValue(StorageKeys.InitiatorSid, out string? value) || string.IsNullOrWhiteSpace(value))
+            throw new InvalidOperationException("Initiator SID is missing from WorkflowContext.Storage.");
+        return (PrincipalSid)value;
     }
 
     #endregion
-    
+
     #region WorkflowId
 
     public static WorkflowId GetWorkflowId(this IWorkflowContext context)
@@ -108,7 +106,6 @@ public static class WorkflowContextExtensionsCore
         public const string AssociationName      = "Workflow.Association.Name";
         public const string DocumentId           = "Workflow.Document.Id";
         public const string WorkflowId           = "Workflow.Id";
-        public const string InitiatorPrincipalId = "Workflow.Initiator.PrincipalId";
         public const string InitiatorSid         = "Workflow.Initiator.Sid";
         public const string WorkflowTemplateId   = "Workflow.Template.Id";
     }

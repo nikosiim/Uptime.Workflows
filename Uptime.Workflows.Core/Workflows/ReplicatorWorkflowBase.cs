@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Extensions;
 using Uptime.Workflows.Core.Interfaces;
@@ -102,7 +103,7 @@ public abstract class ReplicatorWorkflowBase<TContext>(
         return modificationContext;
     }
     
-    protected override async Task OnTaskAlteredAsync(WorkflowEventType action, WorkflowActivityContext activityContext, Principal executedBy, 
+    protected override async Task OnTaskAlteredAsync(WorkflowEventType action, WorkflowActivityContext activityContext, PrincipalSid executorSid, 
         Dictionary<string, string?> inputData, CancellationToken cancellationToken)
     {
         if (CreateChildActivity(activityContext) is not { } taskActivity)
@@ -112,13 +113,13 @@ public abstract class ReplicatorWorkflowBase<TContext>(
 
         if (!taskActivity.IsCompleted)
         {
-            await taskActivity.ChangedTaskAsync(action, executedBy, inputData, cancellationToken);
+            await taskActivity.ChangedTaskAsync(action, activityContext, executorSid, inputData, cancellationToken);
             
             string? phase = WorkflowContext.ReplicatorStates.FindPhase(activityContext.TaskGuid);
 
             if (taskActivity.IsCompleted && !string.IsNullOrWhiteSpace(phase))
             {
-                ActivityProvider.OnChildCompleted(phase, taskActivity, executedBy);
+                ActivityProvider.OnChildCompleted(phase, taskActivity);
 
                 UpdateWorkflowContextReplicatorState(activityContext.TaskGuid, ReplicatorItemStatus.Completed);
 

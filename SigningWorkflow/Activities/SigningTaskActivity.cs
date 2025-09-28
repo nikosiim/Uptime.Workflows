@@ -1,26 +1,38 @@
 ﻿using Uptime.Workflows.Core;
+using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Extensions;
 using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
+using Uptime.Workflows.Core.Services;
 
 namespace SigningWorkflow;
 
-public class SigningTaskActivity(ITaskService taskService, IHistoryService historyService, IWorkflowActivityContext activityContext, IWorkflowContext workflowContext)
-    : UserTaskActivity(taskService, historyService, activityContext, workflowContext)
+public class SigningTaskActivity(
+    ITaskService taskService,
+    IHistoryService historyService,
+    IPrincipalResolver principalResolver,
+    IWorkflowContext workflowContext)
+    : UserTaskActivity(taskService, historyService, principalResolver, workflowContext)
 {
+    private readonly IPrincipalResolver _principalResolver = principalResolver;
+
     public bool IsTaskRejected { get; private set; }
 
-    protected override void OnExecuteTask()
+    protected override void OnExecuteTask(IWorkflowActivityContext context, Principal assignedTo)
     {
-        Context.SetTaskTitle("Allkirjastamine");
-        Context.SetTaskOutcome("Ootel");
+        context.SetTaskTitle("Allkirjastamine");
+        context.SetTaskOutcome("Ootel");
 
-        TaskCreatedHistoryDescription = $"Tööülesanne {AssociationName} on loodud kasutajale {Context.AssignedToPrincipalId}";
+        TaskCreatedHistoryDescription = $"Tööülesanne {AssociationName} on loodud kasutajale {assignedTo.Name}";
     }
 
-    protected override async Task OnTaskChangedAsync(WorkflowEventType action, Principal executedBy, Dictionary<string, string?> payload, CancellationToken ct)
+    protected override async Task OnTaskChangedAsync(WorkflowEventType action, IWorkflowActivityContext context,
+        PrincipalSid executorSid, Dictionary<string, string?> payload, CancellationToken ct)
     {
+        Principal executor = await _principalResolver.ResolveBySidAsync(executorSid, ct);
+        Principal assignedTo = await _principalResolver.ResolveBySidAsync(context.AssignedToSid, ct);
+
         string? comment = payload.GetTaskComment();
 
         string outcome;
@@ -31,11 +43,11 @@ public class SigningTaskActivity(ITaskService taskService, IHistoryService histo
             case WorkflowEventType.TaskRejected:
                 IsTaskRejected = true;
                 outcome = "Tagasilükatud";
-                description = $"Kasutaja {executedBy.Id} on tööülesande {AssociationName} tagasi lükanud.";
+                description = $"Kasutaja {executor.Name} on tööülesande {AssociationName} tagasi lükanud.";
                 break;
             case WorkflowEventType.TaskCompleted:
                 outcome = "Allkirjastatud";
-                description = $"Kasutajale {Context.AssignedToPrincipalId} määratud tööülesanne on edukalt lõpetatud.";
+                description = $"Kasutajale {assignedTo.Name} määratud tööülesanne on edukalt lõpetatud.";
                 break;
             default:
                 return;
@@ -43,10 +55,10 @@ public class SigningTaskActivity(ITaskService taskService, IHistoryService histo
 
         IsCompleted = true;
 
-        Context.SetTaskStatus(WorkflowTaskStatus.Completed);
-        Context.SetTaskComment(comment);
-        Context.SetTaskOutcome(outcome);
+        context.SetTaskStatus(WorkflowTaskStatus.Completed);
+        context.SetTaskComment(comment);
+        context.SetTaskOutcome(outcome);
 
-        await HistoryService.CreateAsync(WorkflowId, action, executedBy.Id, description: description, comment: comment, ct);
+        await HistoryService.CreateAsync(WorkflowId, action, executorSid, description: description, comment: comment, ct);
     }
 }

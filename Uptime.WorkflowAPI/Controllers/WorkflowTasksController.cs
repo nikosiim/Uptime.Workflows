@@ -32,7 +32,7 @@ public class WorkflowTasksController(ISender mediator) : ControllerBase
         var cmd = new AlterTaskCommand
         {
             TaskGuid = taskGuid,
-            ExecutorSid = request.ExecutorSid,
+            ExecutorSid = (PrincipalSid)request.ExecutorSid,
             Action = EnumMapper.MapToDomain(request.Action),
             Payload = request.Input
         }; 

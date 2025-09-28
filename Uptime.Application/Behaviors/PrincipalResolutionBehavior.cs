@@ -2,6 +2,7 @@
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
+using Uptime.Workflows.Core.Services;
 
 namespace Uptime.Workflows.Application.Behaviors;
 
@@ -12,13 +13,11 @@ public sealed class PrincipalResolutionBehavior<TRequest, TResponse>(IPrincipalR
     {
         if (request is IRequiresPrincipal principalRequest)
         {
-            Principal? principal = await resolver.ResolveBySidAsync(principalRequest.ExecutorSid, cancellationToken);
+            Principal? principal = await resolver.TryResolveBySidAsync(principalRequest.ExecutorSid, cancellationToken);
             if (principal == null)
             {
                 throw new WorkflowValidationException(ErrorCode.NotFound, $"Principal with SID {principalRequest.ExecutorSid} not found.");
             }
-
-            principalRequest.ExecutedBy = principal;
         }
 
         return await next(cancellationToken);

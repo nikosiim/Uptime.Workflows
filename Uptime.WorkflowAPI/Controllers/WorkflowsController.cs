@@ -81,7 +81,7 @@ public class WorkflowsController(ISender mediator) : ControllerBase
     {
         var cmd = new StartWorkflowCommand
         {
-            ExecutorSid = request.InitiatorSid,
+            ExecutorSid = (PrincipalSid)request.InitiatorSid,
             DocumentId = (DocumentId)request.DocumentId,
             WorkflowTemplateId = (WorkflowTemplateId)request.WorkflowTemplateId,
             Storage = request.Storage
@@ -98,7 +98,7 @@ public class WorkflowsController(ISender mediator) : ControllerBase
         var cmd = new ModifyWorkflowCommand
         {
             WorkflowId = (WorkflowId)workflowId,
-            ExecutorSid = request.ExecutorSid,
+            ExecutorSid = (PrincipalSid)request.ExecutorSid,
             InputContext = request.ModificationContext
         };
         
@@ -112,7 +112,7 @@ public class WorkflowsController(ISender mediator) : ControllerBase
     {
         var cmd = new CancelWorkflowCommand
         {
-            ExecutorSid = request.ExecutorSid,
+            ExecutorSid = (PrincipalSid)request.ExecutorSid,
             WorkflowId = (WorkflowId)workflowId,
             Comment = request.Comment
         };

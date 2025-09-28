@@ -4,37 +4,41 @@ using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Extensions;
 using Uptime.Workflows.Core.Interfaces;
+using Uptime.Workflows.Core.Models;
 
 namespace Uptime.Workflows.Core.Services;
 
-public class WorkflowService(IDbContextFactory<WorkflowDbContext> factory) : IWorkflowService
+public class WorkflowService(IDbContextFactory<WorkflowDbContext> factory, IPrincipalResolver principalResolver) : IWorkflowService
 {
-    public async Task<WorkflowId> CreateAsync(IWorkflowContext workflowContext, CancellationToken cancellationToken)
+    public async Task<WorkflowId> CreateAsync(IWorkflowContext context, CancellationToken ct)
     {
+        PrincipalSid initiatorSid = context.GetInitiatorSid();
+        Principal initiator = await principalResolver.ResolveBySidAsync(initiatorSid, ct);
+
         var instance = new Workflow
         {
             IsActive = true,
             Phase = BaseState.NotStarted.Value,
-            StorageJson = workflowContext.Serialize(),
+            StorageJson = context.Serialize(),
             StartDate = DateTime.UtcNow,
-            DocumentId = workflowContext.GetDocumentId().Value,
-            WorkflowTemplateId = workflowContext.GetWorkflowTemplateId().Value,
-            InitiatedByPrincipalId = workflowContext.GetInitiatorId().Value
+            DocumentId = context.GetDocumentId().Value,
+            WorkflowTemplateId = context.GetWorkflowTemplateId().Value,
+            InitiatedByPrincipalId = initiator.Id.Value
         };
 
-        await using WorkflowDbContext db = await factory.CreateDbContextAsync(cancellationToken);
+        await using WorkflowDbContext db = await factory.CreateDbContextAsync(ct);
 
         db.Workflows.Add(instance);
-        await db.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(ct);
 
         return (WorkflowId)instance.Id;
     }
 
-    public async Task MarkAsInvalidAsync(WorkflowId workflowId, CancellationToken cancellationToken)
+    public async Task MarkAsInvalidAsync(WorkflowId workflowId, CancellationToken ct)
     {
-        await using WorkflowDbContext db = await factory.CreateDbContextAsync(cancellationToken);
+        await using WorkflowDbContext db = await factory.CreateDbContextAsync(ct);
 
-        Workflow? instance = await db.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId.Value, cancellationToken);
+        Workflow? instance = await db.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId.Value, ct);
         if (instance == null)
         {
             throw new InvalidOperationException($"Workflow with ID {workflowId} not found.");
@@ -45,17 +49,17 @@ public class WorkflowService(IDbContextFactory<WorkflowDbContext> factory) : IWo
         instance.Phase = BaseState.Invalid.Value;
         instance.EndDate = DateTime.UtcNow;
 
-        await db.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(ct);
     }
 
-    public async Task UpdateStateAsync<TContext>(TContext workflowContext, BaseState phase, CancellationToken cancellationToken) 
+    public async Task UpdateStateAsync<TContext>(TContext workflowContext, BaseState phase, CancellationToken ct) 
         where TContext : IWorkflowContext, new()
     {
         int workflowId = workflowContext.GetWorkflowId().Value;
 
-        await using WorkflowDbContext db = await factory.CreateDbContextAsync(cancellationToken);
+        await using WorkflowDbContext db = await factory.CreateDbContextAsync(ct);
 
-        Workflow? instance = await db.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId, cancellationToken);
+        Workflow? instance = await db.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId, ct);
         if (instance == null)
         {
             throw new InvalidOperationException($"Workflow with ID {workflowId} not found.");
@@ -74,6 +78,6 @@ public class WorkflowService(IDbContextFactory<WorkflowDbContext> factory) : IWo
             instance.IsActive = false;
         }
 
-        await db.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(ct);
     }
 }

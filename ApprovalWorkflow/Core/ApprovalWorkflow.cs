@@ -1,10 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Text.Json;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
-using Uptime.Workflows.Core.Extensions;
 using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
+using Uptime.Workflows.Core.Services;
 
 namespace ApprovalWorkflow;
 
@@ -51,38 +52,29 @@ public sealed class ApprovalWorkflow(
         WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
     }
 
-    protected override async Task PrepareInputDataAsync(CancellationToken cancellationToken)
+    protected override Task PrepareInputDataAsync(CancellationToken cancellationToken)
     {
-        await WorkflowPrincipalResolver.ResolveAndStorePrincipalIdsAsync(
-            ctx => ctx.GetTaskApproverSids(),
-            (ctx, ids) => ctx.SetTaskApproverPrincipalIds(ids),
-            WorkflowContext,
-            principalResolver,
-            cancellationToken);
-
-        await WorkflowPrincipalResolver.ResolveAndStorePrincipalIdsAsync(
-            ctx => ctx.GetTaskSignerSids(),
-            (ctx, ids) => ctx.SetTaskSignersPrincipalIds(ids),
-            WorkflowContext,
-            principalResolver,
-            cancellationToken);
+        // Resolve SIDs to Principal for parallel tasks
+        // TODO: Think through what would be best place to decide whether there are parallel tasks or not
+        return Task.CompletedTask;
     }
-    
+
     protected override IReplicatorPhaseBuilder CreateReplicatorPhaseBuilder()
     {
+        ExtendedState x = ExtendedState.Approval;
+
         var phases = new Dictionary<string, ReplicatorPhaseConfiguration>
         {
             [ExtendedState.Approval.Value] = new()
             {
                 ActivityData = ctx =>
                 {
-                    List<string> approverIds = ctx.GetTaskApproverPrincipalIds();
+                    List<string> approverSids = ctx.GetTaskApproverSids();
 
-                    return approverIds.Select(id =>
+                    return approverSids.Select(sid =>
                         WorkflowActivityContextFactory.CreateNew(
                             phaseId: ExtendedState.Approval.Value,
-                            assignedTo: PrincipalId.Parse(id),
-                            assignedBy: ctx.GetInitiatorId(),
+                            assignedToSid: (PrincipalSid)sid,
                             description: ctx.GetTaskApproverDescription(),
                             dueDate: ctx.GetTaskDueDate(TaskPhase.Approver)
                         )
@@ -98,13 +90,12 @@ public sealed class ApprovalWorkflow(
             {
                 ActivityData = ctx =>
                 {
-                    List<string> signerIds = ctx.GetTaskSignerPrincipalIds();
+                    List<string> signerSids = ctx.GetTaskSignerSids();
 
-                    return signerIds.Select(id =>
+                    return signerSids.Select(sid =>
                         WorkflowActivityContextFactory.CreateNew(
                             phaseId: ExtendedState.Signing.Value,
-                            assignedTo: PrincipalId.Parse(id),
-                            assignedBy: ctx.GetInitiatorId(),
+                            assignedToSid: (PrincipalSid)sid,
                             description: ctx.GetTaskSignerDescription(),
                             dueDate: ctx.GetTaskDueDate(TaskPhase.Signer)
                         )
@@ -121,7 +112,6 @@ public sealed class ApprovalWorkflow(
     {
         base.OnWorkflowModification();
 
-        /*
         ReplicatorState replicatorState = WorkflowContext.ReplicatorStates[Machine.State.Value];
 
         List<ReplicatorItem> activeItems = replicatorState.Items
@@ -133,56 +123,45 @@ public sealed class ApprovalWorkflow(
             ApprovalTasks = activeItems.Select(activeItem
                 => new ApprovalTask
                 {
-                    AssignedToPrincipalId = activeItem.TaskContext.DeserializeTaskData<ApprovalTaskData>().AssignedToPrincipalId,
+                    AssignedToSid = activeItem.ActivityContext.AssignedToSid,
                     TaskGuid = activeItem.TaskGuid.ToString()
                 }).ToList()
         };
 
-           return JsonSerializer.Serialize(context);
-        */
-        
-        // TODO: fix
-        return string.Empty;
+        return JsonSerializer.Serialize(context);
     }
 
     protected override Task<bool> OnWorkflowModifiedAsync(ModificationPayload payload, CancellationToken cancellationToken)
     {
-        /*
         if (!WorkflowContext.ReplicatorStates.TryGetValue(Machine.State.Value, out ReplicatorState? replicatorState))
             return Task.FromResult(false);
 
         ReplicatorItem? inProgressItem = replicatorState.Items.FirstOrDefault(item => item.Status == ReplicatorItemStatus.InProgress);
-        if (inProgressItem == null)
+        if (inProgressItem == null || string.IsNullOrWhiteSpace(payload.ModificationContext))
             return Task.FromResult(false);
 
-        if (string.IsNullOrWhiteSpace(payload.ModificationContext))
-            return Task.FromResult(false);
-
-        var context = JsonSerializer.Deserialize<ApprovalModificationContext>(payload.ModificationContext);
-        if (context == null)
+        var modificationContext = JsonSerializer.Deserialize<ApprovalModificationContext>(payload.ModificationContext);
+        if (modificationContext == null)
             return Task.FromResult(true);
 
-        ApprovalTaskData currentTaskData = inProgressItem.TaskContext.DeserializeTaskData<ApprovalTaskData>();
+        WorkflowActivityContext activityContext = inProgressItem.ActivityContext;
 
         replicatorState.Items.RemoveAll(item => item.Status == ReplicatorItemStatus.NotStarted);
 
-        foreach (ApprovalTask task in context.ApprovalTasks)
+        foreach (ApprovalTask task in modificationContext.ApprovalTasks)
         {
-            if (task.AssignedToPrincipalId == currentTaskData.AssignedToPrincipalId) continue;
+            if (task.AssignedToSid == activityContext.AssignedToSid) continue;
 
-            ApprovalTaskData data = ApprovalTaskData.Copy(currentTaskData, task.AssignedToPrincipalId);
+            WorkflowActivityContext newActivityContext =
+                WorkflowActivityContextFactory.CreateNew(
+                    phaseId: activityContext.PhaseId,
+                    assignedToSid: task.AssignedToSid,
+                    description: activityContext.Description,
+                    dueDate: activityContext.DueDate
+                );
 
-            Guid taskGuid = Guid.Parse(task.TaskGuid);
-            if (taskGuid.Equals(Guid.Empty))
-            {
-                taskGuid = Guid.CreateVersion7();
-            }
-
-            replicatorState.Items.Add(new ReplicatorItem(taskGuid, data));
+            replicatorState.Items.Add(new ReplicatorItem(newActivityContext));
         }
-        */
-
-        // TODO: fix
 
         return Task.FromResult(true);
     }

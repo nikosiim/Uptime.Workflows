@@ -6,19 +6,15 @@ using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
-using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.Workflows.Application.Commands;
 
 public sealed record AlterTaskCommand : IRequest<Result<Unit>>, IRequiresPrincipal
 {
     public required Guid TaskGuid { get; init; }
-    public required string ExecutorSid { get; init; }
+    public required PrincipalSid ExecutorSid { get; init; }
     public required WorkflowEventType Action { get; init; }
     public required Dictionary<string, string?> Payload { get; init; }
-
-    // Will be populated by pipeline
-    public Principal ExecutedBy { get; set; } = null!;
 }
 
 public sealed class AlterTaskCommandHandler(WorkflowDbContext db, IWorkflowFactory workflowFactory, ILogger<AlterTaskCommandHandler> log)
@@ -30,9 +26,11 @@ public sealed class AlterTaskCommandHandler(WorkflowDbContext db, IWorkflowFacto
             return Result<Unit>.Cancelled();
 
         WorkflowTask? task = await db.WorkflowTasks
-            .Include(x => x.Workflow)
+            .AsNoTracking()
+            .Include(t => t.AssignedTo)
+            .Include(t => t.Workflow)
             .ThenInclude(w => w.WorkflowTemplate)
-            .FirstOrDefaultAsync(task => task.TaskGuid == request.TaskGuid, ct);
+            .FirstOrDefaultAsync(t => t.TaskGuid == request.TaskGuid, ct);
 
         if (task is null)
             return Result<Unit>.Failure(ErrorCode.NotFound, $"Workflow task {request.TaskGuid} not found.");
@@ -51,9 +49,9 @@ public sealed class AlterTaskCommandHandler(WorkflowDbContext db, IWorkflowFacto
         var input = new AlterTaskPayload
         {
             TaskGuid = task.TaskGuid,
-            ExecutedBy = request.ExecutedBy,
+            ExecutorSid = request.ExecutorSid,
             PhaseId = task.PhaseId,
-            AssignedTo = (PrincipalId)task.AssignedToPrincipalId,
+            AssignedToSid = (PrincipalSid)task.AssignedTo.ExternalId,
             DueDate = task.DueDate,
             Description = task.Description,
             StorageJson = task.StorageJson,

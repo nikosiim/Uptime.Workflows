@@ -1,9 +1,8 @@
-﻿using Uptime.Workflows.Core.Models;
+﻿using Uptime.Workflows.Core.Common;
 
 namespace Uptime.Workflows.Core.Interfaces;
 
 public interface IRequiresPrincipal
 {
-    string ExecutorSid { get; }
-    Principal ExecutedBy { get; set; }
+    PrincipalSid ExecutorSid { get; }
 }

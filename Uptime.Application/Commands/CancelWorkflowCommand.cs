@@ -5,18 +5,14 @@ using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
-using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.Workflows.Application.Commands;
 
 public record CancelWorkflowCommand : IRequest<Result<Unit>>, IRequiresPrincipal
 {
-    public required string ExecutorSid { get; init; }
+    public required PrincipalSid ExecutorSid { get; init; }
     public required WorkflowId WorkflowId { get; init; }
     public required string Comment { get; init; }
-
-    // Will be populated by pipeline
-    public Principal ExecutedBy { get; set; } = null!;
 };
 
 public class CancelWorkflowCommandHandler(WorkflowDbContext db, IWorkflowFactory factory, ILogger<CancelWorkflowCommand> log)
@@ -47,7 +43,7 @@ public class CancelWorkflowCommandHandler(WorkflowDbContext db, IWorkflowFactory
 
         var payload = new CancelWorkflowPayload
         {
-            ExecutedBy = request.ExecutedBy,
+            ExecutorSid = request.ExecutorSid,
             Comment = request.Comment
         };
         

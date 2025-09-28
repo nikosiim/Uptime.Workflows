@@ -9,6 +9,6 @@ public record ApprovalModificationContext
 
 public record ApprovalTask
 {
-    public required PrincipalId AssignedToPrincipalId { get; init; }
+    public required PrincipalSid AssignedToSid { get; init; }
     public required string TaskGuid { get; init; }
 }

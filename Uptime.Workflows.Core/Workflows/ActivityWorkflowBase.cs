@@ -46,13 +46,12 @@ public abstract class ActivityWorkflowBase<TContext>(
             WorkflowActivityContext context = WorkflowActivityContextFactory.FromDatabase(
                 taskGuid: payload.TaskGuid,
                 phaseId: payload.PhaseId,
-                assignedTo: payload.AssignedTo,
-                assignedBy: payload.ExecutedBy.Id,
+                assignedToSid: payload.AssignedToSid,
                 dueDate: payload.DueDate,
                 description: payload.Description,
                 storageJson: payload.StorageJson);
 
-            await OnTaskAlteredAsync(action, context, payload.ExecutedBy, payload.InputData, cancellationToken);
+            await OnTaskAlteredAsync(action, context, payload.ExecutorSid, payload.InputData, cancellationToken);
             await SaveWorkflowStateAsync(cancellationToken);
         }
         catch (Exception ex)
@@ -64,7 +63,7 @@ public abstract class ActivityWorkflowBase<TContext>(
         return Result<Unit>.Success(new Unit());
     }
     
-    protected abstract Task OnTaskAlteredAsync(WorkflowEventType action, WorkflowActivityContext activityContext, Principal executedBy,
+    protected abstract Task OnTaskAlteredAsync(WorkflowEventType action, WorkflowActivityContext activityContext, PrincipalSid executorSid,
         Dictionary<string, string?> inputData, CancellationToken cancellationToken);
 
     protected override async Task OnWorkflowActivatedAsync(CancellationToken cancellationToken)

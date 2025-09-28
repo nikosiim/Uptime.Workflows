@@ -1,9 +1,11 @@
-﻿using Uptime.Workflows.Core;
+﻿using Microsoft.Extensions.Logging;
+using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Extensions;
 using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
+using Uptime.Workflows.Core.Services;
 
 namespace ApprovalWorkflow;
 
@@ -11,112 +13,127 @@ public sealed class ApprovalTaskActivity(
     ITaskService taskService,
     IHistoryService historyService,
     IPrincipalResolver principalResolver,
-    IWorkflowActivityContext activityContext,
-    IWorkflowContext workflowContext)
-    : UserTaskActivity(taskService, historyService, activityContext, workflowContext)
+    IWorkflowContext workflowContext, 
+    ILogger<ApprovalTaskActivity> logger)
+    : UserTaskActivity(taskService, historyService, principalResolver, workflowContext)
 {
-    public Principal? TaskDelegatedToPrincipal { get; private set; }
+    private readonly IPrincipalResolver _principalResolver = principalResolver;
+    
     public bool IsTaskRejected { get; private set; }
+    public Principal? TaskDelegatedToPrincipal { get; private set; }
 
-    protected override void OnExecuteTask()
+    protected override void OnExecuteTask(IWorkflowActivityContext context, Principal assignedTo)
     {
-        Context.SetTaskTitle("Kinnitamine");
-        Context.SetTaskOutcome("Ootel");
+        context.SetTaskTitle("Kinnitamine");
+        context.SetTaskOutcome("Ootel");
 
-        TaskCreatedHistoryDescription = $"Tööülesanne {AssociationName} on loodud kasutajale {Context.AssignedToPrincipalId}";
+        TaskCreatedHistoryDescription = $"Tööülesanne {AssociationName} on loodud kasutajale {assignedTo.Name}";
     }
 
-    protected override async Task OnTaskChangedAsync(WorkflowEventType action, Principal executedBy, Dictionary<string, string?> payload, CancellationToken ct)
+    protected override async Task OnTaskChangedAsync(WorkflowEventType action, IWorkflowActivityContext context, 
+        PrincipalSid executorSid, Dictionary<string, string?> payload, CancellationToken ct)
     {
         string? comment = payload.GetTaskComment();
+
+        Principal executor = await _principalResolver.ResolveBySidAsync(executorSid, ct);
+        Principal assignedTo = await _principalResolver.ResolveBySidAsync(context.AssignedToSid, ct);
 
         switch (action)
         {
             case WorkflowEventType.TaskRejected:
-                await HandleTaskRejectedAsync(executedBy, comment, ct);
+                await HandleTaskRejectedAsync(context, executor, comment, ct);
                 break;
             case WorkflowEventType.TaskDelegated:
-                await HandleTaskDelegatedAsync(executedBy, payload, comment, ct);
+                await HandleTaskDelegatedAsync(context, executor, payload, comment, ct);
                 break;
             case WorkflowEventType.TaskCancelled:
-                await HandleTaskCancelledAsync(executedBy, comment, ct);
+                await HandleTaskCancelledAsync(context, executor, assignedTo, comment, ct);
                 break;
             case WorkflowEventType.TaskCompleted:
-                await HandleTaskCompletedAsync(executedBy, comment, ct);
+                await HandleTaskCompletedAsync(context, executor, assignedTo, comment, ct);
                 break;
             default:
                 return;
         }
     }
 
-    private async Task HandleTaskRejectedAsync(Principal executedBy, string? comment, CancellationToken ct)
+    private async Task HandleTaskRejectedAsync(IWorkflowActivityContext context, Principal executor, string? comment, CancellationToken ct)
     {
         IsTaskRejected = true;
         IsCompleted = true;
 
-        Context.SetTaskStatus(WorkflowTaskStatus.Completed);
-        Context.SetTaskComment(comment);
-        Context.SetTaskOutcome("Tagasilükatud");
+        context.SetTaskStatus(WorkflowTaskStatus.Completed);
+        context.SetTaskComment(comment);
+        context.SetTaskOutcome("Tagasilükatud");
 
         await HistoryService.CreateAsync(
             WorkflowId, 
             WorkflowEventType.TaskRejected, 
-            executedBy.Id,
-            description: $"Kasutaja {executedBy.Id} on tööülesande {AssociationName} tagasilükanud.", 
+            executor.Sid,
+            description: $"Kasutaja {executor.Name} on tööülesande {AssociationName} tagasilükanud.", 
             comment: comment, 
             ct);
     }
 
-    private async Task HandleTaskDelegatedAsync(Principal executedBy, Dictionary<string, string?> payload, string? comment, CancellationToken ct)
+    private async Task HandleTaskDelegatedAsync(IWorkflowActivityContext context, Principal executor, 
+        Dictionary<string, string?> payload, string? comment, CancellationToken ct)
     {
-        IsCompleted = true;
-
-        Context.SetTaskStatus(WorkflowTaskStatus.Completed);
-        Context.SetTaskComment(comment);
-        Context.SetTaskOutcome("Suunatud");
-
         string? sid = payload.GetTaskDelegatedToSid();
-        TaskDelegatedToPrincipal = await WorkflowPrincipalResolver.ResolvePrincipalBySidAsync(principalResolver, sid, ct);
+        if (string.IsNullOrWhiteSpace(sid))
+        {
+            logger.LogWarning("Task {TaskGuid} DelegatedTo SID value not provided", context.TaskGuid);
+            return;
+        }
+
+        TaskDelegatedToPrincipal = await _principalResolver.ResolveBySidAsync((PrincipalSid)sid, ct);
       
         await HistoryService.CreateAsync(
             WorkflowId, 
             WorkflowEventType.TaskDelegated, 
-            executedBy.Id,
-            description: $"Tööülesanne {AssociationName} on suunatud kasutajale {sid}", 
+            executor.Sid,
+            description: $"Tööülesanne {AssociationName} on suunatud kasutajale {TaskDelegatedToPrincipal.Name}", 
             comment: comment, 
             ct);
+
+        IsCompleted = true;
+
+        context.SetTaskStatus(WorkflowTaskStatus.Completed);
+        context.SetTaskComment(comment);
+        context.SetTaskOutcome("Suunatud");
     }
 
-    private async Task HandleTaskCancelledAsync(Principal executedBy, string? comment, CancellationToken ct)
+    private async Task HandleTaskCancelledAsync(IWorkflowActivityContext context, Principal executor, Principal assignedTo,
+        string? comment, CancellationToken ct)
     {
         IsCompleted = true;
 
-        Context.SetTaskStatus(WorkflowTaskStatus.Completed);
-        Context.SetTaskComment(comment);
-        Context.SetTaskOutcome("Tühistatud");
+        context.SetTaskStatus(WorkflowTaskStatus.Completed);
+        context.SetTaskComment(comment);
+        context.SetTaskOutcome("Tühistatud");
 
         await HistoryService.CreateAsync(
             WorkflowId,
             WorkflowEventType.TaskCancelled,
-            executedBy.Id,
-            description: $"Kasutaja {Context.AssignedToPrincipalId} on tööülesande {AssociationName} tühistanud.",
+            executor.Sid,
+            description: $"Kasutaja {assignedTo.Name} on tööülesande {AssociationName} tühistanud.",
             comment: comment,
             ct);
     }
 
-    private async Task HandleTaskCompletedAsync(Principal executedBy, string? comment, CancellationToken ct)
+    private async Task HandleTaskCompletedAsync(IWorkflowActivityContext context, Principal executor, Principal assignedTo,
+        string? comment, CancellationToken ct)
     {
         IsCompleted = true;
 
-        Context.SetTaskStatus(WorkflowTaskStatus.Completed);
-        Context.SetTaskComment(comment);
-        Context.SetTaskOutcome("Kinnitatud");
+        context.SetTaskStatus(WorkflowTaskStatus.Completed);
+        context.SetTaskComment(comment);
+        context.SetTaskOutcome("Kinnitatud");
 
         await HistoryService.CreateAsync(
             WorkflowId,
             WorkflowEventType.TaskCompleted,
-            executedBy.Id,
-            description: $"Kasutajale {Context.AssignedToPrincipalId} määratud tööülesanne on edukalt lõpetatud.",
+            executor.Sid,
+            description: $"Kasutajale {assignedTo.Name} määratud tööülesanne on edukalt lõpetatud.",
             comment: comment,
             ct);
     }

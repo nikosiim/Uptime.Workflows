@@ -3,6 +3,7 @@ using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Extensions;
 using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
+using Uptime.Workflows.Core.Services;
 
 namespace Uptime.Workflows.Core;
 
@@ -26,43 +27,50 @@ namespace Uptime.Workflows.Core;
 /// </summary>
 public abstract class UserTaskActivity(
     ITaskService taskService, 
-    IHistoryService historyService, 
-    IWorkflowActivityContext activityContext, 
+    IHistoryService historyService,
+    IPrincipalResolver principalResolver,
     IWorkflowContext workflowContext) : IUserTaskActivity 
 {
-    public IWorkflowActivityContext Context => activityContext;
-    
     protected readonly IHistoryService HistoryService = historyService;
     protected string? AssociationName => workflowContext.GetAssociationName();
     protected WorkflowId WorkflowId => workflowContext.GetWorkflowId();
-    
+
+    public Guid TaskGuid { get; private set; }
     public bool IsCompleted { get; protected set; }
     
     protected virtual string? TaskCreatedHistoryDescription { get; set; }
     
-    public async Task ExecuteAsync(CancellationToken cancellationToken)
+    public async Task ExecuteAsync(IWorkflowActivityContext context, CancellationToken ct)
     {
-        OnExecuteTask();
+        TaskGuid = context.TaskGuid;
+
+        Principal initiator = await principalResolver.ResolveBySidAsync(workflowContext.GetInitiatorSid(), ct);
+        Principal assignedTo = await principalResolver.ResolveBySidAsync(context.AssignedToSid, ct);
+
+        OnExecuteTask(context, assignedTo);
         
         await HistoryService.CreateAsync(
             WorkflowId,
             WorkflowEventType.TaskCreated,
-            activityContext.AssignedByPrincipalId,
+            initiator.Sid,
             description: TaskCreatedHistoryDescription,
-            cancellationToken: cancellationToken
+            ct: ct
         );
 
-        await taskService.CreateAsync(WorkflowId, Context, cancellationToken);
+        await taskService.CreateAsync(WorkflowId, initiator.Id, assignedTo.Id, context, ct);
     }
 
-    public virtual async Task ChangedTaskAsync(WorkflowEventType action, Principal executedBy, Dictionary<string, string?> payload, CancellationToken cancellationToken)
+    public virtual async Task ChangedTaskAsync(WorkflowEventType action, IWorkflowActivityContext context, 
+        PrincipalSid executorSid, Dictionary<string, string?> payload, CancellationToken ct)
     {
-        await OnTaskChangedAsync(action, executedBy, payload, cancellationToken);
-        
-        await taskService.UpdateAsync(Context, cancellationToken);
+        TaskGuid = context.TaskGuid;
+
+        await OnTaskChangedAsync(action, context, executorSid, payload, ct);
+        await taskService.UpdateAsync(context, ct);
     }
 
-    protected abstract void OnExecuteTask();
+    protected abstract void OnExecuteTask(IWorkflowActivityContext context, Principal assignedTo);
 
-    protected abstract Task OnTaskChangedAsync(WorkflowEventType action, Principal executedBy, Dictionary<string, string?> payload, CancellationToken ct);
+    protected abstract Task OnTaskChangedAsync(WorkflowEventType action, IWorkflowActivityContext context, 
+        PrincipalSid executorSid, Dictionary<string, string?> payload, CancellationToken ct);
 }

@@ -1,5 +1,4 @@
 ﻿using Uptime.Workflows.Core.Interfaces;
-using Uptime.Workflows.Core.Models;
 
 namespace Uptime.Workflows.Core;
 
@@ -11,7 +10,7 @@ public abstract class ReplicatorActivityProvider : IReplicatorActivityProvider
     {
     }
     
-    public virtual void OnChildCompleted(string phaseId, IUserTaskActivity activity, Principal executedBy)
+    public virtual void OnChildCompleted(string phaseId, IUserTaskActivity activity)
     {
     }
 }

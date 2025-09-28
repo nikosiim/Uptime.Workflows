@@ -1,9 +1,10 @@
-﻿using Uptime.Workflows.Core.Interfaces;
+﻿using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Interfaces;
 
 namespace Uptime.Workflows.Core.Models;
 
 public record CancelWorkflowPayload: IUserActionPayload
 {
-    public required Principal ExecutedBy { get; init; }
+    public required PrincipalSid ExecutorSid { get; init; }
     public string? Comment { get; init; }
 }

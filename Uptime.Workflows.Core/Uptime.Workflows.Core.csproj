@@ -16,6 +16,7 @@
 		<Compile Remove="Enums\TaskOutcome.cs" />
 		<Compile Remove="Enums\WorkflowPhase.cs" />
 		<Compile Remove="Workflows\WorkflowPayloadExtensions.cs" />
+		<Compile Remove="Workflows\WorkflowPrincipalResolver.cs" />
 	</ItemGroup>
 
 	<ItemGroup>

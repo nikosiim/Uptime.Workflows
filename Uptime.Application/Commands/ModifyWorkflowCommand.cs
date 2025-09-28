@@ -5,18 +5,14 @@ using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
-using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.Workflows.Application.Commands;
 
 public record ModifyWorkflowCommand : IRequest<Result<Unit>>, IRequiresPrincipal
 {
     public required WorkflowId WorkflowId { get; init; }
-    public required string ExecutorSid { get; init; }
+    public required PrincipalSid ExecutorSid { get; init; }
     public string? InputContext { get; init; }
-
-    // Will be populated by pipeline
-    public Principal ExecutedBy { get; set; } = null!;
 };
 
 public class ModifyWorkflowCommandHandler(WorkflowDbContext db, IWorkflowFactory factory, ILogger<ModifyWorkflowCommand> log)
@@ -48,7 +44,7 @@ public class ModifyWorkflowCommandHandler(WorkflowDbContext db, IWorkflowFactory
 
         var payload = new ModificationPayload
         {
-            ExecutedBy = request.ExecutedBy,
+            ExecutorSid = request.ExecutorSid,
             ModificationContext = request.InputContext
         };
 

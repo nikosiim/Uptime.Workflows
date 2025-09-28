@@ -92,9 +92,9 @@ public abstract class WorkflowBase<TContext>(
             await historyService.CreateAsync(
                 WorkflowId,
                 WorkflowEventType.WorkflowStarted,
-                WorkflowContext.GetInitiatorId(),
+                payload.ExecutorSid,
                 description: WorkflowStartedHistoryDescription,
-                cancellationToken:cancellationToken
+                ct:cancellationToken
             );
 
             await Machine.FireAsync(WorkflowTrigger.Start);
@@ -197,9 +197,9 @@ public abstract class WorkflowBase<TContext>(
             await historyService.CreateAsync(
                 WorkflowId,
                 WorkflowEventType.WorkflowComment,
-                payload.ExecutedBy.Id,
+                payload.ExecutorSid,
                 description: payload.Comment,
-                cancellationToken:cancellationToken
+                ct:cancellationToken
             );
 
             await CancelAllTasksAsync(cancellationToken);
@@ -270,7 +270,7 @@ public abstract class WorkflowBase<TContext>(
 
         WorkflowContext.SetDocumentId(payload.DocumentId);
         WorkflowContext.SetWorkflowTemplateId(payload.WorkflowTemplateId);
-        WorkflowContext.SetInitiator(payload.ExecutedBy);
+        WorkflowContext.SetInitiatorSid(payload.ExecutorSid);
     }
     
     protected virtual Task OnWorkflowStartedAsync(CancellationToken cancellationToken)
@@ -341,9 +341,9 @@ public abstract class WorkflowBase<TContext>(
                 await historyService.CreateAsync(
                     WorkflowId,
                     WorkflowEventType.WorkflowCompleted,
-                    PrincipalId.System,
+                    Principal.SystemSid,
                     description: WorkflowCompletedHistoryDescription,
-                    cancellationToken: cancellationToken
+                    ct: cancellationToken
                 );
 
                 logger.LogCompleted(WorkflowDefinition, WorkflowId, AssociationName);
@@ -354,9 +354,9 @@ public abstract class WorkflowBase<TContext>(
                 await historyService.CreateAsync(
                     WorkflowId,
                     WorkflowEventType.WorkflowCancelled,
-                    PrincipalId.System,
+                    Principal.SystemSid,
                     description: string.Empty,
-                    cancellationToken: cancellationToken
+                    ct: cancellationToken
                 );
 
                 logger.LogCancelled(WorkflowDefinition, WorkflowId, AssociationName);

@@ -1,8 +1,8 @@
-﻿using Uptime.Workflows.Core.Models;
+﻿using Uptime.Workflows.Core.Common;
 
 namespace Uptime.Workflows.Core.Interfaces;
 
 public interface IUserActionPayload
 {
-    Principal ExecutedBy { get; }
+    PrincipalSid ExecutorSid { get; }
 }

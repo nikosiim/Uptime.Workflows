@@ -112,7 +112,7 @@ public class Replicator : IReplicator
     {
         IWorkflowActivity activity = ChildActivity(item);
         OnChildInitialized?.Invoke(item.ActivityContext, activity);
-        await activity.ExecuteAsync(cancellationToken);
+        await activity.ExecuteAsync(item.ActivityContext, cancellationToken);
 
         return activity;
     }

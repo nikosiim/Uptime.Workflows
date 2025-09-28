@@ -11,12 +11,14 @@ public readonly record struct PrincipalId(int Value)
 
     public static bool TryParse(string? text, out PrincipalId id)
         => DomainIdParser.TryParse(text, v => new PrincipalId(v), out id);
+}
 
-    /// <summary>
-    /// Special principal used by the system itself.
-    /// Assumes that the first WorkflowPrincipal entry has Id = 1.
-    /// </summary>
-    public static readonly PrincipalId System = new(1);
+public readonly record struct PrincipalSid(string Value)
+{
+    public override string ToString() => Value;
+
+    public static explicit operator PrincipalSid(string sid) => new(sid);
+    public static explicit operator string(PrincipalSid sid) => sid.Value;
 }
 
 public readonly record struct WorkflowId(int Value)

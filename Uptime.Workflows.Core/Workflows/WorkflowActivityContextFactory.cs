@@ -7,8 +7,7 @@ namespace Uptime.Workflows.Core;
 
 public static class WorkflowActivityContextFactory
 {
-    public static WorkflowActivityContext CreateNew(string? phaseId, 
-        PrincipalId assignedTo, PrincipalId assignedBy, string? description, DateTime? dueDate)
+    public static WorkflowActivityContext CreateNew(string? phaseId, PrincipalSid assignedToSid, string? description, DateTime? dueDate)
     {
         var ctx = new WorkflowActivityContext
         {
@@ -16,8 +15,7 @@ public static class WorkflowActivityContextFactory
             PhaseId = phaseId,
             DueDate = dueDate,
             Description = description,
-            AssignedToPrincipalId = assignedTo,
-            AssignedByPrincipalId = assignedBy
+            AssignedToSid = assignedToSid
         };
 
         ctx.SetTaskStatus(WorkflowTaskStatus.NotStarted);
@@ -26,14 +24,13 @@ public static class WorkflowActivityContextFactory
     }
 
     public static WorkflowActivityContext FromDatabase(Guid taskGuid, string? phaseId, string? description,
-        PrincipalId assignedTo, PrincipalId assignedBy, DateTime? dueDate, string? storageJson)
+        PrincipalSid assignedToSid, DateTime? dueDate, string? storageJson)
     {
         return new WorkflowActivityContext
         {
             TaskGuid = taskGuid,
             PhaseId = phaseId,
-            AssignedToPrincipalId = assignedTo,
-            AssignedByPrincipalId = assignedBy,
+            AssignedToSid = assignedToSid,
             DueDate = dueDate,
             Description = description,
             #pragma warning disable CS0618

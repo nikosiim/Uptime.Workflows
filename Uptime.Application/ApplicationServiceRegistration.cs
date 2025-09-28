@@ -6,7 +6,6 @@ using Uptime.Workflows.Application.Behaviors;
 using Uptime.Workflows.Application.Commands;
 using Uptime.Workflows.Application.Messaging;
 using Uptime.Workflows.Core;
-using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Services;
 

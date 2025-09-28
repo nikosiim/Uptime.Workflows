@@ -2,7 +2,7 @@
 
 public record User(string Sid, string Name, string Email, bool IsAdmin)
 {
-    private static User System => new("S-1-5-21-1", "System", "", true);
+    private static User System => new("S-0-0-0-1", "System", "", true);
 
     public static User Default => new("S-1-5-21-10000", "Priit Siimo", "priit.siimo@uptime.eu", true);
 
