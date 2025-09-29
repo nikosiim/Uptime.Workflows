@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
@@ -25,12 +24,12 @@ public class SigningWorkflow(
 
     protected override IWorkflowDefinition WorkflowDefinition => new SigningWorkflowDefinition();
     
-    protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
+    protected override void ConfigureStateMachineAsync(CancellationToken ct)
     {
         Machine.Configure(BaseState.NotStarted)
             .Permit(WorkflowTrigger.Start, ExtendedState.Signing);
         Machine.Configure(ExtendedState.Signing)
-            .OnEntryAsync(() => StartSigningTask(cancellationToken))
+            .OnEntryAsync(() => StartSigningTask(ct))
             .OnExit(OnSigningTaskCompleted)
             .Permit(WorkflowTrigger.TaskCompleted, BaseState.Completed)
             .Permit(WorkflowTrigger.TaskRejected, BaseState.Completed)
@@ -38,14 +37,14 @@ public class SigningWorkflow(
         Machine.Configure(BaseState.Completed);
     }
 
-    protected override async Task OnWorkflowActivatedAsync(CancellationToken cancellationToken)
+    protected override async Task OnWorkflowActivatedAsync(CancellationToken ct)
     {
-        await base.OnWorkflowActivatedAsync(cancellationToken);
+        await base.OnWorkflowActivatedAsync(ct);
 
         WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
     }
 
-    protected override Task PrepareInputDataAsync(CancellationToken cancellationToken)
+    protected override Task PrepareInputDataAsync(CancellationToken ct)
     {
         return Task.CompletedTask;
     }
@@ -61,11 +60,15 @@ public class SigningWorkflow(
 
         if (activity.IsCompleted)
         {
-            await TriggerTransitionAsync(WorkflowTrigger.TaskCompleted, ct);
+            WorkflowTrigger trigger = activity.IsTaskRejected
+                ? WorkflowTrigger.TaskRejected
+                : WorkflowTrigger.TaskCompleted;
+
+            await TriggerTransitionAsync(trigger, ct);
         }
     }
 
-    protected override Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)
+    protected override Task OnWorkflowCompletedAsync(CancellationToken ct)
     {
         WorkflowContext.Outcome = IsTaskRejected ? ExtendedOutcome.Rejected : ExtendedOutcome.Signed;
         WorkflowCompletedHistoryDescription = $"{AssociationName} on lõpetatud.";
@@ -73,7 +76,7 @@ public class SigningWorkflow(
         return Task.CompletedTask;
     }
 
-    private async Task StartSigningTask(CancellationToken cancellationToken)
+    private async Task StartSigningTask(CancellationToken ct)
     {
         List<string> signerSids = WorkflowContext.GetTaskSids();
         if (signerSids.Count < 1)
@@ -89,7 +92,7 @@ public class SigningWorkflow(
             dueDate);
         
         var taskActivity = new SigningTaskActivity(_taskService, _historyService, principalResolver, WorkflowContext);
-        await taskActivity.ExecuteAsync(activityContext, cancellationToken);
+        await taskActivity.ExecuteAsync(activityContext, ct);
 
         _logger.LogSigningTaskCreated(WorkflowDefinition, WorkflowId, AssociationName);
     }

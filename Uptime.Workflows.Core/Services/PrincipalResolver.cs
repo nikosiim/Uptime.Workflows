@@ -92,7 +92,7 @@ public sealed class PrincipalResolver : IPrincipalResolver
         return await GetOrCreatePrincipalsInternalAsync(sids.Select(ps => Normalize(ps.Value)), ct);
     }
 
-    private async Task EnsurePrincipalsCachedInternalAsync(IEnumerable<string> sids, WorkflowDbContext db, CancellationToken cancellationToken)
+    private async Task EnsurePrincipalsCachedInternalAsync(IEnumerable<string> sids, WorkflowDbContext db, CancellationToken ct)
     {
         List<string> sidList = sids
             .Where(s => !string.IsNullOrWhiteSpace(s))
@@ -108,7 +108,7 @@ public sealed class PrincipalResolver : IPrincipalResolver
         List<WorkflowPrincipal> foundEntities = await db.Set<WorkflowPrincipal>()
             .AsNoTracking()
             .Where(p => sidList.Contains(p.ExternalId))
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
 
         var foundSids = new HashSet<string>(foundEntities.Select(e => e.ExternalId), StringComparer.OrdinalIgnoreCase);
 
@@ -122,14 +122,14 @@ public sealed class PrincipalResolver : IPrincipalResolver
         List<string> missingSids = sidList.Where(sid => !foundSids.Contains(sid)).ToList();
         foreach (string sid in missingSids)
         {
-            Principal principal = await CreatePrincipalIfNotExistsAsync(sid, db, cancellationToken);
+            Principal principal = await CreatePrincipalIfNotExistsAsync(sid, db, ct);
             // Already added to cache inside helper
         }
     }
 
-    private async Task<IReadOnlyList<Principal>> GetOrCreatePrincipalsInternalAsync(IEnumerable<string> sids, CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<Principal>> GetOrCreatePrincipalsInternalAsync(IEnumerable<string> sids, CancellationToken ct)
     {
-        await using WorkflowDbContext db = await _factory.CreateDbContextAsync(cancellationToken);
+        await using WorkflowDbContext db = await _factory.CreateDbContextAsync(ct);
 
         // Try cache first for all SIDs
         List<string> sidList = sids
@@ -150,12 +150,12 @@ public sealed class PrincipalResolver : IPrincipalResolver
         }
 
         if (toQuery.Count > 0)
-            results.AddRange(await ResolvePrincipalsBySidAsync(toQuery, db, cancellationToken));
+            results.AddRange(await ResolvePrincipalsBySidAsync(toQuery, db, ct));
 
         return results;
     }
     
-    private async Task<List<Principal>> ResolvePrincipalsBySidAsync(IEnumerable<string> sids, WorkflowDbContext db, CancellationToken cancellationToken)
+    private async Task<List<Principal>> ResolvePrincipalsBySidAsync(IEnumerable<string> sids, WorkflowDbContext db, CancellationToken ct)
     {
         List<string> sidList = sids
             .Where(s => !string.IsNullOrWhiteSpace(s))
@@ -172,7 +172,7 @@ public sealed class PrincipalResolver : IPrincipalResolver
         List<WorkflowPrincipal> foundEntities = await db.Set<WorkflowPrincipal>()
             .AsNoTracking()
             .Where(p => sidList.Contains(p.ExternalId))
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
 
         var foundSids = new HashSet<string>(foundEntities.Select(e => e.ExternalId), StringComparer.OrdinalIgnoreCase);
 
@@ -187,14 +187,14 @@ public sealed class PrincipalResolver : IPrincipalResolver
         List<string> missingSids = sidList.Where(sid => !foundSids.Contains(sid)).ToList();
         foreach (string sid in missingSids)
         {
-            Principal principal = await CreatePrincipalIfNotExistsAsync(sid, db, cancellationToken);
+            Principal principal = await CreatePrincipalIfNotExistsAsync(sid, db, ct);
             results.Add(principal);
         }
 
         return results;
     }
 
-    private async Task<Principal> CreatePrincipalIfNotExistsAsync(string sid, WorkflowDbContext db, CancellationToken cancellationToken)
+    private async Task<Principal> CreatePrincipalIfNotExistsAsync(string sid, WorkflowDbContext db, CancellationToken ct)
     {
         try
         {
@@ -206,7 +206,7 @@ public sealed class PrincipalResolver : IPrincipalResolver
             };
 
             db.Add(newEntity);
-            await db.SaveChangesAsync(cancellationToken);
+            await db.SaveChangesAsync(ct);
 
             Principal created = ToDto(newEntity);
             _cache[sid] = created;
@@ -218,7 +218,7 @@ public sealed class PrincipalResolver : IPrincipalResolver
             // Likely concurrent insert: reload from DB
             WorkflowPrincipal? reloaded = await db.Set<WorkflowPrincipal>()
                 .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.ExternalId == sid, cancellationToken);
+                .FirstOrDefaultAsync(p => p.ExternalId == sid, ct);
 
             if (reloaded == null)
                 throw new InvalidOperationException($"Failed to resolve or create principal for SID '{sid}'.");

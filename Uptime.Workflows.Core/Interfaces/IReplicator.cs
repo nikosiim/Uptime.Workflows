@@ -6,6 +6,6 @@ public interface IReplicator
 {
     ReplicatorType Type { get; set; }
     List<ReplicatorItem> Items { get; set; }
-    Task ExecuteAsync(CancellationToken cancellationToken);
+    Task ExecuteAsync(CancellationToken ct);
     bool IsComplete { get; }
 }

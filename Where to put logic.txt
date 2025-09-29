@@ -36,25 +36,31 @@ See concrete example in ApprovalWorkflow (prunes + re-seeds replicator items).
 Base: derive from UserTaskActivity. Set fields in OnExecuteTask() (title, outcome placeholder, etc.).
 The base will write “TaskCreated” history and call TaskService.CreateAsync.
 
-When you start activities: your workflow/replicator builds a WorkflowTaskContext and instantiates the activity. See ApprovalWorkflowActivityProvider.CreateActivity.
+When you start activities: your workflow builds a WorkflowActivityContext and the replicator calls CreateChildActivity.
+Override this hook in your workflow to return the right activity (e.g., ApprovalTaskActivity, SigningTaskActivity).
+This replaces the old provider-based pattern.
 
-8) React to user task updates (approve/reject/delegate)
+8) React to user task updates (approve/reject/delegate) — minor refinement
 
 Override: OnTaskChangedAsync(payload) in your concrete activity.
 Update Context.Storage, set IsCompleted, TaskStatus, raise history events, and set flags for workflow logic (e.g., IsTaskRejected).
 Example: ApprovalTaskActivity sets outcome and writes proper history.
+This method is invoked when the workflow processes an API call (AlterTaskAsync → OnTaskAlteredAsync), so you only need to handle your activity’s domain-specific logic here.
 
 9) Wire task updates back into workflow decisions
 
-Provider hook: IReplicatorActivityProvider.OnChildCompleted(...) integrates activity outcomes into WorkflowContext (e.g., mark AnyTaskRejected, inject follow‑up items on delegation).
-See ApprovalWorkflowActivityProvider.
+Hook: OnChildCompleted(phaseId, activity) — called whenever a user task activity finishes.
+Use it to integrate activity outcomes into WorkflowContext (e.g., set AnyTaskRejected, inject new items if a task was delegated).
+For example, in ApprovalWorkflow.OnChildCompleted you either flag rejection or insert a new ReplicatorItem if delegation occurred.
 
-State transition: after all children complete, fire a trigger (AllTasksCompleted) to move to next state or complete. The dynamic decision is in ConfigureStateMachineAsync.
+State transition: after all children complete, the replicator fires a trigger (AllTasksCompleted) to move to the next state or to completion.
+The dynamic decision is configured in ConfigureStateMachineAsync.
 
-10) Alter an existing task from outside (API-driven)
+10) Alter an existing task from outside (API-driven) — refinement
 
-Entry point (workflow level): ActivityWorkflowBase.AlterTaskAsync(...) → builds WorkflowTaskContext and calls OnTaskAlteredAsync.
-Use this to adjust a task mid-flight (e.g., change assignee metadata). Then it persists state.
+Entry point (workflow level): ActivityWorkflowBase.AlterTaskAsync(...) → builds WorkflowActivityContext and calls OnTaskAlteredAsync.
+The workflow then uses CreateChildActivity to reconstruct the correct activity type, calls ChangedTaskAsync on it, and if the task finished, invokes OnChildCompleted and continues the replicator phase.
+This is the mechanism for applying API-driven updates (e.g., marking a task approved/rejected, reassigning a task).
 
 11) Cancellation & terminal outcomes
 

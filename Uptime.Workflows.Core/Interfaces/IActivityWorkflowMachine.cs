@@ -6,5 +6,5 @@ namespace Uptime.Workflows.Core.Interfaces;
 
 public interface IActivityWorkflowMachine : IWorkflowMachine
 {
-    Task<Result<Unit>> AlterTaskAsync(WorkflowEventType action, AlterTaskPayload payload, CancellationToken cancellationToken);
+    Task<Result<Unit>> AlterTaskAsync(WorkflowEventType action, AlterTaskPayload payload, CancellationToken ct);
 }

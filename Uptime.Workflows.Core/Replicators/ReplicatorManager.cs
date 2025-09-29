@@ -10,12 +10,11 @@ public sealed class ReplicatorManager
     /// <summary>
     /// Initializes replicators from the workflow context.
     /// </summary>
-    public void LoadReplicatorsAsync(
+    public void LoadReplicators(
         Dictionary<string, ReplicatorState> states,
         Func<ReplicatorItem, IWorkflowActivity> createActivity,
         Action<string, IWorkflowActivityContext, IWorkflowActivity> onChildInitialized,
-        Func<Task> onAllTasksCompleted,
-        CancellationToken ct)
+        Func<Task> onAllTasksCompleted)
     {
         _replicators.Clear();
 

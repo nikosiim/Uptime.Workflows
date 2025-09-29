@@ -8,44 +8,51 @@ using Uptime.Workflows.Core.Models;
 
 namespace Uptime.Workflows.Core;
 
-/// <summary>
-/// Base class for workflows that contain "replicator" phases (i.e., phases that dynamically generate
-/// a set of child activities for multiple users — such as approval tasks or signings, possibly in parallel).
-///
-/// <para>
-/// This class provides all the boilerplate for:
-/// <list type="bullet">
-///   <item>Defining replicator phases (e.g., Approval, Signing), and describing how many tasks each phase should create.</item>
-///   <item>Automatically generating the correct child tasks and wiring up their lifecycle (completion, rejection, etc.)</item>
-///   <item>Managing the "replicator state" in the workflow context, so state survives across restarts.</item>
-/// </list>
-/// </para>
-/// <para>
-/// <b>How it works:</b><br/>
-/// 1. When the workflow starts, <see cref="OnWorkflowActivatedAsync"/> uses a "replicator phase builder"
-///    (see <see cref="CreateReplicatorPhaseBuilder"/>) to generate a list of phases, each describing how to create its child activities/tasks.
-/// 2. Each phase (e.g., Approval) will create the correct number of child items — typically one per approver or signer.
-/// 3. As tasks are completed (or rejected, delegated, etc), the replicator infrastructure manages progress, handles transitions,
-///    and fires workflow triggers as needed.
-/// </para>
-/// <para>
-/// <b>Why is this complex?</b><br/>
-/// The main challenge is that in real business workflows, the number and assignment of tasks is dynamic: it can change based on runtime data,
-/// delegation, rejection, or modification by the user. Replicator patterns allow you to describe "how many" tasks to create for a given phase,
-/// and provide the extensibility points for custom workflow logic.
-/// </para>
-/// <para>
-/// <b>Key methods to look at:</b><br/>
-/// - <see cref="CreateReplicatorPhaseBuilder"/>: Provides the phase generation config for this workflow type.
-/// - <see cref="OnWorkflowActivatedAsync"/>: Kicks off phase generation and initializes replicator state.
-/// - <see cref="ActivityProvider"/>: Responsible for creating the actual child activity instance for each task.
-/// </para>
-/// <para>
-/// <b>Tip for implementers:</b><br/>
-/// You should not need to directly manipulate replicator state or items in most workflows. Instead, override the builder/provider methods to
-/// control phase/task creation, and handle transitions via workflow triggers and the activity provider.
-/// </para>
-/// </summary>
+// -----------------------------------------------------------------------------
+// ReplicatorWorkflowBase<TContext>
+//
+// Base class for workflows that include one or more "replicator" phases.
+// A replicator phase fans out work to multiple parallel child activities
+// (e.g., sending an approval task to each approver). The replicator tracks
+// the state of all child items and signals the workflow when the phase is
+// complete.
+//
+// Key concepts:
+//   • ReplicatorState  – runtime state of one phase, including all items.
+//   • ReplicatorItem   – a single pending/active/completed child.
+//   • ReplicatorManager– orchestrates execution of replicator phases.
+//   • Child activity   – the actual workflow activity run for each item.
+//
+// Hook-based design:
+//   Unlike the previous provider-based model, workflows now override virtual
+//   methods directly instead of supplying an IReplicatorActivityProvider.
+//
+//   Override points:
+//     CreateChildActivity(ctx)    – create a concrete IUserTaskActivity for a
+//                                   given item. Used in AlterTask path.
+//     CreateActivityForReplicator(ctx)
+//                                 – create the IWorkflowActivity instance for
+//                                   the replicator engine. Default maps to
+//                                   CreateChildActivity.
+//     OnChildInitialized(phaseId, ctx, act)
+//                                 – invoked when a new child activity has been
+//                                   created and initialized.
+//     OnChildCompleted(phaseId, act)
+//                                 – invoked when a user task activity is marked
+//                                   completed (including reject/delegate cases).
+//
+// AlterTask path:
+//   OnTaskAlteredAsync(...) calls CreateChildActivity to reconstruct the
+//   activity for the given task, invokes ChangedTaskAsync, and then calls
+//   OnChildCompleted + RunReplicatorAsync if the task finished.
+//
+// Usage pattern:
+//   • Derive your workflow from ReplicatorWorkflowBase<TContext>.
+//   • Override the hooks to decide what activity to run per phase, and to
+//     handle special logic when a task completes (delegation, rejection, etc.).
+//   • Configure your state machine to call RunReplicatorAsync(...) on entry
+//     to each replicator phase.
+// -----------------------------------------------------------------------------
 public abstract class ReplicatorWorkflowBase<TContext>(
     IWorkflowService workflowService,
     ITaskService taskService,
@@ -57,10 +64,10 @@ public abstract class ReplicatorWorkflowBase<TContext>(
     private ReplicatorManager? _replicatorManager;
     private readonly ILogger<WorkflowBase<TContext>> _logger = logger;
     
-    protected override async Task OnWorkflowActivatedAsync(CancellationToken cancellationToken)
+    protected override async Task OnWorkflowActivatedAsync(CancellationToken ct)
     {
         // Ensure SIDs are resolved to PrincipalIds before building phases
-        await base.OnWorkflowActivatedAsync(cancellationToken);
+        await base.OnWorkflowActivatedAsync(ct);
 
         IReplicatorPhaseBuilder builder = CreateReplicatorPhaseBuilder();
         List<ReplicatorPhase> replicatorPhases = builder.BuildPhases(WorkflowContext);
@@ -75,7 +82,7 @@ public abstract class ReplicatorWorkflowBase<TContext>(
             }
         );
 
-        InitializeReplicatorManagerAsync(cancellationToken);
+        InitializeReplicatorManagerAsync(ct);
     }
 
     protected override string OnWorkflowModification()
@@ -169,10 +176,10 @@ public abstract class ReplicatorWorkflowBase<TContext>(
 
     protected virtual void OnChildCompleted(string phaseId, IUserTaskActivity activity) { }
 
-    protected async Task RunReplicatorAsync(string phaseName, CancellationToken cancellationToken)
+    protected async Task RunReplicatorAsync(string phaseName, CancellationToken ct)
     {
-        InitializeReplicatorManagerAsync(cancellationToken);
-        await _replicatorManager!.RunReplicatorAsync(phaseName, cancellationToken);
+        InitializeReplicatorManagerAsync(ct);
+        await _replicatorManager!.RunReplicatorAsync(phaseName, ct);
     }
 
     private void InitializeReplicatorManagerAsync(CancellationToken ct)
@@ -180,12 +187,11 @@ public abstract class ReplicatorWorkflowBase<TContext>(
         if (_replicatorManager == null)
         {
             _replicatorManager = new ReplicatorManager();
-            _replicatorManager.LoadReplicatorsAsync(
+            _replicatorManager.LoadReplicators(
                 WorkflowContext.ReplicatorStates,
                 createActivity: item => CreateActivityForReplicator(item.ActivityContext),
                 onChildInitialized: OnChildInitialized,
-                onAllTasksCompleted: () => TriggerTransitionAsync(WorkflowTrigger.AllTasksCompleted, ct),
-                ct: ct);
+                onAllTasksCompleted: () => TriggerTransitionAsync(WorkflowTrigger.AllTasksCompleted, ct));
         }
     }
 }

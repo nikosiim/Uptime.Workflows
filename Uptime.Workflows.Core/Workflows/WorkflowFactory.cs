@@ -112,11 +112,11 @@ public class WorkflowFactory : IWorkflowFactory
     /// The caller (API / command handler) converts that failure into an HTTP
     /// 400 or similar.
     /// </remarks>
-    public async Task<Result<Unit>> StartWorkflowAsync(string workflowBaseIdString, StartWorkflowPayload payload, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> StartWorkflowAsync(string workflowBaseIdString, StartWorkflowPayload payload, CancellationToken ct)
     {
         if (_machinesByBaseId.TryGetValue(new Guid(workflowBaseIdString), out IWorkflowMachine? machine))
         {
-            return await machine.StartAsync(payload, cancellationToken);
+            return await machine.StartAsync(payload, ct);
         }
 
         _logger.LogWarning("State-machine not found for baseId: {WorkflowBaseId}", workflowBaseIdString);

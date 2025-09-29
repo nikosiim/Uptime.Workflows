@@ -42,14 +42,14 @@ public class Replicator : IReplicator
     /// <summary>
     /// Executes the replicator's tasks based on its configured execution type (Sequential or Parallel).
     /// </summary>
-    public async Task ExecuteAsync(CancellationToken cancellationToken)
+    public async Task ExecuteAsync(CancellationToken ct)
     {
         if (Items.Count != 0)
         {
             Task executionTask = Type switch
             {
-                ReplicatorType.Sequential => ExecuteSequentialAsync(cancellationToken),
-                ReplicatorType.Parallel   => ExecuteParallelAsync(cancellationToken),
+                ReplicatorType.Sequential => ExecuteSequentialAsync(ct),
+                ReplicatorType.Parallel   => ExecuteParallelAsync(ct),
                 _ => throw new NotSupportedException($"Replicator type '{Type}' is not supported.")
             };
 
@@ -66,11 +66,11 @@ public class Replicator : IReplicator
     /// Executes tasks sequentially, processing one task at a time.
     /// If a task is incomplete, execution halts until it is completed.
     /// </summary>
-    private async Task ExecuteSequentialAsync(CancellationToken cancellationToken)
+    private async Task ExecuteSequentialAsync(CancellationToken ct)
     {
         foreach (ReplicatorItem item in Items.Where(item => item.Status == ReplicatorItemStatus.NotStarted))
         {
-            IWorkflowActivity activity = await InitializeActivityAsync(item, cancellationToken);
+            IWorkflowActivity activity = await InitializeActivityAsync(item, ct);
             if (activity.IsCompleted) // Does not apply to UserActivity, as their response is not immediately apparent
             {
                 item.Status = ReplicatorItemStatus.Completed;
@@ -87,7 +87,7 @@ public class Replicator : IReplicator
     /// <summary>
     /// Executes tasks in parallel, running all tasks concurrently.
     /// </summary>
-    private async Task ExecuteParallelAsync(CancellationToken cancellationToken)
+    private async Task ExecuteParallelAsync(CancellationToken ct)
     {
         IEnumerable<Task> tasks = Items
             .Where(item => item.Status == ReplicatorItemStatus.NotStarted)
@@ -95,7 +95,7 @@ public class Replicator : IReplicator
             {
                 item.Status = ReplicatorItemStatus.InProgress;
 
-                IWorkflowActivity activity = await InitializeActivityAsync(item, cancellationToken);
+                IWorkflowActivity activity = await InitializeActivityAsync(item, ct);
                 if (activity.IsCompleted) // Does not apply to UserActivity, as their response is not immediately apparent
                 {
                     item.Status = ReplicatorItemStatus.Completed;
@@ -108,11 +108,11 @@ public class Replicator : IReplicator
     /// <summary>
     /// Initializes and executes an activity for the given replicator item.
     /// </summary>
-    private async Task<IWorkflowActivity> InitializeActivityAsync(ReplicatorItem item, CancellationToken cancellationToken)
+    private async Task<IWorkflowActivity> InitializeActivityAsync(ReplicatorItem item, CancellationToken ct)
     {
         IWorkflowActivity activity = ChildActivity(item);
         OnChildInitialized?.Invoke(item.ActivityContext, activity);
-        await activity.ExecuteAsync(item.ActivityContext, cancellationToken);
+        await activity.ExecuteAsync(item.ActivityContext, ct);
 
         return activity;
     }

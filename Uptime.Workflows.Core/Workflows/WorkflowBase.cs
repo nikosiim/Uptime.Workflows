@@ -75,17 +75,17 @@ public abstract class WorkflowBase<TContext>(
 
     #region Public Methods
 
-    public async Task<Result<Unit>> StartAsync(StartWorkflowPayload payload, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> StartAsync(StartWorkflowPayload payload, CancellationToken ct)
     {
-        if (cancellationToken.IsCancellationRequested)
+        if (ct.IsCancellationRequested)
             return Result<Unit>.Cancelled();
         try
         {
             InitializeWorkflowContext(payload);
-            await RegisterWorkflowInstanceAsync(cancellationToken);
+            await RegisterWorkflowInstanceAsync(ct);
 
-            InitializeStateMachine(BaseState.NotStarted, cancellationToken);
-            await OnWorkflowActivatedAsync(cancellationToken);
+            InitializeStateMachine(BaseState.NotStarted, ct);
+            await OnWorkflowActivatedAsync(ct);
             
             logger.LogStarted(WorkflowDefinition, WorkflowId, AssociationName);
 
@@ -94,21 +94,21 @@ public abstract class WorkflowBase<TContext>(
                 WorkflowEventType.WorkflowStarted,
                 payload.ExecutorSid,
                 description: WorkflowStartedHistoryDescription,
-                ct:cancellationToken
+                ct:ct
             );
 
             await Machine.FireAsync(WorkflowTrigger.Start);
-            await OnWorkflowStartedAsync(cancellationToken);
-            await SaveWorkflowStateAsync(cancellationToken);
+            await OnWorkflowStartedAsync(ct);
+            await SaveWorkflowStateAsync(ct);
         }
         catch (WorkflowValidationException vex)
         {
-            await HandleWorkflowExceptionAsync(vex, WorkflowId, cancellationToken);
+            await HandleWorkflowExceptionAsync(vex, WorkflowId, ct);
             return Result<Unit>.Failure(vex.Error, vex.Message);
         }
         catch (Exception ex)
         {
-            await HandleWorkflowExceptionAsync(ex, WorkflowId, cancellationToken);
+            await HandleWorkflowExceptionAsync(ex, WorkflowId, ct);
             return Result<Unit>.Failure(ErrorCode.Unexpected);
         }
 
@@ -126,16 +126,16 @@ public abstract class WorkflowBase<TContext>(
     /// New developers: This is the main “hook” for supporting workflow
     /// modification after it has already started.
     /// </summary>
-    public async Task<Result<Unit>> ModifyAsync(ModificationPayload payload, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> ModifyAsync(ModificationPayload payload, CancellationToken ct)
     {
-        if (cancellationToken.IsCancellationRequested)
+        if (ct.IsCancellationRequested)
             return Result<Unit>.Cancelled();
 
         try
         {
-            if (await OnWorkflowModifiedAsync(payload, cancellationToken))
+            if (await OnWorkflowModifiedAsync(payload, ct))
             {
-                await SaveWorkflowStateAsync(cancellationToken);
+                await SaveWorkflowStateAsync(ct);
             }
             
             logger.LogModified(WorkflowDefinition, WorkflowId, AssociationName);
@@ -160,15 +160,15 @@ public abstract class WorkflowBase<TContext>(
     /// started fresh (for example, after an API call or app restart). Without
     /// this, the workflow would lose its context and could not continue.
     /// </summary>
-    public Result<Unit> Rehydrate(string storageJson, string phase, CancellationToken cancellationToken)
+    public Result<Unit> Rehydrate(string storageJson, string phase, CancellationToken ct)
     {
-        if (cancellationToken.IsCancellationRequested)
+        if (ct.IsCancellationRequested)
             return Result<Unit>.Cancelled();
 
         try
         {
             WorkflowContext = BaseWorkflowContext.Deserialize<TContext>(storageJson);
-            InitializeStateMachine(BaseState.FromString(phase), cancellationToken);
+            InitializeStateMachine(BaseState.FromString(phase), ct);
             
             logger.LogRehydrated(WorkflowDefinition, WorkflowId, AssociationName);
         }
@@ -181,9 +181,9 @@ public abstract class WorkflowBase<TContext>(
         return Result<Unit>.Success(new Unit());
     }
 
-    public async Task<Result<Unit>> CancelAsync(CancelWorkflowPayload payload, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> CancelAsync(CancelWorkflowPayload payload, CancellationToken ct)
     {
-        if (cancellationToken.IsCancellationRequested)
+        if (ct.IsCancellationRequested)
             return Result<Unit>.Cancelled();
 
         if (Machine.State.IsFinal())
@@ -199,12 +199,12 @@ public abstract class WorkflowBase<TContext>(
                 WorkflowEventType.WorkflowComment,
                 payload.ExecutorSid,
                 description: payload.Comment,
-                ct:cancellationToken
+                ct:ct
             );
 
-            await CancelAllTasksAsync(cancellationToken);
+            await CancelAllTasksAsync(ct);
             await Machine.FireAsync(WorkflowTrigger.Cancel);
-            await SaveWorkflowStateAsync(cancellationToken);
+            await SaveWorkflowStateAsync(ct);
         }
         catch (Exception ex)
         {
@@ -226,14 +226,14 @@ public abstract class WorkflowBase<TContext>(
     /// (like a task completed, approval given, etc.) and the workflow needs
     /// to move forward. It’s the engine that drives the state machine.
     /// </summary>
-    public async Task TriggerTransitionAsync(WorkflowTrigger trigger, CancellationToken cancellationToken, bool autoCommit = true)
+    public async Task TriggerTransitionAsync(WorkflowTrigger trigger, CancellationToken ct, bool autoCommit = true)
     {
         var transitionQueue = new StateTransitionQueue<BaseState, WorkflowTrigger>(Machine, logger);
-        await transitionQueue.EnqueueTriggerAsync(trigger, cancellationToken);
+        await transitionQueue.EnqueueTriggerAsync(trigger, ct);
 
         if (autoCommit)
         {
-            await SaveWorkflowStateAsync(cancellationToken);
+            await SaveWorkflowStateAsync(ct);
         }
     }
 
@@ -273,7 +273,7 @@ public abstract class WorkflowBase<TContext>(
         WorkflowContext.SetInitiatorSid(payload.ExecutorSid);
     }
     
-    protected virtual Task OnWorkflowStartedAsync(CancellationToken cancellationToken)
+    protected virtual Task OnWorkflowStartedAsync(CancellationToken ct)
     {
         return Task.CompletedTask;
     }
@@ -283,80 +283,80 @@ public abstract class WorkflowBase<TContext>(
         return string.Empty;
     }
 
-    protected virtual Task<bool> OnWorkflowModifiedAsync(ModificationPayload payload, CancellationToken cancellationToken)
+    protected virtual Task<bool> OnWorkflowModifiedAsync(ModificationPayload payload, CancellationToken ct)
     {
         return Task.FromResult(false);
     }
 
-    protected virtual Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)
+    protected virtual Task OnWorkflowCompletedAsync(CancellationToken ct)
     {
         WorkflowContext.Outcome = WorkflowOutcome.Completed;
         return Task.CompletedTask;
     }
 
-    protected virtual Task OnWorkflowCancelledAsync(CancellationToken cancellationToken)
+    protected virtual Task OnWorkflowCancelledAsync(CancellationToken ct)
     {
         WorkflowContext.Outcome = WorkflowOutcome.Cancelled;
         return Task.CompletedTask;
     }
     
-    protected virtual async Task SaveWorkflowStateAsync(CancellationToken cancellationToken)
+    protected virtual async Task SaveWorkflowStateAsync(CancellationToken ct)
     {
-        await workflowService.UpdateStateAsync(WorkflowContext, Machine.State, cancellationToken);
+        await workflowService.UpdateStateAsync(WorkflowContext, Machine.State, ct);
     }
 
-    protected virtual async Task CancelAllTasksAsync(CancellationToken cancellationToken)
+    protected virtual async Task CancelAllTasksAsync(CancellationToken ct)
     {
-        await taskService.CancelActiveTasksAsync(WorkflowId, cancellationToken);
+        await taskService.CancelActiveTasksAsync(WorkflowId, ct);
     }
     
     #endregion
 
     #region Abstract Methods 
 
-    protected abstract Task OnWorkflowActivatedAsync(CancellationToken cancellationToken);
-    protected abstract void ConfigureStateMachineAsync(CancellationToken cancellationToken);
+    protected abstract Task OnWorkflowActivatedAsync(CancellationToken ct);
+    protected abstract void ConfigureStateMachineAsync(CancellationToken ct);
     protected abstract IWorkflowDefinition WorkflowDefinition { get; }
 
     #endregion
 
     #region Private Methods
 
-    private async Task RegisterWorkflowInstanceAsync(CancellationToken cancellationToken)
+    private async Task RegisterWorkflowInstanceAsync(CancellationToken ct)
     {
         // To persist the workflow's initial state and get a database-assigned ID
-        WorkflowId = await workflowService.CreateAsync(WorkflowContext, cancellationToken);
+        WorkflowId = await workflowService.CreateAsync(WorkflowContext, ct);
     }
 
-    private void InitializeStateMachine(BaseState initialPhase, CancellationToken cancellationToken)
+    private void InitializeStateMachine(BaseState initialPhase, CancellationToken ct)
     {
         Machine = new StateMachine<BaseState, WorkflowTrigger>(initialPhase);
-        ConfigureStateMachineAsync(cancellationToken);
+        ConfigureStateMachineAsync(ct);
 
         Machine.OnTransitionCompletedAsync(async transition =>
         {
             if (transition.Destination.Equals(BaseState.Completed))
             {
-                await OnWorkflowCompletedAsync(cancellationToken);
+                await OnWorkflowCompletedAsync(ct);
                 await historyService.CreateAsync(
                     WorkflowId,
                     WorkflowEventType.WorkflowCompleted,
                     Principal.SystemSid,
                     description: WorkflowCompletedHistoryDescription,
-                    ct: cancellationToken
+                    ct: ct
                 );
 
                 logger.LogCompleted(WorkflowDefinition, WorkflowId, AssociationName);
             }
             else if (transition.Destination.Equals(BaseState.Cancelled))
             {
-                await OnWorkflowCancelledAsync(cancellationToken);
+                await OnWorkflowCancelledAsync(ct);
                 await historyService.CreateAsync(
                     WorkflowId,
                     WorkflowEventType.WorkflowCancelled,
                     Principal.SystemSid,
                     description: string.Empty,
-                    ct: cancellationToken
+                    ct: ct
                 );
 
                 logger.LogCancelled(WorkflowDefinition, WorkflowId, AssociationName);
@@ -364,14 +364,14 @@ public abstract class WorkflowBase<TContext>(
         });
     }
 
-    private async Task HandleWorkflowExceptionAsync(Exception ex, WorkflowId workflowId, CancellationToken cancellationToken)
+    private async Task HandleWorkflowExceptionAsync(Exception ex, WorkflowId workflowId, CancellationToken ct)
     {
         try
         {
             logger.LogError(ex, "An error occurred while starting the workflow.");
             
-            await workflowService.MarkAsInvalidAsync(WorkflowId, cancellationToken);
-            await taskService.CancelActiveTasksAsync(workflowId, cancellationToken);
+            await workflowService.MarkAsInvalidAsync(WorkflowId, ct);
+            await taskService.CancelActiveTasksAsync(workflowId, ct);
         }
         catch (Exception e)
         {

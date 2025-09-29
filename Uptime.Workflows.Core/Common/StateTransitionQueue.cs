@@ -9,7 +9,7 @@ public class StateTransitionQueue<TState, TTrigger>(StateMachine<TState, TTrigge
     private readonly Queue<TTrigger> _triggerQueue = new();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
-    public async Task EnqueueTriggerAsync(TTrigger trigger, CancellationToken cancellationToken)
+    public async Task EnqueueTriggerAsync(TTrigger trigger, CancellationToken ct)
     {
         lock (_triggerQueue)
         {
@@ -48,13 +48,13 @@ public class StateTransitionQueue<TState, TTrigger>(StateMachine<TState, TTrigge
                 await machine.FireAsync(currentTrigger);
                 logger.LogTriggerFired(currentTrigger, machine.State);
 
-            }, cancellationToken);
+            }, ct);
         }
     }
 
-    private async Task ExecuteSynchronizedAsync(Func<Task> action, CancellationToken cancellationToken)
+    private async Task ExecuteSynchronizedAsync(Func<Task> action, CancellationToken ct)
     {
-        await _semaphore.WaitAsync(cancellationToken);
+        await _semaphore.WaitAsync(ct);
 
         try
         {

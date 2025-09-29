@@ -31,7 +31,7 @@ public abstract class ActivityWorkflowBase<TContext>(
 {
     private readonly ILogger<WorkflowBase<TContext>> _logger = logger;
 
-    public async Task<Result<Unit>> AlterTaskAsync(WorkflowEventType action, AlterTaskPayload payload, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> AlterTaskAsync(WorkflowEventType action, AlterTaskPayload payload, CancellationToken ct)
     {
         _logger.LogAlterTaskTriggered(WorkflowDefinition, WorkflowId, AssociationName);
 
@@ -51,8 +51,8 @@ public abstract class ActivityWorkflowBase<TContext>(
                 description: payload.Description,
                 storageJson: payload.StorageJson);
 
-            await OnTaskAlteredAsync(action, context, payload.ExecutorSid, payload.InputData, cancellationToken);
-            await SaveWorkflowStateAsync(cancellationToken);
+            await OnTaskAlteredAsync(action, context, payload.ExecutorSid, payload.InputData, ct);
+            await SaveWorkflowStateAsync(ct);
         }
         catch (Exception ex)
         {
@@ -66,14 +66,14 @@ public abstract class ActivityWorkflowBase<TContext>(
     protected abstract Task OnTaskAlteredAsync(WorkflowEventType action, WorkflowActivityContext activityContext, PrincipalSid executorSid,
         Dictionary<string, string?> inputData, CancellationToken ct);
 
-    protected override async Task OnWorkflowActivatedAsync(CancellationToken cancellationToken)
+    protected override async Task OnWorkflowActivatedAsync(CancellationToken ct)
     {
-        await PrepareInputDataAsync(cancellationToken);
+        await PrepareInputDataAsync(ct);
     }
 
     /// <summary>
     /// Workflow must implement this to normalize user data (e.g., resolve SIDs to PrincipalIds).
     /// Called before any activities or replicator logic is executed.
     /// </summary>
-    protected abstract Task PrepareInputDataAsync(CancellationToken cancellationToken);
+    protected abstract Task PrepareInputDataAsync(CancellationToken ct);
 }

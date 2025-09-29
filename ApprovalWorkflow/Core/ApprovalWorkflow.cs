@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
 using System.Text.Json;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
@@ -20,7 +19,7 @@ public sealed class ApprovalWorkflow(
 {
     protected override IWorkflowDefinition WorkflowDefinition => new ApprovalWorkflowDefinition();
 
-    protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
+    protected override void ConfigureStateMachineAsync(CancellationToken ct)
     {
         Machine.Configure(BaseState.NotStarted)
             .Permit(WorkflowTrigger.Start, BaseState.InProgress);
@@ -32,24 +31,24 @@ public sealed class ApprovalWorkflow(
 
         Machine.Configure(ExtendedState.Approval)
             .SubstateOf(BaseState.InProgress)
-            .OnEntryAsync(() => RunReplicatorAsync(ExtendedState.Approval.Value, cancellationToken))
+            .OnEntryAsync(() => RunReplicatorAsync(ExtendedState.Approval.Value, ct))
             //.PermitIf(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Completed, () => WorkflowContext.AnyTaskRejected)
             //.PermitIf(WorkflowTrigger.AllTasksCompleted, ApprovalPhase.Signing, () => !WorkflowContext.AnyTaskRejected)
             .PermitDynamic(WorkflowTrigger.AllTasksCompleted, () => WorkflowContext.AnyTaskRejected ? BaseState.Completed : ExtendedState.Signing);
 
         Machine.Configure(ExtendedState.Signing)
             .SubstateOf(BaseState.InProgress)
-            .OnEntryAsync(() => RunReplicatorAsync(ExtendedState.Signing.Value, cancellationToken))
+            .OnEntryAsync(() => RunReplicatorAsync(ExtendedState.Signing.Value, ct))
             .Permit(WorkflowTrigger.AllTasksCompleted, BaseState.Completed);
     }
     
-    protected override async Task OnWorkflowActivatedAsync(CancellationToken cancellationToken)
+    protected override async Task OnWorkflowActivatedAsync(CancellationToken ct)
     {
-        await base.OnWorkflowActivatedAsync(cancellationToken);
+        await base.OnWorkflowActivatedAsync(ct);
         WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
     }
 
-    protected override Task PrepareInputDataAsync(CancellationToken cancellationToken)
+    protected override Task PrepareInputDataAsync(CancellationToken ct)
     {
         // Resolve SIDs to Principal for parallel tasks
         // TODO: Think through what would be best place to decide whether there are parallel tasks or not
@@ -178,7 +177,7 @@ public sealed class ApprovalWorkflow(
         return JsonSerializer.Serialize(context);
     }
 
-    protected override Task<bool> OnWorkflowModifiedAsync(ModificationPayload payload, CancellationToken cancellationToken)
+    protected override Task<bool> OnWorkflowModifiedAsync(ModificationPayload payload, CancellationToken ct)
     {
         if (!WorkflowContext.ReplicatorStates.TryGetValue(Machine.State.Value, out ReplicatorState? replicatorState))
             return Task.FromResult(false);
@@ -213,7 +212,7 @@ public sealed class ApprovalWorkflow(
         return Task.FromResult(true);
     }
 
-    protected override Task OnWorkflowCompletedAsync(CancellationToken cancellationToken)
+    protected override Task OnWorkflowCompletedAsync(CancellationToken ct)
     {
         WorkflowContext.Outcome = WorkflowContext.AnyTaskRejected ? ExtendedOutcome.Rejected : ExtendedOutcome.Approved;
         WorkflowCompletedHistoryDescription = $"{AssociationName} on lõpetatud.";
