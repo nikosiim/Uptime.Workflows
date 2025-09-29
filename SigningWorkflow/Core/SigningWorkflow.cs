@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
@@ -12,6 +13,7 @@ public class SigningWorkflow(
     ITaskService taskService, 
     IHistoryService historyService,
     IPrincipalResolver principalResolver,
+    IActivityActivator activator,
     ILogger<WorkflowBase<BaseWorkflowContext>> logger)
     : ActivityWorkflowBase<BaseWorkflowContext>(workflowService, taskService, historyService, logger)
 {
@@ -51,8 +53,8 @@ public class SigningWorkflow(
     protected override async Task OnTaskAlteredAsync(WorkflowEventType action, WorkflowActivityContext activityContext,
         PrincipalSid executorSid, Dictionary<string, string?> inputData, CancellationToken cancellationToken)
     {
-        var activity = new SigningTaskActivity(_taskService, _historyService, principalResolver, WorkflowContext);
-        
+        var activity = activator.Create<SigningTaskActivity>(WorkflowContext);
+
         await activity.ChangedTaskAsync(action, activityContext, executorSid, inputData, cancellationToken);
 
         IsTaskRejected = activity.IsTaskRejected;

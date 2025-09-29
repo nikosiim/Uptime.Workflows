@@ -35,6 +35,16 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IHistoryService, HistoryService>();
         services.AddScoped<IWorkflowService, WorkflowService>();
 
+        services.AddTransient<IActivityActivator, ActivityActivator>();
+        services.AddTransient<ApprovalTaskActivity>();
+        services.AddTransient<ApprovalWorkflow.SigningTaskActivity>();
+        services.AddTransient<SigningWorkflow.SigningTaskActivity>();
+
+        services.AddTransient<ApprovalWorkflowActivityProvider>();
+
+        services.AddTransient<Func<IWorkflowContext, ApprovalWorkflowActivityProvider>>(sp =>
+            ctx => ActivatorUtilities.CreateInstance<ApprovalWorkflowActivityProvider>(sp, ctx));
+
         // Workflow factory
         services.AddScoped<IWorkflowFactory>(sp =>
         {

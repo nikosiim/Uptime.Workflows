@@ -52,8 +52,6 @@ public static class CoreServiceRegistration
         //   – Controllers / MediatR handlers   → inject WorkflowDbContext (scoped)
         //   – Parallel loops, hosted services  → inject IDbContextFactory<WorkflowDbContext>
         // -----------------------------------------------------------------------------
-        services.AddDbContextFactory<WorkflowDbContext>(
-            opt => opt.UseSqlServer(connectionString),
-            ServiceLifetime.Scoped);
+        services.AddDbContextFactory<WorkflowDbContext>(opt => opt.UseSqlServer(connectionString), ServiceLifetime.Scoped);
     }
 }

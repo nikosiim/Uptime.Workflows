@@ -5,7 +5,6 @@ using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
-using Uptime.Workflows.Core.Services;
 
 namespace ApprovalWorkflow;
 
@@ -13,17 +12,15 @@ public sealed class ApprovalWorkflow(
     IWorkflowService workflowService,
     ITaskService taskService,
     IHistoryService historyService,
-    IPrincipalResolver principalResolver,
+    Func<IWorkflowContext, ApprovalWorkflowActivityProvider> providerFactory,
     ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
     : ReplicatorWorkflowBase<ApprovalWorkflowContext>(workflowService, taskService, historyService, logger)
 {
-    private readonly ITaskService _taskService = taskService;
-    private readonly IHistoryService _historyService = historyService;
+    private IReplicatorActivityProvider? _provider;
+
+    protected override IReplicatorActivityProvider ActivityProvider => _provider ??= providerFactory(WorkflowContext);
 
     protected override IWorkflowDefinition WorkflowDefinition => new ApprovalWorkflowDefinition();
-    
-    protected override IReplicatorActivityProvider ActivityProvider 
-        => new ApprovalWorkflowActivityProvider(_taskService, _historyService, principalResolver, WorkflowContext);
 
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {

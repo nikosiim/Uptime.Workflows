@@ -1,22 +1,20 @@
 ﻿using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Extensions;
 using Uptime.Workflows.Core.Interfaces;
-using Uptime.Workflows.Core.Services;
 
 namespace ApprovalWorkflow;
 
-// TODO: kas saaks activity luua factoriga, et ei peaks uut tehes sisestama kõiki teenuseid?
-public class ApprovalWorkflowActivityProvider(ITaskService taskService, IHistoryService historyService, IPrincipalResolver principalResolver, IWorkflowContext workflowContext) 
+public class ApprovalWorkflowActivityProvider(IActivityActivator activator, IWorkflowContext workflowContext) 
     : ReplicatorActivityProvider
 {
     public override IWorkflowActivity CreateActivity(IWorkflowActivityContext activityContext)
     {
         if (activityContext.PhaseId == ExtendedState.Signing.Value)
         {
-            return new SigningTaskActivity(taskService, historyService, principalResolver, workflowContext);
+            return activator.Create<SigningTaskActivity>(workflowContext);
         }
 
-        return new ApprovalTaskActivity(taskService, historyService, principalResolver, workflowContext, null); // TODO: pass logger or remove it
+        return activator.Create<ApprovalTaskActivity>(workflowContext);
     }
 
     public override void OnChildInitialized(string phaseId, IWorkflowActivityContext context, IWorkflowActivity activity)
