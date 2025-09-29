@@ -2,7 +2,9 @@
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
+using Uptime.Workflows.Core.Extensions;
 using Uptime.Workflows.Core.Interfaces;
+using Uptime.Workflows.Core.Models;
 using Uptime.Workflows.Core.Services;
 
 namespace SigningWorkflow;
@@ -13,6 +15,7 @@ public class SigningWorkflow(
     IHistoryService historyService,
     IPrincipalResolver principalResolver,
     IActivityActivator activator,
+    IWorkflowOutboundNotifier notifier,
     ILogger<WorkflowBase<BaseWorkflowContext>> logger)
     : ActivityWorkflowBase<BaseWorkflowContext>(workflowService, taskService, historyService, logger)
 {
@@ -40,6 +43,20 @@ public class SigningWorkflow(
     protected override async Task OnWorkflowActivatedAsync(CancellationToken ct)
     {
         await base.OnWorkflowActivatedAsync(ct);
+
+        List<string> signerSids = WorkflowContext.GetTaskSids();
+        List<AssigneeProjection> assignees = signerSids
+            .Select(s => new AssigneeProjection(ExtendedState.Signing.Value, (PrincipalSid)s))
+            .ToList();
+
+        var started = new WorkflowStartedPayload(
+            WorkflowId: WorkflowId,
+            WorkflowType: GetType().Name,
+            StartedBySid: WorkflowContext.GetInitiatorSid(),
+            Assignees: assignees,
+            StartedAtUtc: DateTimeOffset.UtcNow);
+
+        await notifier.NotifyWorkflowStartedAsync(started, ct);
 
         WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
     }
@@ -88,6 +105,18 @@ public class SigningWorkflow(
         
         var taskActivity = new SigningTaskActivity(_taskService, _historyService, principalResolver, WorkflowContext);
         await taskActivity.ExecuteAsync(activityContext, ct);
+
+        var created = new TasksCreatedPayload(
+            WorkflowId: WorkflowId,
+            WorkflowType: GetType().Name,
+            PhaseName: ExtendedState.Signing.Value,
+            IsParallelPhase: false,
+            Tasks: new List<TaskProjection>
+            {
+                new(activityContext.TaskGuid, ExtendedState.Signing.Value, activityContext.AssignedToSid)
+            });
+
+        await notifier.NotifyTasksCreatedAsync(created, ct);
 
         _logger.LogSigningTaskCreated(WorkflowDefinition, WorkflowId, AssociationName);
     }

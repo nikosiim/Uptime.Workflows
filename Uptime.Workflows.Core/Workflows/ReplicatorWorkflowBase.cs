@@ -67,57 +67,40 @@ public abstract class ReplicatorWorkflowBase<TContext>(
 
     // Buffer for batching "tasks created" in Parallel phases
     private readonly Dictionary<string, List<TaskProjection>> _createdBuffer = new(StringComparer.OrdinalIgnoreCase);
+    
+    #region Workflow Hooks
 
     protected override async Task OnWorkflowActivatedAsync(CancellationToken ct)
     {
         await base.OnWorkflowActivatedAsync(ct);
 
-        IReplicatorPhaseBuilder builder = CreateReplicatorPhaseBuilder();
-        List<ReplicatorPhase> replicatorPhases = builder.BuildPhases(WorkflowContext);
+        List<ReplicatorPhase> phases = CreateAndStoreReplicatorStates();
 
-        // Convert phases into replicator states and store them in the workflow context.
-        WorkflowContext.ReplicatorStates = replicatorPhases.ToDictionary(
-            phase => phase.PhaseName,
-            phase => new ReplicatorState
-            {
-                ReplicatorType = phase.Type,
-                Items = phase.TaskContext.Select(activityContext => new ReplicatorItem(activityContext)).ToList()
-            }
-        );
+        await PreloadPrincipalsForParallelPhasesAsync(phases, ct);
+        await NotifyWorkflowStartedAsync(phases, ct);
 
-        foreach ((string phaseName, ReplicatorState state) in WorkflowContext.ReplicatorStates)
+        InitializeReplicatorManager(ct);
+    }
+    protected override async Task OnTaskAlteredAsync(WorkflowEventType action, WorkflowActivityContext activityContext, PrincipalSid executorSid, Dictionary<string, string?> inputData, CancellationToken ct)
+    {
+        IUserTaskActivity? taskActivity = CreateChildActivity(activityContext);
+        if (taskActivity is null)
+            throw new InvalidOperationException("Current task is not a user-interrupting activity.");
+
+        if (!taskActivity.IsCompleted)
         {
-            if (state.ReplicatorType != ReplicatorType.Parallel) continue;
+            await taskActivity.ChangedTaskAsync(action, activityContext, executorSid, inputData, ct);
 
-            IEnumerable<PrincipalSid> sids = GetPhaseSidsForPreload(phaseName, state);
-            List<PrincipalSid> list = sids.Distinct().ToList();
-            if (list.Count > 0)
+            string? phase = WorkflowContext.ReplicatorStates.FindPhase(activityContext.TaskGuid);
+
+            if (taskActivity.IsCompleted && !string.IsNullOrWhiteSpace(phase))
             {
-                await principalResolver.EnsurePrincipalsCachedAsync(list, ct);
+                OnChildCompleted(phase, taskActivity);
+                UpdateWorkflowContextReplicatorState(activityContext.TaskGuid, ReplicatorItemStatus.Completed);
+                await RunReplicatorAsync(phase, ct);
             }
         }
-
-        #region Notifier
-
-        List<AssigneeProjection> assignees = replicatorPhases
-            .SelectMany(p => p.TaskContext.Select(ctx => new AssigneeProjection(p.PhaseName, ctx.AssignedToSid)))
-            .ToList();
-
-        var payload = new WorkflowStartedPayload(
-            WorkflowId: WorkflowContext.GetWorkflowId(),
-            WorkflowType: GetType().Name,
-            StartedBySid: WorkflowContext.GetInitiatorSid(),
-            Assignees: assignees,
-            StartedAtUtc: DateTimeOffset.UtcNow
-        );
-
-        await notifier.NotifyWorkflowStartedAsync(payload, ct);
-        
-        #endregion
-
-        InitializeReplicatorManagerAsync(ct);
     }
-
     protected override string OnWorkflowModification()
     {
         var modificationContext = string.Empty;
@@ -142,30 +125,11 @@ public abstract class ReplicatorWorkflowBase<TContext>(
         return modificationContext;
     }
 
-    protected override async Task OnTaskAlteredAsync(WorkflowEventType action, WorkflowActivityContext activityContext,
-        PrincipalSid executorSid, Dictionary<string, string?> inputData, CancellationToken ct)
-    {
-        IUserTaskActivity? taskActivity = CreateChildActivity(activityContext);
-        if (taskActivity is null)
-            throw new InvalidOperationException("Current task is not a user-interrupting activity.");
+    #endregion
 
-        if (!taskActivity.IsCompleted)
-        {
-            await taskActivity.ChangedTaskAsync(action, activityContext, executorSid, inputData, ct);
-
-            string? phase = WorkflowContext.ReplicatorStates.FindPhase(activityContext.TaskGuid);
-
-            if (taskActivity.IsCompleted && !string.IsNullOrWhiteSpace(phase))
-            {
-                OnChildCompleted(phase, taskActivity);
-                UpdateWorkflowContextReplicatorState(activityContext.TaskGuid, ReplicatorItemStatus.Completed);
-                await RunReplicatorAsync(phase, ct);
-            }
-        }
-    }
+    #region Replicator Workflow Core
 
     protected virtual IUserTaskActivity? CreateChildActivity(IWorkflowActivityContext ctx) => null;
-
     protected virtual IWorkflowActivity CreateActivityForReplicator(IWorkflowActivityContext ctx)
     {
         IUserTaskActivity? userTask = CreateChildActivity(ctx);
@@ -194,20 +158,8 @@ public abstract class ReplicatorWorkflowBase<TContext>(
         Dictionary<string, ReplicatorPhaseConfiguration> cfg = WorkflowDefinition.ReplicatorConfiguration!.PhaseConfigurations;
         return new ReplicatorPhaseBuilder(cfg);
     }
-
-    protected virtual void UpdateWorkflowContextReplicatorState(Guid taskGuid, ReplicatorItemStatus status)
-    {
-        ReplicatorItem? item = WorkflowContext.ReplicatorStates.FindReplicatorItem(taskGuid);
-        if (item != null)
-        {
-            item.Status = status;
-        }
-    }
-
     protected virtual void OnChildInitialized(string phaseId, IWorkflowActivityContext context, IWorkflowActivity activity) { }
-
     protected virtual void OnChildCompleted(string phaseId, IUserTaskActivity activity) { }
-
     protected virtual IEnumerable<PrincipalSid> GetPhaseSidsForPreload(string phaseName, ReplicatorState state)
     {
         // Default path: use TaskContext (populated by your ReplicatorPhaseBuilder)
@@ -218,16 +170,64 @@ public abstract class ReplicatorWorkflowBase<TContext>(
 
         return sids;
     }
+
+    #endregion
+
+    #region Core Replicator Management
     
-    protected async Task RunReplicatorAsync(string phaseName, CancellationToken ct)
+    protected virtual List<ReplicatorPhase> CreateAndStoreReplicatorStates()
     {
-        InitializeReplicatorManagerAsync(ct);
+        IReplicatorPhaseBuilder builder = CreateReplicatorPhaseBuilder();
+        List<ReplicatorPhase> replicatorPhases = builder.BuildPhases(WorkflowContext);
 
-        // Start clean for this phase to avoid stale items
-        _createdBuffer.Remove(phaseName);
+        WorkflowContext.ReplicatorStates = replicatorPhases.ToDictionary(
+            phase => phase.PhaseName,
+            phase => new ReplicatorState
+            {
+                ReplicatorType = phase.Type,
+                Items = phase.TaskContext.Select(ac => new ReplicatorItem(ac)).ToList()
+            });
 
-        // Preloading principals for parallel phases
-        if (WorkflowContext.ReplicatorStates.TryGetValue(phaseName, out ReplicatorState? state) 
+        return replicatorPhases;
+    }
+    protected virtual async Task PreloadPrincipalsForParallelPhasesAsync(IEnumerable<ReplicatorPhase> phases, CancellationToken ct)
+    {
+        // Only parallel phases need an up-front warm-up; sequential phases are warmed as needed.
+        IEnumerable<PrincipalSid> sids = phases
+            .Where(p => p.Type == ReplicatorType.Parallel)
+            .SelectMany(p => p.TaskContext.Select(c => c.AssignedToSid))
+            .Distinct()
+            .ToList();
+
+        if (sids.Any())
+            await principalResolver.EnsurePrincipalsCachedAsync(sids, ct);
+    }
+    protected virtual Task NotifyWorkflowStartedAsync(IEnumerable<ReplicatorPhase> phases, CancellationToken ct)
+    {
+        List<AssigneeProjection> assignees = phases
+            .SelectMany(p => p.TaskContext.Select(ctx => new AssigneeProjection(p.PhaseName, ctx.AssignedToSid)))
+            .ToList();
+
+        var payload = new WorkflowStartedPayload(
+            WorkflowId: WorkflowContext.GetWorkflowId(),
+            WorkflowType: GetType().Name,
+            StartedBySid: WorkflowContext.GetInitiatorSid(),
+            Assignees: assignees,
+            StartedAtUtc: DateTimeOffset.UtcNow);
+
+        return notifier.NotifyWorkflowStartedAsync(payload, ct);
+    }
+    protected virtual void UpdateWorkflowContextReplicatorState(Guid taskGuid, ReplicatorItemStatus status)
+    {
+        ReplicatorItem? item = WorkflowContext.ReplicatorStates.FindReplicatorItem(taskGuid);
+        if (item != null)
+        {
+            item.Status = status;
+        }
+    }
+    protected virtual async Task PreloadPrincipalsIfParallelAsync(string phaseName, CancellationToken ct)
+    {
+        if (WorkflowContext.ReplicatorStates.TryGetValue(phaseName, out ReplicatorState? state)
             && state.ReplicatorType == ReplicatorType.Parallel)
         {
             IEnumerable<PrincipalSid> sids = GetPhaseSidsForPreload(phaseName, state);
@@ -237,51 +237,65 @@ public abstract class ReplicatorWorkflowBase<TContext>(
                 await principalResolver.EnsurePrincipalsCachedAsync(list, ct);
             }
         }
+    }
+    protected virtual async Task DispatchTaskCreatedNotificationsAsync(string phaseName, CancellationToken ct)
+    {
+        if (!WorkflowContext.ReplicatorStates.TryGetValue(phaseName, out ReplicatorState? state))
+            return;
 
-        // Run the phase (HandleChildInitialized collects TaskProjection items into _createdBuffer)
-        await _replicatorManager!.RunReplicatorAsync(phaseName, ct);
+        if (!_createdBuffer.TryGetValue(phaseName, out List<TaskProjection>? created) || created.Count == 0)
+            return;
 
-        #region Notifier
+        bool isParallel = state.ReplicatorType == ReplicatorType.Parallel;
 
-        // After run completes, dispatch notifications
-        if (WorkflowContext.ReplicatorStates.TryGetValue(phaseName, out ReplicatorState? afterRunState) &&
-            _createdBuffer.TryGetValue(phaseName, out List<TaskProjection>? created) &&
-            created.Count > 0)
+        if (isParallel)
         {
-            if (afterRunState.ReplicatorType == ReplicatorType.Parallel)
+            await notifier.NotifyTasksCreatedAsync(
+                new TasksCreatedPayload(
+                    WorkflowId: WorkflowContext.GetWorkflowId(),
+                    WorkflowType: GetType().Name,
+                    PhaseName: phaseName,
+                    IsParallelPhase: true,
+                    Tasks: created),
+                ct);
+        }
+        else
+        {
+            foreach (TaskProjection one in created)
             {
                 await notifier.NotifyTasksCreatedAsync(
                     new TasksCreatedPayload(
                         WorkflowId: WorkflowContext.GetWorkflowId(),
                         WorkflowType: GetType().Name,
                         PhaseName: phaseName,
-                        IsParallelPhase: true,
-                        Tasks: created),
+                        IsParallelPhase: false,
+                        Tasks: new List<TaskProjection> { one }),
                     ct);
             }
-            else
-            {
-                foreach (TaskProjection one in created)
-                {
-                    await notifier.NotifyTasksCreatedAsync(
-                        new TasksCreatedPayload(
-                            WorkflowId: WorkflowContext.GetWorkflowId(),
-                            WorkflowType: GetType().Name,
-                            PhaseName: phaseName,
-                            IsParallelPhase: false,
-                            Tasks: new List<TaskProjection> { one }),
-                        ct);
-                }
-            }
-
-            // Clear the buffer for this phase
-            _createdBuffer.Remove(phaseName);
-
-            #endregion
         }
+
+        ResetPhaseNotificationBuffer(phaseName);
+    }
+    protected async Task RunReplicatorAsync(string phaseName, CancellationToken ct)
+    {
+        InitializeReplicatorManager(ct);
+
+        ResetPhaseNotificationBuffer(phaseName);
+
+        await PreloadPrincipalsIfParallelAsync(phaseName, ct);
+        await _replicatorManager!.RunReplicatorAsync(phaseName, ct);
+        await DispatchTaskCreatedNotificationsAsync(phaseName, ct);
     }
 
-    private void InitializeReplicatorManagerAsync(CancellationToken ct)
+    #endregion
+
+    #region Helpers
+
+    private void ResetPhaseNotificationBuffer(string phaseName)
+    {
+        _createdBuffer.Remove(phaseName);
+    }
+    private void InitializeReplicatorManager(CancellationToken ct)
     {
         if (_replicatorManager == null)
         {
@@ -297,17 +311,16 @@ public abstract class ReplicatorWorkflowBase<TContext>(
     // Wraps child init: track created items for notifier, then call the workflow hook.
     private void HandleChildInitialized(string phaseId, IWorkflowActivityContext context, IWorkflowActivity activity)
     {
-        if (notifier != null)
+        if (!_createdBuffer.TryGetValue(phaseId, out List<TaskProjection>? list))
         {
-            if (!_createdBuffer.TryGetValue(phaseId, out List<TaskProjection>? list))
-            {
-                list = [];
-                _createdBuffer[phaseId] = list;
-            }
-
-            list.Add(new TaskProjection(context.TaskGuid, phaseId, context.AssignedToSid));
+            list = [];
+            _createdBuffer[phaseId] = list;
         }
+
+        list.Add(new TaskProjection(context.TaskGuid, phaseId, context.AssignedToSid));
 
         OnChildInitialized(phaseId, context, activity);
     }
+    
+    #endregion
 }
