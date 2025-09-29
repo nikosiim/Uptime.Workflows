@@ -43,12 +43,7 @@ public class SigningWorkflow(
 
         WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
     }
-
-    protected override Task PrepareInputDataAsync(CancellationToken ct)
-    {
-        return Task.CompletedTask;
-    }
-
+    
     protected override async Task OnTaskAlteredAsync(WorkflowEventType action, WorkflowActivityContext activityContext,
         PrincipalSid executorSid, Dictionary<string, string?> inputData, CancellationToken ct)
     {

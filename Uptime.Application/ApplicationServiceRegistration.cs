@@ -39,7 +39,9 @@ public static class ApplicationServiceRegistration
         services.AddTransient<ApprovalTaskActivity>();
         services.AddTransient<ApprovalWorkflow.SigningTaskActivity>();
         services.AddTransient<SigningWorkflow.SigningTaskActivity>();
-        
+
+        services.AddSingleton<IWorkflowOutboundNotifier, LoggingWorkflowNotifier>();
+
         // Workflow factory
         services.AddScoped<IWorkflowFactory>(sp =>
         {

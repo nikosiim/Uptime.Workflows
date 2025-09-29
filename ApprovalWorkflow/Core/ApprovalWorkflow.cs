@@ -6,6 +6,7 @@ using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Extensions;
 using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
+using Uptime.Workflows.Core.Services;
 
 namespace ApprovalWorkflow;
 
@@ -13,10 +14,14 @@ public sealed class ApprovalWorkflow(
     IWorkflowService workflowService,
     ITaskService taskService,
     IHistoryService historyService,
+    IPrincipalResolver principalResolver,
     IActivityActivator activator,
+    IWorkflowOutboundNotifier notifier,
     ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
-    : ReplicatorWorkflowBase<ApprovalWorkflowContext>(workflowService, taskService, historyService, logger)
+    : ReplicatorWorkflowBase<ApprovalWorkflowContext>(workflowService, taskService, historyService, principalResolver, notifier, logger)
 {
+    private readonly IPrincipalResolver _principalResolver = principalResolver;
+
     protected override IWorkflowDefinition WorkflowDefinition => new ApprovalWorkflowDefinition();
 
     protected override void ConfigureStateMachineAsync(CancellationToken ct)
@@ -41,18 +46,26 @@ public sealed class ApprovalWorkflow(
             .OnEntryAsync(() => RunReplicatorAsync(ExtendedState.Signing.Value, ct))
             .Permit(WorkflowTrigger.AllTasksCompleted, BaseState.Completed);
     }
-    
+
     protected override async Task OnWorkflowActivatedAsync(CancellationToken ct)
     {
         await base.OnWorkflowActivatedAsync(ct);
-        WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
-    }
 
-    protected override Task PrepareInputDataAsync(CancellationToken ct)
-    {
-        // Resolve SIDs to Principal for parallel tasks
-        // TODO: Think through what would be best place to decide whether there are parallel tasks or not
-        return Task.CompletedTask;
+        Principal initiator = await _principalResolver.ResolveBySidAsync(WorkflowContext.GetInitiatorSid(), ct);
+
+        // Collect all SIDs from the built replicator states
+        if (WorkflowContext.ReplicatorStates.TryGetValue(ExtendedState.Approval.Value, out ReplicatorState? approval))
+        {
+            List<Principal> approvers = [];
+            foreach (ReplicatorItem item in approval.Items)
+            {
+                Principal p = await _principalResolver.ResolveBySidAsync(item.ActivityContext.AssignedToSid, ct);
+                approvers.Add(p);
+            }
+
+            string approverNames = string.Join(", ", approvers.Select(p => p.Name));
+            WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud. Algataja: {initiator.Name}. Määratud: {approverNames}.";
+        }
     }
 
     protected override IReplicatorPhaseBuilder CreateReplicatorPhaseBuilder()

@@ -66,14 +66,8 @@ public abstract class ActivityWorkflowBase<TContext>(
     protected abstract Task OnTaskAlteredAsync(WorkflowEventType action, WorkflowActivityContext activityContext, PrincipalSid executorSid,
         Dictionary<string, string?> inputData, CancellationToken ct);
 
-    protected override async Task OnWorkflowActivatedAsync(CancellationToken ct)
+    protected override Task OnWorkflowActivatedAsync(CancellationToken ct)
     {
-        await PrepareInputDataAsync(ct);
+        return Task.CompletedTask;
     }
-
-    /// <summary>
-    /// Workflow must implement this to normalize user data (e.g., resolve SIDs to PrincipalIds).
-    /// Called before any activities or replicator logic is executed.
-    /// </summary>
-    protected abstract Task PrepareInputDataAsync(CancellationToken ct);
 }

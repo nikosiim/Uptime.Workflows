@@ -1,72 +1,75 @@
 ﻿using Microsoft.Extensions.Logging;
-using System.Threading;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Extensions;
 using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
+using Uptime.Workflows.Core.Services;
 
 namespace Uptime.Workflows.Core;
 
-// -----------------------------------------------------------------------------
-// ReplicatorWorkflowBase<TContext>
-//
-// Base class for workflows that include one or more "replicator" phases.
-// A replicator phase fans out work to multiple parallel child activities
-// (e.g., sending an approval task to each approver). The replicator tracks
-// the state of all child items and signals the workflow when the phase is
-// complete.
-//
-// Key concepts:
-//   • ReplicatorState  – runtime state of one phase, including all items.
-//   • ReplicatorItem   – a single pending/active/completed child.
-//   • ReplicatorManager– orchestrates execution of replicator phases.
-//   • Child activity   – the actual workflow activity run for each item.
-//
-// Hook-based design:
-//   Unlike the previous provider-based model, workflows now override virtual
-//   methods directly instead of supplying an IReplicatorActivityProvider.
-//
-//   Override points:
-//     CreateChildActivity(ctx)    – create a concrete IUserTaskActivity for a
-//                                   given item. Used in AlterTask path.
-//     CreateActivityForReplicator(ctx)
-//                                 – create the IWorkflowActivity instance for
-//                                   the replicator engine. Default maps to
-//                                   CreateChildActivity.
-//     OnChildInitialized(phaseId, ctx, act)
-//                                 – invoked when a new child activity has been
-//                                   created and initialized.
-//     OnChildCompleted(phaseId, act)
-//                                 – invoked when a user task activity is marked
-//                                   completed (including reject/delegate cases).
-//
-// AlterTask path:
-//   OnTaskAlteredAsync(...) calls CreateChildActivity to reconstruct the
-//   activity for the given task, invokes ChangedTaskAsync, and then calls
-//   OnChildCompleted + RunReplicatorAsync if the task finished.
-//
-// Usage pattern:
-//   • Derive your workflow from ReplicatorWorkflowBase<TContext>.
-//   • Override the hooks to decide what activity to run per phase, and to
-//     handle special logic when a task completes (delegation, rejection, etc.).
-//   • Configure your state machine to call RunReplicatorAsync(...) on entry
-//     to each replicator phase.
-// -----------------------------------------------------------------------------
+/* ReplicatorWorkflowBase<TContext>
+  
+   Base class for workflows that include one or more "replicator" phases.
+   A replicator phase fans out work to multiple parallel child activities
+   (e.g., sending an approval task to each approver). The replicator tracks
+   the state of all child items and signals the workflow when the phase is
+   complete.
+  
+   Key concepts:
+     • ReplicatorState  – runtime state of one phase, including all items.
+     • ReplicatorItem   – a single pending/active/completed child.
+     • ReplicatorManager– orchestrates execution of replicator phases.
+     • Child activity   – the actual workflow activity run for each item.
+  
+   Hook-based design:
+     Unlike the previous provider-based model, workflows now override virtual
+     methods directly instead of supplying an IReplicatorActivityProvider.
+  
+     Override points:
+       CreateChildActivity(ctx)    – create a concrete IUserTaskActivity for a
+                                     given item. Used in AlterTask path.
+       CreateActivityForReplicator(ctx)
+                                   – create the IWorkflowActivity instance for
+                                     the replicator engine. Default maps to
+                                     CreateChildActivity.
+       OnChildInitialized(phaseId, ctx, act)
+                                   – invoked when a new child activity has been
+                                     created and initialized.
+       OnChildCompleted(phaseId, act)
+                                   – invoked when a user task activity is marked
+                                     completed (including reject/delegate cases).
+  
+   AlterTask path:
+     OnTaskAlteredAsync(...) calls CreateChildActivity to reconstruct the
+     activity for the given task, invokes ChangedTaskAsync, and then calls
+     OnChildCompleted + RunReplicatorAsync if the task finished.
+  
+   Usage pattern:
+     • Derive your workflow from ReplicatorWorkflowBase<TContext>.
+     • Override the hooks to decide what activity to run per phase, and to
+       handle special logic when a task completes (delegation, rejection, etc.).
+     • Configure your state machine to call RunReplicatorAsync(...) on entry
+       to each replicator phase.
+*/
 public abstract class ReplicatorWorkflowBase<TContext>(
     IWorkflowService workflowService,
     ITaskService taskService,
     IHistoryService historyService,
+    IPrincipalResolver principalResolver,
+    IWorkflowOutboundNotifier notifier,
     ILogger<WorkflowBase<TContext>> logger)
     : ActivityWorkflowBase<TContext>(workflowService, taskService, historyService, logger)
     where TContext : class, IReplicatorWorkflowContext, new()
 {
     private ReplicatorManager? _replicatorManager;
     private readonly ILogger<WorkflowBase<TContext>> _logger = logger;
-    
+
+    // Buffer for batching "tasks created" in Parallel phases
+    private readonly Dictionary<string, List<TaskProjection>> _createdBuffer = new(StringComparer.OrdinalIgnoreCase);
+
     protected override async Task OnWorkflowActivatedAsync(CancellationToken ct)
     {
-        // Ensure SIDs are resolved to PrincipalIds before building phases
         await base.OnWorkflowActivatedAsync(ct);
 
         IReplicatorPhaseBuilder builder = CreateReplicatorPhaseBuilder();
@@ -81,6 +84,36 @@ public abstract class ReplicatorWorkflowBase<TContext>(
                 Items = phase.TaskContext.Select(activityContext => new ReplicatorItem(activityContext)).ToList()
             }
         );
+
+        foreach ((string phaseName, ReplicatorState state) in WorkflowContext.ReplicatorStates)
+        {
+            if (state.ReplicatorType != ReplicatorType.Parallel) continue;
+
+            IEnumerable<PrincipalSid> sids = GetPhaseSidsForPreload(phaseName, state);
+            List<PrincipalSid> list = sids.Distinct().ToList();
+            if (list.Count > 0)
+            {
+                await principalResolver.EnsurePrincipalsCachedAsync(list, ct);
+            }
+        }
+
+        #region Notifier
+
+        List<AssigneeProjection> assignees = replicatorPhases
+            .SelectMany(p => p.TaskContext.Select(ctx => new AssigneeProjection(p.PhaseName, ctx.AssignedToSid)))
+            .ToList();
+
+        var payload = new WorkflowStartedPayload(
+            WorkflowId: WorkflowContext.GetWorkflowId(),
+            WorkflowType: GetType().Name,
+            StartedBySid: WorkflowContext.GetInitiatorSid(),
+            Assignees: assignees,
+            StartedAtUtc: DateTimeOffset.UtcNow
+        );
+
+        await notifier.NotifyWorkflowStartedAsync(payload, ct);
+        
+        #endregion
 
         InitializeReplicatorManagerAsync(ct);
     }
@@ -108,9 +141,9 @@ public abstract class ReplicatorWorkflowBase<TContext>(
 
         return modificationContext;
     }
-    
-    protected override async Task OnTaskAlteredAsync(WorkflowEventType action, WorkflowActivityContext activityContext, PrincipalSid executorSid, 
-        Dictionary<string, string?> inputData, CancellationToken ct)
+
+    protected override async Task OnTaskAlteredAsync(WorkflowEventType action, WorkflowActivityContext activityContext,
+        PrincipalSid executorSid, Dictionary<string, string?> inputData, CancellationToken ct)
     {
         IUserTaskActivity? taskActivity = CreateChildActivity(activityContext);
         if (taskActivity is null)
@@ -119,14 +152,13 @@ public abstract class ReplicatorWorkflowBase<TContext>(
         if (!taskActivity.IsCompleted)
         {
             await taskActivity.ChangedTaskAsync(action, activityContext, executorSid, inputData, ct);
-            
+
             string? phase = WorkflowContext.ReplicatorStates.FindPhase(activityContext.TaskGuid);
 
             if (taskActivity.IsCompleted && !string.IsNullOrWhiteSpace(phase))
             {
                 OnChildCompleted(phase, taskActivity);
                 UpdateWorkflowContextReplicatorState(activityContext.TaskGuid, ReplicatorItemStatus.Completed);
-
                 await RunReplicatorAsync(phase, ct);
             }
         }
@@ -159,10 +191,10 @@ public abstract class ReplicatorWorkflowBase<TContext>(
     /// </summary>
     protected virtual IReplicatorPhaseBuilder CreateReplicatorPhaseBuilder()
     {
-        Dictionary<string, ReplicatorPhaseConfiguration> replicatorPhaseConfiguration = WorkflowDefinition.ReplicatorConfiguration!.PhaseConfigurations;
-        return new ReplicatorPhaseBuilder(replicatorPhaseConfiguration);
+        Dictionary<string, ReplicatorPhaseConfiguration> cfg = WorkflowDefinition.ReplicatorConfiguration!.PhaseConfigurations;
+        return new ReplicatorPhaseBuilder(cfg);
     }
-    
+
     protected virtual void UpdateWorkflowContextReplicatorState(Guid taskGuid, ReplicatorItemStatus status)
     {
         ReplicatorItem? item = WorkflowContext.ReplicatorStates.FindReplicatorItem(taskGuid);
@@ -176,10 +208,77 @@ public abstract class ReplicatorWorkflowBase<TContext>(
 
     protected virtual void OnChildCompleted(string phaseId, IUserTaskActivity activity) { }
 
+    protected virtual IEnumerable<PrincipalSid> GetPhaseSidsForPreload(string phaseName, ReplicatorState state)
+    {
+        // Default path: use TaskContext (populated by your ReplicatorPhaseBuilder)
+        List<PrincipalSid> sids = state.Items
+            .Select(i => i.ActivityContext.AssignedToSid)
+            .Where(s => true)
+            .ToList();
+
+        return sids;
+    }
+    
     protected async Task RunReplicatorAsync(string phaseName, CancellationToken ct)
     {
         InitializeReplicatorManagerAsync(ct);
+
+        // Start clean for this phase to avoid stale items
+        _createdBuffer.Remove(phaseName);
+
+        // Preloading principals for parallel phases
+        if (WorkflowContext.ReplicatorStates.TryGetValue(phaseName, out ReplicatorState? state) 
+            && state.ReplicatorType == ReplicatorType.Parallel)
+        {
+            IEnumerable<PrincipalSid> sids = GetPhaseSidsForPreload(phaseName, state);
+            List<PrincipalSid> list = sids.Distinct().ToList();
+            if (list.Count > 0)
+            {
+                await principalResolver.EnsurePrincipalsCachedAsync(list, ct);
+            }
+        }
+
+        // Run the phase (HandleChildInitialized collects TaskProjection items into _createdBuffer)
         await _replicatorManager!.RunReplicatorAsync(phaseName, ct);
+
+        #region Notifier
+
+        // After run completes, dispatch notifications
+        if (WorkflowContext.ReplicatorStates.TryGetValue(phaseName, out ReplicatorState? afterRunState) &&
+            _createdBuffer.TryGetValue(phaseName, out List<TaskProjection>? created) &&
+            created.Count > 0)
+        {
+            if (afterRunState.ReplicatorType == ReplicatorType.Parallel)
+            {
+                await notifier.NotifyTasksCreatedAsync(
+                    new TasksCreatedPayload(
+                        WorkflowId: WorkflowContext.GetWorkflowId(),
+                        WorkflowType: GetType().Name,
+                        PhaseName: phaseName,
+                        IsParallelPhase: true,
+                        Tasks: created),
+                    ct);
+            }
+            else
+            {
+                foreach (TaskProjection one in created)
+                {
+                    await notifier.NotifyTasksCreatedAsync(
+                        new TasksCreatedPayload(
+                            WorkflowId: WorkflowContext.GetWorkflowId(),
+                            WorkflowType: GetType().Name,
+                            PhaseName: phaseName,
+                            IsParallelPhase: false,
+                            Tasks: new List<TaskProjection> { one }),
+                        ct);
+                }
+            }
+
+            // Clear the buffer for this phase
+            _createdBuffer.Remove(phaseName);
+
+            #endregion
+        }
     }
 
     private void InitializeReplicatorManagerAsync(CancellationToken ct)
@@ -190,8 +289,25 @@ public abstract class ReplicatorWorkflowBase<TContext>(
             _replicatorManager.LoadReplicators(
                 WorkflowContext.ReplicatorStates,
                 createActivity: item => CreateActivityForReplicator(item.ActivityContext),
-                onChildInitialized: OnChildInitialized,
+                onChildInitialized: HandleChildInitialized,
                 onAllTasksCompleted: () => TriggerTransitionAsync(WorkflowTrigger.AllTasksCompleted, ct));
         }
+    }
+
+    // Wraps child init: track created items for notifier, then call the workflow hook.
+    private void HandleChildInitialized(string phaseId, IWorkflowActivityContext context, IWorkflowActivity activity)
+    {
+        if (notifier != null)
+        {
+            if (!_createdBuffer.TryGetValue(phaseId, out List<TaskProjection>? list))
+            {
+                list = [];
+                _createdBuffer[phaseId] = list;
+            }
+
+            list.Add(new TaskProjection(context.TaskGuid, phaseId, context.AssignedToSid));
+        }
+
+        OnChildInitialized(phaseId, context, activity);
     }
 }
