@@ -3,18 +3,23 @@ using Uptime.Workflows.Core.Interfaces;
 
 namespace Uptime.Workflows.Core;
 
-public class ReplicatorManager(IReplicatorActivityProvider activityProvider, IWorkflowMachine workflowMachine)
+public sealed class ReplicatorManager
 {
     private readonly Dictionary<string, Replicator> _replicators = new();
 
     /// <summary>
     /// Initializes replicators from the workflow context.
     /// </summary>
-    public void LoadReplicatorsAsync(Dictionary<string, ReplicatorState> replicatorStates, CancellationToken cancellationToken)
+    public void LoadReplicatorsAsync(
+        Dictionary<string, ReplicatorState> states,
+        Func<ReplicatorItem, IWorkflowActivity> createActivity,
+        Action<string, IWorkflowActivityContext, IWorkflowActivity> onChildInitialized,
+        Func<Task> onAllTasksCompleted,
+        CancellationToken ct)
     {
         _replicators.Clear();
 
-        foreach ((string phaseId, ReplicatorState state) in replicatorStates)
+        foreach ((string phaseId, ReplicatorState state) in states)
         {
             List<ReplicatorItem> activeItems = state.Items
                 .Where(i => i.Status is ReplicatorItemStatus.NotStarted or ReplicatorItemStatus.InProgress)
@@ -24,27 +29,22 @@ public class ReplicatorManager(IReplicatorActivityProvider activityProvider, IWo
             {
                 Type = state.ReplicatorType,
                 Items = activeItems,
-                ChildActivity = CreateChildActivity,
-                OnChildInitialized = (workflowTaskContext, activity) => activityProvider.OnChildInitialized(phaseId, workflowTaskContext, activity),
-                OnAllTasksCompleted = () => workflowMachine.TriggerTransitionAsync(WorkflowTrigger.AllTasksCompleted, cancellationToken)
+                ChildActivity = createActivity,
+                OnChildInitialized = (ctx, act) => onChildInitialized(phaseId, ctx, act),
+                OnAllTasksCompleted = onAllTasksCompleted
             };
 
             _replicators[phaseId] = replicator;
-            continue;
-
-            // Local factory method keeps lambdas short & readable
-            IWorkflowActivity CreateChildActivity(ReplicatorItem item) => activityProvider.CreateActivity(item.ActivityContext);
         }
     }
 
     /// <summary>
     /// Runs all replicators for the specified phase.
     /// </summary>
-    public async Task RunReplicatorAsync(string phaseName, CancellationToken cancellationToken)
+    public Task RunReplicatorAsync(string phaseName, CancellationToken ct)
     {
-        if (!_replicators.TryGetValue(phaseName, out Replicator? replicator))
-            return; // No replicator for this phase
-        
-        await replicator.ExecuteAsync(cancellationToken);
+        return _replicators.TryGetValue(phaseName, out Replicator? r) 
+            ? r.ExecuteAsync(ct) 
+            : Task.CompletedTask;
     }
 }

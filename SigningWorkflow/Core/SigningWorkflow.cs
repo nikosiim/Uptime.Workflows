@@ -51,17 +51,17 @@ public class SigningWorkflow(
     }
 
     protected override async Task OnTaskAlteredAsync(WorkflowEventType action, WorkflowActivityContext activityContext,
-        PrincipalSid executorSid, Dictionary<string, string?> inputData, CancellationToken cancellationToken)
+        PrincipalSid executorSid, Dictionary<string, string?> inputData, CancellationToken ct)
     {
         var activity = activator.Create<SigningTaskActivity>(WorkflowContext);
 
-        await activity.ChangedTaskAsync(action, activityContext, executorSid, inputData, cancellationToken);
+        await activity.ChangedTaskAsync(action, activityContext, executorSid, inputData, ct);
 
         IsTaskRejected = activity.IsTaskRejected;
 
         if (activity.IsCompleted)
         {
-            await TriggerTransitionAsync(WorkflowTrigger.TaskCompleted, cancellationToken);
+            await TriggerTransitionAsync(WorkflowTrigger.TaskCompleted, ct);
         }
     }
 

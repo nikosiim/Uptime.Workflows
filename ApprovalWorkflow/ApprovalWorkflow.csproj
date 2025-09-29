@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Compile Remove="ApprovalTaskData.cs" />
+    <Compile Remove="Core\ApprovalWorkflowActivityProvider.cs" />
   </ItemGroup>
 
 	<ItemGroup>

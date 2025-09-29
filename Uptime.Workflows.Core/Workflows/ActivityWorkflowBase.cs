@@ -64,7 +64,7 @@ public abstract class ActivityWorkflowBase<TContext>(
     }
     
     protected abstract Task OnTaskAlteredAsync(WorkflowEventType action, WorkflowActivityContext activityContext, PrincipalSid executorSid,
-        Dictionary<string, string?> inputData, CancellationToken cancellationToken);
+        Dictionary<string, string?> inputData, CancellationToken ct);
 
     protected override async Task OnWorkflowActivatedAsync(CancellationToken cancellationToken)
     {

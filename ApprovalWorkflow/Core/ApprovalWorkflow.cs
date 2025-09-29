@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Text.Json;
 using Uptime.Workflows.Core;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Enums;
+using Uptime.Workflows.Core.Extensions;
 using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
 
@@ -12,30 +14,29 @@ public sealed class ApprovalWorkflow(
     IWorkflowService workflowService,
     ITaskService taskService,
     IHistoryService historyService,
-    Func<IWorkflowContext, ApprovalWorkflowActivityProvider> providerFactory,
+    IActivityActivator activator,
     ILogger<WorkflowBase<ApprovalWorkflowContext>> logger)
     : ReplicatorWorkflowBase<ApprovalWorkflowContext>(workflowService, taskService, historyService, logger)
 {
-    private IReplicatorActivityProvider? _provider;
-
-    protected override IReplicatorActivityProvider ActivityProvider => _provider ??= providerFactory(WorkflowContext);
-
     protected override IWorkflowDefinition WorkflowDefinition => new ApprovalWorkflowDefinition();
 
     protected override void ConfigureStateMachineAsync(CancellationToken cancellationToken)
     {
         Machine.Configure(BaseState.NotStarted)
             .Permit(WorkflowTrigger.Start, BaseState.InProgress);
+
         Machine.Configure(BaseState.InProgress)
             .InitialTransition(ExtendedState.Approval)
             .Permit(WorkflowTrigger.Cancel, BaseState.Cancelled)
             .Permit(WorkflowTrigger.TaskRejected, BaseState.Completed);
+
         Machine.Configure(ExtendedState.Approval)
             .SubstateOf(BaseState.InProgress)
             .OnEntryAsync(() => RunReplicatorAsync(ExtendedState.Approval.Value, cancellationToken))
             //.PermitIf(WorkflowTrigger.AllTasksCompleted, WorkflowPhase.Completed, () => WorkflowContext.AnyTaskRejected)
             //.PermitIf(WorkflowTrigger.AllTasksCompleted, ApprovalPhase.Signing, () => !WorkflowContext.AnyTaskRejected)
             .PermitDynamic(WorkflowTrigger.AllTasksCompleted, () => WorkflowContext.AnyTaskRejected ? BaseState.Completed : ExtendedState.Signing);
+
         Machine.Configure(ExtendedState.Signing)
             .SubstateOf(BaseState.InProgress)
             .OnEntryAsync(() => RunReplicatorAsync(ExtendedState.Signing.Value, cancellationToken))
@@ -45,7 +46,6 @@ public sealed class ApprovalWorkflow(
     protected override async Task OnWorkflowActivatedAsync(CancellationToken cancellationToken)
     {
         await base.OnWorkflowActivatedAsync(cancellationToken);
-        
         WorkflowStartedHistoryDescription = $"{AssociationName} on alustatud.";
     }
 
@@ -58,8 +58,6 @@ public sealed class ApprovalWorkflow(
 
     protected override IReplicatorPhaseBuilder CreateReplicatorPhaseBuilder()
     {
-        ExtendedState x = ExtendedState.Approval;
-
         var phases = new Dictionary<string, ReplicatorPhaseConfiguration>
         {
             [ExtendedState.Approval.Value] = new()
@@ -103,6 +101,58 @@ public sealed class ApprovalWorkflow(
         };
 
         return new ReplicatorPhaseBuilder(phases);
+    }
+
+    protected override IUserTaskActivity CreateChildActivity(IWorkflowActivityContext ctx)
+    {
+        return ctx.PhaseId == ExtendedState.Signing.Value
+            ? activator.Create<SigningTaskActivity>(WorkflowContext)
+            : activator.Create<ApprovalTaskActivity>(WorkflowContext);
+    }
+
+    protected override void OnChildInitialized(string phaseId, IWorkflowActivityContext context, IWorkflowActivity activity)
+    {
+        if (phaseId == ExtendedState.Approval.Value)
+        {
+            // var taskData = data.DeserializeTaskData<ApprovalTaskData>();
+        }
+        else if (phaseId == ExtendedState.Signing.Value)
+        {
+            // var taskData = data.DeserializeTaskData<SigningTaskData>();
+        }
+    }
+
+    protected override void OnChildCompleted(string phaseId, IUserTaskActivity activity)
+    {
+        if (phaseId == ExtendedState.Approval.Value && activity is ApprovalTaskActivity approval)
+        {
+            if (approval.TaskDelegatedToPrincipal != null)
+            {
+                string phase = ExtendedState.Approval.Value;
+                Guid existing = approval.TaskGuid;
+
+                WorkflowActivityContext newCtx = WorkflowActivityContextFactory.CreateNew(
+                    phaseId: phase,
+                    assignedToSid: approval.TaskDelegatedToPrincipal.Sid,
+                    description: WorkflowContext.GetTaskApproverDescription(),
+                    dueDate: WorkflowContext.GetTaskDueDate(TaskPhase.Approver));
+
+                var item = new ReplicatorItem(newCtx);
+                WorkflowContext.ReplicatorStates.InsertItemAfter(phase, existing, item);
+            }
+            else if (approval.IsTaskRejected)
+            {
+                WorkflowContext.AnyTaskRejected = true;
+                WorkflowContext.ReplicatorStates.CancelAllItems();
+            }
+        }
+        else if (phaseId == ExtendedState.Signing.Value && activity is SigningTaskActivity signing)
+        {
+            if (signing.IsTaskRejected)
+            {
+                WorkflowContext.AnyTaskRejected = true;
+            }
+        }
     }
 
     protected override string OnWorkflowModification()
