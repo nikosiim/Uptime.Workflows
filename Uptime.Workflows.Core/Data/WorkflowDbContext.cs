@@ -12,6 +12,7 @@ public class WorkflowDbContext(DbContextOptions options) : DbContext(options)
     public DbSet<Workflow> Workflows { get; set; } = null!;
     public DbSet<WorkflowPrincipal> WorkflowPrincipals { get; set; } = null!;
     public DbSet<WorkflowTemplate> WorkflowTemplates { get; set; } = null!;
+    public DbSet<OutboundNotification> OutboundNotifications { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -110,6 +111,40 @@ public class WorkflowDbContext(DbContextOptions options) : DbContext(options)
             b.HasIndex(t => new { t.AssignedToPrincipalId, t.InternalStatus });
             b.HasIndex(t => new { t.WorkflowId, t.InternalStatus });
             b.HasIndex(t => t.PhaseId);
+        });
+
+        modelBuilder.Entity<OutboundNotification>(b =>
+        {
+            b.HasKey(n => n.Id);
+
+            b.Property(n => n.EventType).IsRequired();
+            b.Property(n => n.Status).IsRequired();
+            b.Property(n => n.EndpointPath).HasMaxLength(256).IsRequired();
+            b.Property(n => n.PayloadJson).IsRequired();
+            b.Property(n => n.ResponseBody);
+            b.Property(n => n.LastError).HasMaxLength(1024);
+            b.Property(n => n.CreatedAtUtc).IsRequired();
+            b.Property(n => n.AttemptCount).HasDefaultValue(0);
+
+            // Relationships (restrict delete like other principals; cascades align with your existing style)
+            b.HasOne(n => n.Workflow)
+                .WithMany()
+                .HasForeignKey(n => n.WorkflowId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasOne(n => n.WorkflowTask)
+                .WithMany()
+                .HasForeignKey(n => n.WorkflowTaskId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Helpful indexes
+            b.HasIndex(n => new { n.WorkflowId, n.EventType, n.Status });
+            b.HasIndex(n => n.TaskGuid);
+            b.HasIndex(n => n.PhaseId);
+            b.HasIndex(n => n.CreatedAtUtc);
+
+            // Idempotency key can be unique if you enforce one-row-per-unique-event
+            b.HasIndex(n => n.UniqueKey).IsUnique(false); // set true if you will guarantee uniqueness
         });
 
         // Apply configurations if any (e.g., for seeding or property configs)

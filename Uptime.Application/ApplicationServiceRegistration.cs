@@ -1,6 +1,7 @@
 ﻿using ApprovalWorkflow;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Polly;
 using SigningWorkflow;
 using Uptime.Workflows.Application.Behaviors;
 using Uptime.Workflows.Application.Commands;
@@ -40,7 +41,28 @@ public static class ApplicationServiceRegistration
         services.AddTransient<ApprovalWorkflow.SigningTaskActivity>();
         services.AddTransient<SigningWorkflow.SigningTaskActivity>();
 
-        services.AddSingleton<IWorkflowOutboundNotifier, LoggingWorkflowNotifier>();
+        services.AddHttpClient<IWorkflowOutboundNotifier, HttpWorkflowNotifier>(client =>
+        {
+            //client.BaseAddress = new Uri(config["SharePointNotifier:BaseUrl"]);
+        })
+        .ConfigurePrimaryHttpMessageHandler(() =>
+        {
+            // For Windows Authentication (IIS-hosted SharePoint):
+            return new HttpClientHandler
+            {
+                UseDefaultCredentials = true // or configure as needed
+            };
+        })
+        .AddStandardResilienceHandler(options =>
+        {
+            options.Retry.MaxRetryAttempts = 3;
+            options.Retry.BackoffType = DelayBackoffType.Exponential;
+            options.Retry.Delay = TimeSpan.FromSeconds(2); // 2s, 4s, 8s
+        });
+
+        services.AddScoped<IOutboundNotificationService, OutboundNotificationService>();
+        services.AddScoped<IWorkflowOutboundNotifier, HttpWorkflowNotifier>();
+        //services.AddSingleton<IWorkflowOutboundNotifier, LoggingWorkflowNotifier>();
 
         // Workflow factory
         services.AddScoped<IWorkflowFactory>(sp =>
