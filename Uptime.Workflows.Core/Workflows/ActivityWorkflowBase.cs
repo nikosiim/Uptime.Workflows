@@ -25,12 +25,19 @@ public abstract class ActivityWorkflowBase<TContext>(
     IWorkflowService workflowService, 
     ITaskService taskService, 
     IHistoryService historyService,
+    IWorkflowOutboundNotifier? notifier,
     ILogger<WorkflowBase<TContext>> logger)
-    : WorkflowBase<TContext>(workflowService,taskService, historyService, logger: logger), IActivityWorkflowMachine
+    : WorkflowBase<TContext>(workflowService,taskService, historyService, notifier, logger: logger), IActivityWorkflowMachine
     where TContext : class, IWorkflowContext, new()
 {
     private readonly ILogger<WorkflowBase<TContext>> _logger = logger;
 
+    #region Public API
+
+    /// <summary>
+    /// Entry point for user-initiated task changes (approve/reject/delegate/…).
+    /// Reconstructs the task activity, lets the workflow react, and persists state.
+    /// </summary>
     public async Task<Result<Unit>> AlterTaskAsync(WorkflowEventType action, AlterTaskPayload payload, CancellationToken ct)
     {
         _logger.LogAlterTaskTriggered(WorkflowDefinition, WorkflowId, AssociationName);
@@ -62,12 +69,38 @@ public abstract class ActivityWorkflowBase<TContext>(
         
         return Result<Unit>.Success(new Unit());
     }
-    
-    protected abstract Task OnTaskAlteredAsync(WorkflowEventType action, WorkflowActivityContext activityContext, PrincipalSid executorSid,
-        Dictionary<string, string?> inputData, CancellationToken ct);
 
+    #endregion
+
+    #region Protected Hooks
+ 
     protected override Task OnWorkflowActivatedAsync(CancellationToken ct)
     {
         return Task.CompletedTask;
     }
+    protected Task NotifyTasksCreatedAsync(string phaseName, bool isParallel, List<TaskProjection> tasks, CancellationToken ct)
+    {
+        if (Notifier is null) return Task.CompletedTask;
+
+        var payload = new TasksCreatedPayload(
+            WorkflowId: WorkflowId,
+            WorkflowType: GetType().Name,
+            PhaseName: phaseName,
+            IsParallelPhase: isParallel,
+            Tasks: tasks);
+
+        return Notifier.NotifyTasksCreatedAsync(payload, ct);
+    }
+
+    #endregion
+
+    #region Abstract Members
+
+    protected abstract Task OnTaskAlteredAsync(
+        WorkflowEventType action, 
+        WorkflowActivityContext activityContext, 
+        PrincipalSid executorSid, Dictionary<string, string?> inputData, 
+        CancellationToken ct);
+
+    #endregion
 }

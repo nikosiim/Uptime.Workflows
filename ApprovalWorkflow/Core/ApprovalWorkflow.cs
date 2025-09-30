@@ -51,7 +51,7 @@ public sealed class ApprovalWorkflow(
     {
         await base.OnWorkflowActivatedAsync(ct);
 
-        string approverNames = await GetApprovalApproverNamesAsync(ct);
+        string approverNames = await GetParticipantNamesAsync(ExtendedState.Approval.Value, ct);
 
         Principal initiator = await _principalResolver.ResolveBySidAsync(WorkflowContext.GetInitiatorSid(), ct);
 
@@ -221,29 +221,5 @@ public sealed class ApprovalWorkflow(
         WorkflowCompletedHistoryDescription = $"{AssociationName} on lõpetatud.";
 
         return Task.CompletedTask;
-    }
-    
-    private async Task<string> GetApprovalApproverNamesAsync(CancellationToken ct)
-    {
-        if (!WorkflowContext.ReplicatorStates.TryGetValue(ExtendedState.Approval.Value, out ReplicatorState? approval))
-            return string.Empty;
-
-        List<PrincipalSid> sids = approval.Items
-            .Select(i => i.ActivityContext.AssignedToSid)
-            .Distinct()
-            .ToList();
-
-        // Base already preloads Parallel phases, so only Sequential needs a bulk warm-up
-        if (approval.ReplicatorType == ReplicatorType.Sequential && sids.Count > 0)
-            await _principalResolver.EnsurePrincipalsCachedAsync(sids, ct);
-
-        List<Principal?> approvers = new();
-        foreach (PrincipalSid sid in sids)
-        {
-            Principal? p = await _principalResolver.TryResolveBySidAsync(sid, ct);
-            if (p != null) approvers.Add(p);
-        }
-
-        return string.Join(", ", approvers.Select(p => p.Name));
     }
 }

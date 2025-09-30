@@ -36,4 +36,15 @@ public sealed class LoggingWorkflowNotifier(ILogger<LoggingWorkflowNotifier> log
 
         return Task.CompletedTask;
     }
+
+    public Task NotifyWorkflowCompletedAsync(WorkflowCompletedPayload payload, CancellationToken ct)
+    {
+        logger.LogWarning("WF-COMPLETED: WorkflowId={WorkflowId}, Type={WorkflowType}, Outcome={Outcome}, Assignees={AssigneesJson}",
+            payload.WorkflowId,
+            payload.WorkflowType,
+            payload.Outcome,
+            JsonSerializer.Serialize(payload.Assignees, JsonOptions));
+
+        return Task.CompletedTask;
+    }
 }

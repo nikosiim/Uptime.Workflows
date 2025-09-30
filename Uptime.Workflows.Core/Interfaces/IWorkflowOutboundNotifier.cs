@@ -1,10 +1,10 @@
 ﻿using Uptime.Workflows.Core.Models;
 
-namespace Uptime.Workflows.Core.Interfaces
+namespace Uptime.Workflows.Core.Interfaces;
+
+public interface IWorkflowOutboundNotifier
 {
-    public interface IWorkflowOutboundNotifier
-    {
-        Task NotifyWorkflowStartedAsync(WorkflowStartedPayload payload, CancellationToken ct);
-        Task NotifyTasksCreatedAsync(TasksCreatedPayload payload, CancellationToken ct);
-    }
+    Task NotifyWorkflowStartedAsync(WorkflowStartedPayload payload, CancellationToken ct);
+    Task NotifyTasksCreatedAsync(TasksCreatedPayload payload, CancellationToken ct);
+    Task NotifyWorkflowCompletedAsync(WorkflowCompletedPayload payload, CancellationToken ct);
 }

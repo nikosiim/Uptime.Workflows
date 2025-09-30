@@ -32,7 +32,7 @@ public sealed class GetModificationContextQueryHandler(WorkflowDbContext db, IWo
             return Result<string>.Failure(ErrorCode.Unexpected);
         }
 
-        Result<Unit> rehydrationResult = machine.Rehydrate(workflow.StorageJson!, workflow.Phase, ct);
+        Result<Unit> rehydrationResult = await machine.Rehydrate(workflow.StorageJson!, workflow.Phase, ct);
         return !rehydrationResult.Succeeded 
             ? Result<string>.Failure(rehydrationResult.Code!.Value, rehydrationResult.Details) 
             : machine.GetModificationContext();
