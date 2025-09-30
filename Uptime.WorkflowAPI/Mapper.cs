@@ -96,8 +96,8 @@ public static class Mapper
         return new WorkflowTaskResponse
         {
             TaskGuid = source.TaskGuid,
-            //AssignedTo = source.AssignedTo, // TODO: fix later
-            //AssignedBy = source.AssignedBy,
+            AssignedTo = source.AssignedTo,
+            AssignedBy = source.AssignedBy,
             InternalStatus = (int)source.InternalStatus,
             Description = source.Description,
             DueDate = source.DueDate,

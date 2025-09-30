@@ -22,8 +22,8 @@ public class GetWorkflowTaskQueryHandler(WorkflowDbContext db)
             .Select(task => new WorkflowTaskDetailsDto
             {
                 TaskGuid = task.TaskGuid,
-                AssignedTo = (PrincipalId)task.AssignedToPrincipalId,
-                AssignedBy = (PrincipalId)task.AssignedByPrincipalId,
+                AssignedTo = task.AssignedTo.Name,
+                AssignedBy = task.AssignedBy.Name,
                 Status = task.Status,
                 InternalStatus = task.InternalStatus,
                 Description = task.Description,
