@@ -12,6 +12,5 @@ public interface IOutboundNotificationService
         HttpStatusCode? statusCode,
         string? responseBody,
         Exception? error,
-        string? uniqueKey = null,
-        CancellationToken ct = default);
+        CancellationToken ct = default) where TPayload : IOutboundNotificationPayload;
 }

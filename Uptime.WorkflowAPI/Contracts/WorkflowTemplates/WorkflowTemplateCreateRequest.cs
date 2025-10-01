@@ -1,7 +1,8 @@
-﻿namespace Uptime.Shared.Models.WorkflowTemplates;
+﻿namespace Uptime.Workflows.Api.Contracts;
 
 public record WorkflowTemplateCreateRequest
 {
+    public required string SourceSiteUrl { get; init; }
     public required string TemplateName { get; init; }
     public required string WorkflowName { get; init; }
     public required string WorkflowBaseId { get; init; }

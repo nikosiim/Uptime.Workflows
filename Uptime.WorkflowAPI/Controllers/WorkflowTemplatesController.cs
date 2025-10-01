@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Shared.Models.WorkflowTemplates;
+using Uptime.Workflows.Api.Contracts;
 using Uptime.Workflows.Api.Extensions;
 using Uptime.Workflows.Application.Commands;
 using Uptime.Workflows.Application.DTOs;
@@ -32,6 +33,7 @@ public class WorkflowTemplatesController(ISender mediator) : ControllerBase
     {
         var cmd = new CreateWorkflowTemplateCommand
         {
+            SourceSiteUrl = request.SourceSiteUrl,
             TemplateName = request.TemplateName,
             WorkflowName = request.WorkflowName,
             WorkflowBaseId = request.WorkflowBaseId,
@@ -39,9 +41,8 @@ public class WorkflowTemplatesController(ISender mediator) : ControllerBase
             AssociationDataJson = request.AssociationDataJson
         };
 
-        WorkflowTemplateId templateId = await mediator.Send(cmd, ct);
-
-        return CreatedAtAction(nameof(CreateWorkflowTemplate), new CreateWorkflowTemplateResponse(templateId.Value));
+        Result<WorkflowTemplateId> result = await mediator.Send(cmd, ct);
+        return this.ToActionResult(result);
     }
 
     [HttpPost("{templateId:int}")]

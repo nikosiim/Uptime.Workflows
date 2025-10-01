@@ -7,7 +7,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
 builder.Services.AddCoreServices(builder.Configuration);
-builder.Services.AddApplicationServices();
+builder.Services.AddApplicationServices(builder.Configuration);
 
 // For Azure deployment
 builder.Services.AddAzureWorkflowAuthentication(builder.Configuration);

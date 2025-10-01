@@ -22,23 +22,25 @@ public class StartWorkflowCommandHandler(WorkflowDbContext db, IWorkflowFactory 
     {
         if (ct.IsCancellationRequested)
             return Result<Unit>.Cancelled();
-        
-        string workflowBaseIdString = await db.WorkflowTemplates
+
+        var tpl = await db.WorkflowTemplates
+            .AsNoTracking()
             .Where(wt => wt.Id == request.WorkflowTemplateId.Value)
-            .Select(wt => wt.WorkflowBaseId)
-            .FirstAsync(ct);
-         
-        if (string.IsNullOrEmpty(workflowBaseIdString))
+            .Select(wt => new { wt.WorkflowBaseId, wt.SiteUrl })
+            .FirstOrDefaultAsync(ct);
+
+        if (tpl is null || string.IsNullOrEmpty(tpl.WorkflowBaseId))
             return Result<Unit>.Failure(ErrorCode.NotFound, $"Workflow template with ID {request.WorkflowTemplateId.Value} not found.");
-        
+
         var payload = new StartWorkflowPayload
         {
             ExecutorSid = request.ExecutorSid,
+            SourceSiteUrl = tpl.SiteUrl,
             DocumentId = request.DocumentId,
             WorkflowTemplateId = request.WorkflowTemplateId,
             Storage = request.Storage
         };
 
-        return await factory.StartWorkflowAsync(workflowBaseIdString, payload, ct);
+        return await factory.StartWorkflowAsync(tpl.WorkflowBaseId, payload, ct);
     }
 }

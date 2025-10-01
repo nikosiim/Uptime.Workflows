@@ -10,6 +10,8 @@ public sealed class WorkflowTemplate : BaseEntity
     public string WorkflowName { get; set; } = null!;
     [StringLength(128)]
     public string WorkflowBaseId { get; set; } = null!;
+    [StringLength(512)]
+    public string SiteUrl { get; set; } = null!;
     [StringLength(2048)]
     public string? AssociationDataJson { get; set; }
     public DateTime Created { get; set; }

@@ -82,12 +82,15 @@ public sealed class SigningWorkflow(
             .Select(s => new AssigneeProjection(ExtendedState.Signing.Value, (PrincipalSid)s))
             .ToList();
 
-        var payload = new WorkflowStartedPayload(
-            WorkflowId: WorkflowId,
-            WorkflowType: GetType().Name,
-            StartedBySid: WorkflowContext.GetInitiatorSid(),
-            Assignees: assignees,
-            StartedAtUtc: DateTimeOffset.UtcNow);
+        var payload = new WorkflowStartedPayload
+        {
+            OccurredAtUtc = DateTimeOffset.UtcNow,
+            WorkflowId = WorkflowId,
+            WorkflowType = GetType().Name,
+            StartedBySid = WorkflowContext.GetInitiatorSid(),
+            Assignees = assignees,
+            SourceSiteUrl = WorkflowContext.GetSiteUrl()
+        };
 
         return Task.FromResult(payload);
     }

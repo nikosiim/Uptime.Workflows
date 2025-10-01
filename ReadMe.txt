@@ -1,5 +1,6 @@
 ﻿
 1. Add-Migration InitialCreate -Project Uptime.Workflows.Core -StartupProject Uptime.Workflows.API -OutputDir Data/Migrations
+   - Update-Database 0 -Project Uptime.Workflows.Core -StartupProject Uptime.Workflows.API
 2. Remove-Migration -Project Uptime.Workflows.Core -StartupProject Uptime.Workflows.API
 3. Update-Database -Project Uptime.Workflows.Core -StartupProject Uptime.Workflows.API
 4. Drop-Database -Project Uptime.Workflows.Core -StartupProject Uptime.Workflows.API

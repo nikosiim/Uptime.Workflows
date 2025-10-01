@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Stateless;
 using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Extensions;
 using Uptime.Workflows.Core.Interfaces;
@@ -119,6 +120,16 @@ public abstract class WorkflowBase<TContext>(
         }
         catch (WorkflowValidationException vex)
         {
+            await HandleWorkflowExceptionAsync(vex, WorkflowId, token);
+            return Result<Unit>.Failure(vex.Error, vex.Message);
+        }
+        catch (HttpRequestException httpEx)
+        {
+            // Convert to Validation so API returns 400 instead of 500,
+            // and mark the workflow invalid in history.
+            var msg = $"Failed to reach workflow notifier endpoint for '{WorkflowContext.GetSiteUrl()}'. {httpEx.Message}";
+            var vex = new WorkflowValidationException(ErrorCode.Validation, msg);
+
             await HandleWorkflowExceptionAsync(vex, WorkflowId, token);
             return Result<Unit>.Failure(vex.Error, vex.Message);
         }
@@ -259,8 +270,12 @@ public abstract class WorkflowBase<TContext>(
         if (payload.ExecutorSid.Value is null || string.IsNullOrWhiteSpace(payload.ExecutorSid.Value))
             throw new WorkflowValidationException(ErrorCode.Validation, "Executor SID is required.");
 
+        if (string.IsNullOrWhiteSpace(payload.SourceSiteUrl))
+            throw new WorkflowValidationException(ErrorCode.Validation, "Site URL is required.");
+
         WorkflowContext.Storage.MergeWith(payload.Storage);
 
+        WorkflowContext.SetSiteUrl(payload.SourceSiteUrl);
         WorkflowContext.SetDocumentId(payload.DocumentId);
         WorkflowContext.SetWorkflowTemplateId(payload.WorkflowTemplateId);
         WorkflowContext.SetInitiatorSid(payload.ExecutorSid);
@@ -290,29 +305,34 @@ public abstract class WorkflowBase<TContext>(
     protected virtual Task<WorkflowStartedPayload> BuildWorkflowStartedPayloadAsync(CancellationToken ct)
     {
         // Default: no assignees. Replicator base will override; simple workflows can override or leave empty.
-        var payload = new WorkflowStartedPayload(
-            WorkflowId: WorkflowId,
-            WorkflowType: GetType().Name,
-            StartedBySid: WorkflowContext.GetInitiatorSid(),
-            Assignees: new List<AssigneeProjection>(),
-            StartedAtUtc: DateTimeOffset.UtcNow);
+        var payload = new WorkflowStartedPayload
+        {
+            OccurredAtUtc = DateTimeOffset.UtcNow,
+            WorkflowId = WorkflowId,
+            WorkflowType = GetType().Name,
+            StartedBySid = WorkflowContext.GetInitiatorSid(),
+            SourceSiteUrl = WorkflowContext.GetSiteUrl()
+        };
 
         return Task.FromResult(payload);
     }
     protected virtual Task<WorkflowCompletedPayload> BuildWorkflowCompletedPayloadAsync(CancellationToken ct)
     {
-        var payload = new WorkflowCompletedPayload(
-            WorkflowId: WorkflowId,
-            WorkflowType: GetType().Name,
-            Outcome: WorkflowContext.Outcome,
-            CompletedAtUtc: DateTimeOffset.UtcNow);
+        var payload = new WorkflowCompletedPayload
+        {
+            OccurredAtUtc = DateTimeOffset.UtcNow,
+            WorkflowId = WorkflowId,
+            WorkflowType = GetType().Name,
+            Outcome = WorkflowContext.Outcome,
+            SourceSiteUrl = WorkflowContext.GetSiteUrl()
+        };
         return Task.FromResult(payload);
     }
 
     #endregion
 
     #region Protected Internals (non-overridable)
-    
+
     protected internal Task TriggerTransitionAsync(WorkflowTrigger trigger, CancellationToken ct, bool autoCommit = true)
     {
         return _transitionQueue!.EnqueueTriggerAsync(trigger, ct)

@@ -82,12 +82,16 @@ public abstract class ActivityWorkflowBase<TContext>(
     {
         if (Notifier is null) return Task.CompletedTask;
 
-        var payload = new TasksCreatedPayload(
-            WorkflowId: WorkflowId,
-            WorkflowType: GetType().Name,
-            PhaseName: phaseName,
-            IsParallelPhase: isParallel,
-            Tasks: tasks);
+        var payload = new TasksCreatedPayload
+        {
+            OccurredAtUtc = DateTimeOffset.UtcNow,
+            WorkflowId = WorkflowId,
+            WorkflowType = GetType().Name,
+            PhaseName = phaseName,
+            IsParallelPhase = isParallel,
+            Tasks = tasks,
+            SourceSiteUrl = WorkflowContext.GetSiteUrl()
+        };
 
         return Notifier.NotifyTasksCreatedAsync(payload, ct);
     }

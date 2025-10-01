@@ -19,12 +19,13 @@ public class CreateWorkflowTemplateCommandHandler(IApiService apiService)
 {
     public async Task<Result<int>> Handle(CreateWorkflowTemplateCommand request, CancellationToken cancellationToken)
     {
-        var createRequest = new {
-            request.TemplateName,
-            request.WorkflowName,
-            request.WorkflowBaseId,
-            request.LibraryId,
-            request.AssociationDataJson
+        var createRequest = new WorkflowTemplateCreateRequest {
+            SourceSiteUrl = "https://uptimesharepoint",
+            TemplateName = request.TemplateName,
+            WorkflowName = request.WorkflowName,
+            WorkflowBaseId = request.WorkflowBaseId,
+            LibraryId = request.LibraryId,
+            AssociationDataJson = request.AssociationDataJson ?? string.Empty
         };
 
         Result<CreateWorkflowTemplateResponse> result = await apiService.CreateAsync<object, CreateWorkflowTemplateResponse>(

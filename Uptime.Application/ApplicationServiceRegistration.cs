@@ -1,4 +1,5 @@
 ﻿using ApprovalWorkflow;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Polly;
@@ -14,7 +15,7 @@ namespace Uptime.Workflows.Application;
 
 public static class ApplicationServiceRegistration
 {
-    public static void AddApplicationServices(this IServiceCollection services)
+    public static void AddApplicationServices(this IServiceCollection services, IConfiguration config)
     {
         services.AddSlimMediator(typeof(StartWorkflowCommand).Assembly);
 
@@ -41,19 +42,16 @@ public static class ApplicationServiceRegistration
         services.AddTransient<ApprovalWorkflow.SigningTaskActivity>();
         services.AddTransient<SigningWorkflow.SigningTaskActivity>();
 
+        services.Configure<SharePointNotifierOptions>(config.GetSection("SharePointNotifier"));
+
         services.AddHttpClient<IWorkflowOutboundNotifier, HttpWorkflowNotifier>(client =>
         {
-            //client.BaseAddress = new Uri(config["SharePointNotifier:BaseUrl"]);
-        })
-        .ConfigurePrimaryHttpMessageHandler(() =>
+            client.Timeout = TimeSpan.FromSeconds(30);
+            client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+        }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
         {
-            // For Windows Authentication (IIS-hosted SharePoint):
-            return new HttpClientHandler
-            {
-                UseDefaultCredentials = true // or configure as needed
-            };
-        })
-        .AddStandardResilienceHandler(options =>
+            UseDefaultCredentials = true
+        }).AddStandardResilienceHandler(options =>
         {
             options.Retry.MaxRetryAttempts = 3;
             options.Retry.BackoffType = DelayBackoffType.Exponential;
@@ -61,7 +59,6 @@ public static class ApplicationServiceRegistration
         });
 
         services.AddScoped<IOutboundNotificationService, OutboundNotificationService>();
-        services.AddScoped<IWorkflowOutboundNotifier, HttpWorkflowNotifier>();
         //services.AddSingleton<IWorkflowOutboundNotifier, LoggingWorkflowNotifier>();
 
         // Workflow factory

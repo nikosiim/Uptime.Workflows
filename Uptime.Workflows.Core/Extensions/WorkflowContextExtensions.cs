@@ -36,6 +36,7 @@ public static class WorkflowContextExtensionsCore
     #endregion
 
     #region DocumentId
+
     public static void SetDocumentId(this IWorkflowContext context, DocumentId id)
         => context.Storage[StorageKeys.DocumentId] = id.Value.ToString();
 
@@ -80,6 +81,16 @@ public static class WorkflowContextExtensionsCore
 
     #endregion
 
+    #region SourceSiteUrl
+
+    public static string GetSiteUrl(this IWorkflowContext context)
+        => context.Storage.GetValueOrDefault(StorageKeys.SiteUrl)!;
+
+    public static void SetSiteUrl(this IWorkflowContext context, string siteUrl)
+        => context.Storage[StorageKeys.SiteUrl] = siteUrl;
+
+    #endregion
+
     #region Storage Helpers
 
     /// <summary>
@@ -108,5 +119,6 @@ public static class WorkflowContextExtensionsCore
         public const string WorkflowId           = "Workflow.Id";
         public const string InitiatorSid         = "Workflow.Initiator.Sid";
         public const string WorkflowTemplateId   = "Workflow.Template.Id";
+        public const string SiteUrl              = "Workflow.Site.Url";
     }
 }

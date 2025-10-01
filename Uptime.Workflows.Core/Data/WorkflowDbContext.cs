@@ -116,7 +116,6 @@ public class WorkflowDbContext(DbContextOptions options) : DbContext(options)
         modelBuilder.Entity<OutboundNotification>(b =>
         {
             b.HasKey(n => n.Id);
-
             b.Property(n => n.EventType).IsRequired();
             b.Property(n => n.Status).IsRequired();
             b.Property(n => n.EndpointPath).HasMaxLength(256).IsRequired();
@@ -126,11 +125,10 @@ public class WorkflowDbContext(DbContextOptions options) : DbContext(options)
             b.Property(n => n.CreatedAtUtc).IsRequired();
             b.Property(n => n.AttemptCount).HasDefaultValue(0);
 
-            // Relationships (restrict delete like other principals; cascades align with your existing style)
             b.HasOne(n => n.Workflow)
                 .WithMany()
                 .HasForeignKey(n => n.WorkflowId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             b.HasOne(n => n.WorkflowTask)
                 .WithMany()
@@ -138,13 +136,11 @@ public class WorkflowDbContext(DbContextOptions options) : DbContext(options)
                 .OnDelete(DeleteBehavior.SetNull);
 
             // Helpful indexes
+            b.HasIndex(n => n.UniqueKey).IsUnique(); // <--- Only declare once!
             b.HasIndex(n => new { n.WorkflowId, n.EventType, n.Status });
             b.HasIndex(n => n.TaskGuid);
             b.HasIndex(n => n.PhaseId);
             b.HasIndex(n => n.CreatedAtUtc);
-
-            // Idempotency key can be unique if you enforce one-row-per-unique-event
-            b.HasIndex(n => n.UniqueKey).IsUnique(false); // set true if you will guarantee uniqueness
         });
 
         // Apply configurations if any (e.g., for seeding or property configs)

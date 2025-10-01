@@ -23,8 +23,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.SharePointOnline.CSOM" Version="16.1.26413.12010" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.5" />
   </ItemGroup>
 
   <ItemGroup>

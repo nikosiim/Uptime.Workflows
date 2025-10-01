@@ -138,12 +138,15 @@ public abstract class ReplicatorWorkflowBase<TContext>(
             .SelectMany(kvp => kvp.Value.Items.Select(i => new AssigneeProjection(kvp.Key, i.ActivityContext.AssignedToSid)))
             .ToList();
 
-        var payload = new WorkflowStartedPayload(
-            WorkflowId: WorkflowId,
-            WorkflowType: GetType().Name,
-            StartedBySid: WorkflowContext.GetInitiatorSid(),
-            Assignees: assignees,
-            StartedAtUtc: DateTimeOffset.UtcNow);
+        var payload = new WorkflowStartedPayload
+        {
+            OccurredAtUtc = DateTimeOffset.UtcNow,
+            WorkflowId = WorkflowId,
+            WorkflowType = GetType().Name,
+            StartedBySid = WorkflowContext.GetInitiatorSid(),
+            Assignees = assignees,
+            SourceSiteUrl = WorkflowContext.GetSiteUrl()
+        };
 
         return Task.FromResult(payload);
     }

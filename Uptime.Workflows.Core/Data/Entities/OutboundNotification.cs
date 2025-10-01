@@ -4,8 +4,9 @@ using Uptime.Workflows.Core.Enums;
 namespace Uptime.Workflows.Core.Data;
 
 public sealed class OutboundNotification : BaseEntity
-{ 
+{
     public OutboundEventType EventType { get; set; }
+
     public int WorkflowId { get; set; }
     public Workflow Workflow { get; set; } = null!;
 
@@ -13,23 +14,26 @@ public sealed class OutboundNotification : BaseEntity
     public int? WorkflowTaskId { get; set; }
     public WorkflowTask? WorkflowTask { get; set; }
     public Guid? TaskGuid { get; set; }
-    
-    [StringLength(32)]
+    [StringLength(128)]
     public string? PhaseId { get; set; } // Optional replicator metadata
-    public string EndpointPath { get; set; } = null!;
 
-    // 200..599 if call happened; 0 if not attempted
+    [StringLength(256)]
+    public string EndpointPath { get; set; } = null!;
     public int HttpStatusCode { get; set; }
     public OutboundNotificationStatus Status { get; set; }
+
+    [StringLength(512)]
+    public string SourceSiteUrl { get; set; } = null!;
+    public DateTimeOffset OccurredAtUtc { get; set; }
     public string PayloadJson { get; set; } = null!;
+
+    [StringLength(4000)]
     public string? ResponseBody { get; set; }
+    [StringLength(1024)]
     public string? LastError { get; set; }
-
-    // Delivery control/observability
     public int AttemptCount { get; set; }
-    public DateTime CreatedAtUtc { get; set; }
-    public DateTime? SentAtUtc { get; set; }
 
-    // Idempotency/dedup (EventType + WorkflowId [+ TaskGuid])
-    public string? UniqueKey { get; set; }
+    public DateTimeOffset CreatedAtUtc { get; set; }
+    public DateTimeOffset? SentAtUtc { get; set; }
+    public Guid UniqueKey { get; set; }
 }

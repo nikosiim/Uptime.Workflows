@@ -202,6 +202,93 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Uptime.Workflows.Core.Data.OutboundNotification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AttemptCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("EndpointPath")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<int>("EventType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("HttpStatusCode")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
+
+                    b.Property<DateTimeOffset>("OccurredAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhaseId")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("ResponseBody")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTimeOffset?>("SentAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("SourceSiteUrl")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("TaskGuid")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UniqueKey")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("WorkflowId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("WorkflowTaskId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAtUtc");
+
+                    b.HasIndex("PhaseId");
+
+                    b.HasIndex("TaskGuid");
+
+                    b.HasIndex("UniqueKey")
+                        .IsUnique();
+
+                    b.HasIndex("WorkflowTaskId");
+
+                    b.HasIndex("WorkflowId", "EventType", "Status");
+
+                    b.ToTable("OutboundNotifications", "UptimeAPI");
+                });
+
             modelBuilder.Entity("Uptime.Workflows.Core.Data.Workflow", b =>
                 {
                     b.Property<int>("Id")
@@ -491,6 +578,15 @@ namespace Uptime.Workflows.Core.Data.Migrations
                             Name = "Kristina Kroon",
                             Source = "Windows",
                             Type = 0
+                        },
+                        new
+                        {
+                            Id = 19,
+                            Email = "system@example.srv",
+                            ExternalId = "S-1-5-21-10000",
+                            Name = "System",
+                            Source = "Windows",
+                            Type = 0
                         });
                 });
 
@@ -538,7 +634,9 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("TaskGuid")
-                        .HasColumnType("uniqueidentifier");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
 
                     b.Property<int>("WorkflowId")
                         .HasColumnType("int");
@@ -547,9 +645,14 @@ namespace Uptime.Workflows.Core.Data.Migrations
 
                     b.HasIndex("AssignedByPrincipalId");
 
-                    b.HasIndex("AssignedToPrincipalId");
+                    b.HasIndex("PhaseId");
 
-                    b.HasIndex("WorkflowId");
+                    b.HasIndex("TaskGuid")
+                        .IsUnique();
+
+                    b.HasIndex("AssignedToPrincipalId", "InternalStatus");
+
+                    b.HasIndex("WorkflowId", "InternalStatus");
 
                     b.ToTable("WorkflowTasks", "UptimeAPI");
                 });
@@ -577,6 +680,11 @@ namespace Uptime.Workflows.Core.Data.Migrations
 
                     b.Property<DateTime>("Modified")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("SiteUrl")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
 
                     b.Property<string>("TemplateName")
                         .IsRequired()
@@ -609,6 +717,24 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Library");
+                });
+
+            modelBuilder.Entity("Uptime.Workflows.Core.Data.OutboundNotification", b =>
+                {
+                    b.HasOne("Uptime.Workflows.Core.Data.Workflow", "Workflow")
+                        .WithMany()
+                        .HasForeignKey("WorkflowId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Uptime.Workflows.Core.Data.WorkflowTask", "WorkflowTask")
+                        .WithMany()
+                        .HasForeignKey("WorkflowTaskId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Workflow");
+
+                    b.Navigation("WorkflowTask");
                 });
 
             modelBuilder.Entity("Uptime.Workflows.Core.Data.Workflow", b =>

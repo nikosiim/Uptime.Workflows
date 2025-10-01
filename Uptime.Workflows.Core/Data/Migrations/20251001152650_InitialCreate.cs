@@ -86,6 +86,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     TemplateName = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     WorkflowName = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     WorkflowBaseId = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    SiteUrl = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: false),
                     AssociationDataJson = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: true),
                     Created = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Modified = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -189,7 +190,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    TaskGuid = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    TaskGuid = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWSEQUENTIALID()"),
                     InternalStatus = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
                     DueDate = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -228,6 +229,50 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "OutboundNotifications",
+                schema: "UptimeAPI",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    EventType = table.Column<int>(type: "int", nullable: false),
+                    WorkflowId = table.Column<int>(type: "int", nullable: false),
+                    WorkflowTaskId = table.Column<int>(type: "int", nullable: true),
+                    TaskGuid = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    PhaseId = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
+                    EndpointPath = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    HttpStatusCode = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    SourceSiteUrl = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: false),
+                    OccurredAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    PayloadJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ResponseBody = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: true),
+                    LastError = table.Column<string>(type: "nvarchar(1024)", maxLength: 1024, nullable: true),
+                    AttemptCount = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
+                    CreatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    SentAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    UniqueKey = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OutboundNotifications", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OutboundNotifications_WorkflowTasks_WorkflowTaskId",
+                        column: x => x.WorkflowTaskId,
+                        principalSchema: "UptimeAPI",
+                        principalTable: "WorkflowTasks",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_OutboundNotifications_Workflows_WorkflowId",
+                        column: x => x.WorkflowId,
+                        principalSchema: "UptimeAPI",
+                        principalTable: "Workflows",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
             migrationBuilder.InsertData(
                 schema: "UptimeAPI",
                 table: "Libraries",
@@ -261,7 +306,8 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     { 15, "riin.koppel@example.com", "S-1-5-21-10015", "Riin Koppel", "Windows", 0 },
                     { 16, "lauri.saar@example.com", "S-1-5-21-10016", "Lauri Saar", "Windows", 0 },
                     { 17, "viljar.laine@example.com", "S-1-5-21-10017", "Viljar Laine", "Windows", 0 },
-                    { 18, "kristina.kroon@example.com", "S-1-5-21-10018", "Kristina Kroon", "Windows", 0 }
+                    { 18, "kristina.kroon@example.com", "S-1-5-21-10018", "Kristina Kroon", "Windows", 0 },
+                    { 19, "system@example.srv", "S-1-5-21-10000", "System", "Windows", 0 }
                 });
 
             migrationBuilder.InsertData(
@@ -287,6 +333,43 @@ namespace Uptime.Workflows.Core.Data.Migrations
                 schema: "UptimeAPI",
                 table: "Documents",
                 column: "LibraryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OutboundNotifications_CreatedAtUtc",
+                schema: "UptimeAPI",
+                table: "OutboundNotifications",
+                column: "CreatedAtUtc");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OutboundNotifications_PhaseId",
+                schema: "UptimeAPI",
+                table: "OutboundNotifications",
+                column: "PhaseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OutboundNotifications_TaskGuid",
+                schema: "UptimeAPI",
+                table: "OutboundNotifications",
+                column: "TaskGuid");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OutboundNotifications_UniqueKey",
+                schema: "UptimeAPI",
+                table: "OutboundNotifications",
+                column: "UniqueKey",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OutboundNotifications_WorkflowId_EventType_Status",
+                schema: "UptimeAPI",
+                table: "OutboundNotifications",
+                columns: new[] { "WorkflowId", "EventType", "Status" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OutboundNotifications_WorkflowTaskId",
+                schema: "UptimeAPI",
+                table: "OutboundNotifications",
+                column: "WorkflowTaskId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkflowHistories_PerformedByPrincipalId",
@@ -325,16 +408,29 @@ namespace Uptime.Workflows.Core.Data.Migrations
                 column: "AssignedByPrincipalId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WorkflowTasks_AssignedToPrincipalId",
+                name: "IX_WorkflowTasks_AssignedToPrincipalId_InternalStatus",
                 schema: "UptimeAPI",
                 table: "WorkflowTasks",
-                column: "AssignedToPrincipalId");
+                columns: new[] { "AssignedToPrincipalId", "InternalStatus" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_WorkflowTasks_WorkflowId",
+                name: "IX_WorkflowTasks_PhaseId",
                 schema: "UptimeAPI",
                 table: "WorkflowTasks",
-                column: "WorkflowId");
+                column: "PhaseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkflowTasks_TaskGuid",
+                schema: "UptimeAPI",
+                table: "WorkflowTasks",
+                column: "TaskGuid",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkflowTasks_WorkflowId_InternalStatus",
+                schema: "UptimeAPI",
+                table: "WorkflowTasks",
+                columns: new[] { "WorkflowId", "InternalStatus" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkflowTemplates_LibraryId",
@@ -346,6 +442,10 @@ namespace Uptime.Workflows.Core.Data.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "OutboundNotifications",
+                schema: "UptimeAPI");
+
             migrationBuilder.DropTable(
                 name: "WorkflowHistories",
                 schema: "UptimeAPI");

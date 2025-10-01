@@ -153,6 +153,15 @@ public class WorkflowPrincipalConfiguration : IEntityTypeConfiguration<WorkflowP
                 Type = PrincipalType.User, 
                 Source = "Windows", 
                 Email = "kristina.kroon@example.com" 
+            },
+            new WorkflowPrincipal
+            {
+                Id = 19,
+                ExternalId = "S-1-5-21-10000",
+                Name = "System",
+                Type = PrincipalType.User,
+                Source = "Windows",
+                Email = "system@example.srv"
             }
         );
     }
