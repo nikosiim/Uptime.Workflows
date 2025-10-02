@@ -4,6 +4,7 @@ namespace Uptime.Workflows.Core.Data;
 
 public sealed class WorkflowTemplate : BaseEntity
 {
+    public Guid LibraryId { get; set; }
     [StringLength(128)] 
     public string TemplateName { get; set; } = null!;
     [StringLength(128)]
@@ -16,7 +17,5 @@ public sealed class WorkflowTemplate : BaseEntity
     public string? AssociationDataJson { get; set; }
 
     // Navigation properties
-    public int LibraryId { get; set; }
-    public Library Library { get; set; } = null!;
     public ICollection<Workflow>? Workflows { get; set; }
 }

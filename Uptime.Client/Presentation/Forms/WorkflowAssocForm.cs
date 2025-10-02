@@ -16,7 +16,7 @@ public abstract class WorkflowAssocForm<TFormModel> : ComponentBase where TFormM
     [Inject] public IMediator Mediator { get; set; } = null!; 
     [Inject] public ISnackbar Snackbar { get; set; } = null!; 
 
-    [Parameter] public int LibraryId { get; set; }
+    [Parameter] public Guid LibraryId { get; set; }
     [Parameter] public int? TemplateId { get; set; }
     [Parameter] public WorkflowDefinition WorkflowDefinition { get; set; } = null!; 
     

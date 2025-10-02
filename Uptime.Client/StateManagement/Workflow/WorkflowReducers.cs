@@ -208,7 +208,7 @@ public static class WorkflowReducers
             Id = action.WorkflowId,
             Phase = response.Phase,
             DocumentId = response.DocumentId,
-            Document = response.Document,
+            Document = "Document X",
             Originator = response.Originator,
             StartDate = response.StartDate,
             EndDate = response.EndDate,

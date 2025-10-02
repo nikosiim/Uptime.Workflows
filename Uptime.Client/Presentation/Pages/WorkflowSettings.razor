@@ -73,8 +73,8 @@
     private async Task LoadTemplates()
     {
         _loading = true;
-
-        Result<List<WorkflowTemplate>> result = await Mediator.Send(new GetLibraryWorkflowTemplatesQuery(Libraries.GetValueOrDefault(Library, 0)));
+        
+        Result<List<WorkflowTemplate>> result = await Mediator.Send(new GetLibraryWorkflowTemplatesQuery(ContractsLibraryId));
         if (result.Succeeded)
         {
             _workflowTemplates = result.Value;
@@ -111,7 +111,7 @@
         }
 
         parameters.Add(DialogParams.WorkflowDefinition, definition);
-        parameters.Add(DialogParams.LibraryId, 1);
+        parameters.Add(DialogParams.LibraryId, ContractsLibraryId);
 
         var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
         IDialogReference dialog = await DialogService.ShowAsync(definition.FormsConfiguration!.AssociationDialogType, $"{action} {definition.DisplayName}", parameters, options);

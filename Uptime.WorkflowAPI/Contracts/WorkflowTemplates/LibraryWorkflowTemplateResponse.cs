@@ -1,4 +1,4 @@
-﻿namespace Uptime.Workflows.Api.Contracts;
+﻿namespace Uptime.Workflows.Api.Contracts.WorkflowTemplates;
 
 public record LibraryWorkflowTemplateResponse
 {

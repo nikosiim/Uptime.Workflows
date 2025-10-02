@@ -48,10 +48,3 @@ public readonly record struct WorkflowTemplateId(int Value)
     public static WorkflowTemplateId Parse(string? text)
         => DomainIdParser.Parse(text, nameof(WorkflowTemplateId), v => new WorkflowTemplateId(v));
 }
-
-public readonly record struct LibraryId(int Value)
-{
-    public override string ToString() => Value.ToString();
-    public static explicit operator LibraryId(int id) => new(id);
-    public static explicit operator int(LibraryId id) => id.Value;
-}

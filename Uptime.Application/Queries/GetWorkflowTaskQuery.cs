@@ -30,7 +30,7 @@ public class GetWorkflowTaskQueryHandler(WorkflowDbContext db)
                 DueDate = task.DueDate,
                 EndDate = task.EndDate,
                 StorageJson = task.StorageJson,
-                Document = task.Workflow.Document.Title,
+                DocumentId = (DocumentId)task.Workflow.DocumentId,
                 WorkflowId = task.WorkflowId,
                 PhaseId = task.PhaseId,
                 WorkflowBaseId = task.Workflow.WorkflowTemplate.WorkflowBaseId

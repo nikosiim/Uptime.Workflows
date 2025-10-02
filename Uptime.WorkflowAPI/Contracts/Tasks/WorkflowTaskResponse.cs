@@ -11,7 +11,7 @@ public record WorkflowTaskResponse
     public DateTimeOffset? DueDate { get; init; }
     public DateTimeOffset? EndDate { get; init; }
     public string? StorageJson { get; init; }
-    public string? Document { get; init; }
+    public int DocumentId { get; init; }
     public int WorkflowId { get; init; }
     public string? PhaseId { get; init; }
     public string WorkflowBaseId { get; init; } = null!;

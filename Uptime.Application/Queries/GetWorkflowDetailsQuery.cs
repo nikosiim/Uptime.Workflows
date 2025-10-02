@@ -27,7 +27,6 @@ public class GetWorkflowDetailsQueryHandler(WorkflowDbContext db)
                 EndDate = w.EndDate,
                 Originator = w.InitiatedBy.Name,
                 DocumentId = w.DocumentId,
-                Document = w.Document.Title,
                 WorkflowBaseId = w.WorkflowTemplate.WorkflowBaseId
             })
             .FirstOrDefaultAsync(cancellationToken: ct);

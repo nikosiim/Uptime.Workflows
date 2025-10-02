@@ -9,6 +9,5 @@ public record WorkflowDetailsDto
     public DateTimeOffset StartDate { get; init; }
     public DateTimeOffset? EndDate { get; init; }
     public int DocumentId { get; init; }
-    public required string Document { get; init; }
     public required string WorkflowBaseId { get; init; }
 }

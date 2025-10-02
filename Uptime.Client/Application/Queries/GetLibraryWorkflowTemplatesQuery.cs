@@ -6,14 +6,15 @@ using Uptime.Client.Contracts;
 
 namespace Uptime.Client.Application.Queries;
 
-public record GetLibraryWorkflowTemplatesQuery(int LibraryId) : IRequest<Result<List<WorkflowTemplate>>>;
+public record GetLibraryWorkflowTemplatesQuery(Guid LibraryId) : IRequest<Result<List<WorkflowTemplate>>>;
 
 public class GetLibraryWorkflowTemplatesQueryHandler(IApiService apiService)
     : IRequestHandler<GetLibraryWorkflowTemplatesQuery, Result<List<WorkflowTemplate>>>
 {
     public async Task<Result<List<WorkflowTemplate>>> Handle(GetLibraryWorkflowTemplatesQuery request, CancellationToken cancellationToken)
     {
-        string url = ApiRoutes.Libraries.GetWorkflowTemplates.Replace("{libraryId}", request.LibraryId.ToString());
+        string url = ApiRoutes.WorkflowTemplates.GetByLibrary.Replace("{libraryId}", request.LibraryId.ToString());
+
         Result<List<LibraryWorkflowTemplateResponse>> result = await apiService.ReadFromJsonAsync<List<LibraryWorkflowTemplateResponse>>(url, cancellationToken);
 
         if (!result.Succeeded)

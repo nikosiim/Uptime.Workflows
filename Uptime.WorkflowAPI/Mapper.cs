@@ -46,7 +46,6 @@ public static class Mapper
             StartDate = source.StartDate,
             EndDate = source.EndDate,
             DocumentId = source.DocumentId,
-            Document = source.Document,
             WorkflowBaseId = source.WorkflowBaseId
         };
     }
@@ -102,7 +101,7 @@ public static class Mapper
             DueDate = source.DueDate,
             EndDate = source.EndDate,
             StorageJson = source.StorageJson,
-            Document = source.Document,
+            DocumentId = source.DocumentId.Value,
             WorkflowId = source.WorkflowId,
             PhaseId = source.PhaseId,
             WorkflowBaseId = source.WorkflowBaseId

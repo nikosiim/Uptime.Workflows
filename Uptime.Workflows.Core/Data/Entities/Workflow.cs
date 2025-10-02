@@ -4,6 +4,7 @@ namespace Uptime.Workflows.Core.Data;
 
 public sealed class Workflow : BaseEntity
 {
+    public int DocumentId { get; set; }
     public bool IsActive { get; set; }
     [StringLength(64)]
     public string? Outcome { get; set; }
@@ -15,8 +16,6 @@ public sealed class Workflow : BaseEntity
     public string? StorageJson { get; set; }
 
     // Navigation properties
-    public int DocumentId { get; set; }
-    public Document Document { get; set; } = null!;
     public int InitiatedById { get; set; }
     public WorkflowPrincipal InitiatedBy { get; set; } = null!;
     public int WorkflowTemplateId { get; set; }

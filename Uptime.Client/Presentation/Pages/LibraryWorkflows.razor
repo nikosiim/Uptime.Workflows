@@ -1,4 +1,4 @@
-﻿@page "/library-workflow/{listId:int}/{documentId:int}"
+﻿@page "/library-workflow/{listId:guid}/{documentId:int}"
 
 @inject ISnackbar Snackbar
 @inject IMediator Mediator
@@ -55,7 +55,7 @@
     private IEnumerable<DocumentWorkflow> ActiveInstances => _workflows.Where(w => w.IsActive);
     private IEnumerable<DocumentWorkflow> CompletedInstances => _workflows.Where(w => !w.IsActive);
 
-    [Parameter] public int ListId { get; set; }
+    [Parameter] public Guid ListId { get; set; }
     [Parameter] public int DocumentId { get; set; }
 
     protected override async Task OnInitializedAsync()

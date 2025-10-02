@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Uptime.Workflows.Api.Contracts;
+using Uptime.Workflows.Api.Contracts.WorkflowTemplates;
 using Uptime.Workflows.Api.Extensions;
 using Uptime.Workflows.Application.Commands;
 using Uptime.Workflows.Application.DTOs;
@@ -26,6 +27,24 @@ public class WorkflowTemplatesController(ISender mediator) : ControllerBase
         
         return this.ToActionResult(result, Mapper.MapToWorkflowTemplateResponse);
     }
+    
+    [HttpGet("by-library/{libraryId:guid}")]
+    public async Task<ActionResult<List<LibraryWorkflowTemplateResponse>>> GetWorkflowTemplatesByLibrary(Guid libraryId, CancellationToken ct)
+    {
+        var query = new GetLibraryWorkflowTemplatesQuery(libraryId);
+        List<LibraryWorkflowTemplateDto> templates = await mediator.Send(query, ct);
+
+        List<LibraryWorkflowTemplateResponse> result = templates.Select(dto => new LibraryWorkflowTemplateResponse
+        {
+            Id = dto.Id,
+            Name = dto.Name,
+            WorkflowBaseId = dto.WorkflowBaseId,
+            AssociationDataJson = dto.AssociationDataJson,
+            Created = dto.Created
+        }).ToList();
+
+        return Ok(result);
+    }
 
     [HttpPost("")]
     public async Task<ActionResult<CreateWorkflowTemplateResponse>> CreateWorkflowTemplate([FromBody] WorkflowTemplateCreateRequest request, CancellationToken ct)
@@ -37,7 +56,7 @@ public class WorkflowTemplatesController(ISender mediator) : ControllerBase
             TemplateName = request.TemplateName,
             WorkflowName = request.WorkflowName,
             WorkflowBaseId = request.WorkflowBaseId,
-            LibraryId = (LibraryId)request.LibraryId,
+            LibraryId = request.LibraryId,
             AssociationDataJson = request.AssociationDataJson
         };
 

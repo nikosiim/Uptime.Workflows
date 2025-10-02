@@ -23,101 +23,6 @@ namespace Uptime.Workflows.Core.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Uptime.Workflows.Core.Data.Document", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTimeOffset>("CreatedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<int?>("CreatedByPrincipalId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTimeOffset?>("DeletedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<int?>("DeletedByPrincipalId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("LibraryId")
-                        .HasColumnType("int");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<int?>("UpdatedByPrincipalId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LibraryId");
-
-                    b.ToTable("Documents", "UptimeAPI");
-                });
-
-            modelBuilder.Entity("Uptime.Workflows.Core.Data.Library", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTimeOffset>("CreatedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<int?>("CreatedByPrincipalId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTimeOffset?>("DeletedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<int?>("DeletedByPrincipalId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<int?>("UpdatedByPrincipalId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Libraries", "UptimeAPI");
-                });
-
             modelBuilder.Entity("Uptime.Workflows.Core.Data.OutboundNotification", b =>
                 {
                     b.Property<int>("Id")
@@ -270,8 +175,6 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("DocumentId");
 
                     b.HasIndex("InitiatedById");
 
@@ -668,8 +571,8 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<int>("LibraryId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("LibraryId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<byte[]>("RowVersion")
                         .IsRequired()
@@ -703,20 +606,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LibraryId");
-
                     b.ToTable("WorkflowTemplates", "UptimeAPI");
-                });
-
-            modelBuilder.Entity("Uptime.Workflows.Core.Data.Document", b =>
-                {
-                    b.HasOne("Uptime.Workflows.Core.Data.Library", "Library")
-                        .WithMany("Documents")
-                        .HasForeignKey("LibraryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Library");
                 });
 
             modelBuilder.Entity("Uptime.Workflows.Core.Data.OutboundNotification", b =>
@@ -739,12 +629,6 @@ namespace Uptime.Workflows.Core.Data.Migrations
 
             modelBuilder.Entity("Uptime.Workflows.Core.Data.Workflow", b =>
                 {
-                    b.HasOne("Uptime.Workflows.Core.Data.Document", "Document")
-                        .WithMany("Workflows")
-                        .HasForeignKey("DocumentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Uptime.Workflows.Core.Data.WorkflowPrincipal", "InitiatedBy")
                         .WithMany()
                         .HasForeignKey("InitiatedById")
@@ -756,8 +640,6 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         .HasForeignKey("WorkflowTemplateId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("Document");
 
                     b.Navigation("InitiatedBy");
 
@@ -808,29 +690,6 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     b.Navigation("AssignedTo");
 
                     b.Navigation("Workflow");
-                });
-
-            modelBuilder.Entity("Uptime.Workflows.Core.Data.WorkflowTemplate", b =>
-                {
-                    b.HasOne("Uptime.Workflows.Core.Data.Library", "Library")
-                        .WithMany("WorkflowTemplates")
-                        .HasForeignKey("LibraryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Library");
-                });
-
-            modelBuilder.Entity("Uptime.Workflows.Core.Data.Document", b =>
-                {
-                    b.Navigation("Workflows");
-                });
-
-            modelBuilder.Entity("Uptime.Workflows.Core.Data.Library", b =>
-                {
-                    b.Navigation("Documents");
-
-                    b.Navigation("WorkflowTemplates");
                 });
 
             modelBuilder.Entity("Uptime.Workflows.Core.Data.Workflow", b =>

@@ -3,13 +3,7 @@
 public static class ApiRoutes
 {
     public const string WorkflowApiClient = "WorkflowApiClient";
-
-    public static class Libraries
-    {
-        private const string Base = "api/libraries";
-        public const string GetWorkflowTemplates = $"{Base}/{{libraryId}}/workflow-templates";
-    }
-
+    
     public static class Documents
     {
         private const string Base = "api/documents";
@@ -46,5 +40,6 @@ public static class ApiRoutes
         public const string CreateTemplate = $"{Base}";
         public const string UpdateTemplate = $"{Base}/{{templateId}}";
         public const string DeleteTemplate = $"{Base}/{{templateId}}";
+        public const string GetByLibrary = $"{Base}/by-library/{{libraryId}}";
     }
 }

@@ -6,8 +6,6 @@ namespace Uptime.Workflows.Core.Data;
 public class WorkflowDbContext(DbContextOptions options) : DbContext(options)
 {
     public DbSet<WorkflowTask> WorkflowTasks { get; set; } = null!;
-    public DbSet<Document> Documents { get; set; } = null!;
-    public DbSet<Library> Libraries { get; set; } = null!;
     public DbSet<WorkflowHistory> WorkflowHistories { get; set; } = null!;
     public DbSet<Workflow> Workflows { get; set; } = null!;
     public DbSet<WorkflowPrincipal> WorkflowPrincipals { get; set; } = null!;
@@ -20,27 +18,6 @@ public class WorkflowDbContext(DbContextOptions options) : DbContext(options)
 
         modelBuilder.HasDefaultSchema("UptimeAPI");
         
-        // --- Library -> Documents (Cascade delete)
-        modelBuilder.Entity<Document>()
-            .HasOne(d => d.Library)
-            .WithMany(l => l.Documents)
-            .HasForeignKey(d => d.LibraryId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // --- Library -> WorkflowTemplates (Cascade delete)
-        modelBuilder.Entity<WorkflowTemplate>()
-            .HasOne(wt => wt.Library)
-            .WithMany(l => l.WorkflowTemplates)
-            .HasForeignKey(wt => wt.LibraryId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // --- Document -> Workflows (Cascade delete)
-        modelBuilder.Entity<Workflow>()
-            .HasOne(w => w.Document)
-            .WithMany(d => d.Workflows)
-            .HasForeignKey(w => w.DocumentId)
-            .OnDelete(DeleteBehavior.Cascade);
-
         // --- WorkflowTemplate -> Workflows (Restrict delete)
         modelBuilder.Entity<Workflow>()
             .HasOne(w => w.WorkflowTemplate)

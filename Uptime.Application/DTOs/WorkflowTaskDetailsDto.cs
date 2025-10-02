@@ -1,4 +1,5 @@
-﻿using Uptime.Workflows.Core.Enums;
+﻿using Uptime.Workflows.Core.Common;
+using Uptime.Workflows.Core.Enums;
 
 namespace Uptime.Workflows.Application.DTOs;
 
@@ -13,7 +14,7 @@ public record WorkflowTaskDetailsDto
     public DateTimeOffset? DueDate { get; init; }
     public DateTimeOffset? EndDate { get; init; }
     public string? StorageJson { get; init; }
-    public string? Document { get; init; }
+    public DocumentId DocumentId { get; init; }
     public string? PhaseId { get; init; }
     public int WorkflowId { get; init; }
     public required string WorkflowBaseId { get; init; }

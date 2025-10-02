@@ -17,28 +17,6 @@ namespace Uptime.Workflows.Core.Data.Migrations
                 name: "UptimeAPI");
 
             migrationBuilder.CreateTable(
-                name: "Libraries",
-                schema: "UptimeAPI",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    CreatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    CreatedByPrincipalId = table.Column<int>(type: "int", nullable: true),
-                    UpdatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    UpdatedByPrincipalId = table.Column<int>(type: "int", nullable: true),
-                    DeletedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    DeletedByPrincipalId = table.Column<int>(type: "int", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    RowVersion = table.Column<byte[]>(type: "varbinary(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Libraries", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "WorkflowPrincipals",
                 schema: "UptimeAPI",
                 columns: table => new
@@ -61,49 +39,18 @@ namespace Uptime.Workflows.Core.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Documents",
-                schema: "UptimeAPI",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Title = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: true),
-                    LibraryId = table.Column<int>(type: "int", nullable: false),
-                    CreatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    CreatedByPrincipalId = table.Column<int>(type: "int", nullable: true),
-                    UpdatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    UpdatedByPrincipalId = table.Column<int>(type: "int", nullable: true),
-                    DeletedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    DeletedByPrincipalId = table.Column<int>(type: "int", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    RowVersion = table.Column<byte[]>(type: "varbinary(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Documents", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Documents_Libraries_LibraryId",
-                        column: x => x.LibraryId,
-                        principalSchema: "UptimeAPI",
-                        principalTable: "Libraries",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "WorkflowTemplates",
                 schema: "UptimeAPI",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    LibraryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     TemplateName = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     WorkflowName = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     WorkflowBaseId = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     SiteUrl = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: false),
                     AssociationDataJson = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: true),
-                    LibraryId = table.Column<int>(type: "int", nullable: false),
                     CreatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     CreatedByPrincipalId = table.Column<int>(type: "int", nullable: true),
                     UpdatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
@@ -116,13 +63,6 @@ namespace Uptime.Workflows.Core.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_WorkflowTemplates", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_WorkflowTemplates_Libraries_LibraryId",
-                        column: x => x.LibraryId,
-                        principalSchema: "UptimeAPI",
-                        principalTable: "Libraries",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -132,13 +72,13 @@ namespace Uptime.Workflows.Core.Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    DocumentId = table.Column<int>(type: "int", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     Outcome = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
                     Phase = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
                     StartDate = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     EndDate = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     StorageJson = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: true),
-                    DocumentId = table.Column<int>(type: "int", nullable: false),
                     InitiatedById = table.Column<int>(type: "int", nullable: false),
                     WorkflowTemplateId = table.Column<int>(type: "int", nullable: false),
                     CreatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
@@ -153,13 +93,6 @@ namespace Uptime.Workflows.Core.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Workflows", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Workflows_Documents_DocumentId",
-                        column: x => x.DocumentId,
-                        principalSchema: "UptimeAPI",
-                        principalTable: "Documents",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Workflows_WorkflowPrincipals_InitiatedById",
                         column: x => x.InitiatedById,
@@ -333,12 +266,6 @@ namespace Uptime.Workflows.Core.Data.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Documents_LibraryId",
-                schema: "UptimeAPI",
-                table: "Documents",
-                column: "LibraryId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_OutboundNotifications_CreatedAtUtc",
                 schema: "UptimeAPI",
                 table: "OutboundNotifications",
@@ -388,12 +315,6 @@ namespace Uptime.Workflows.Core.Data.Migrations
                 column: "WorkflowId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Workflows_DocumentId",
-                schema: "UptimeAPI",
-                table: "Workflows",
-                column: "DocumentId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Workflows_InitiatedById",
                 schema: "UptimeAPI",
                 table: "Workflows",
@@ -435,12 +356,6 @@ namespace Uptime.Workflows.Core.Data.Migrations
                 schema: "UptimeAPI",
                 table: "WorkflowTasks",
                 columns: new[] { "WorkflowId", "InternalStatus" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_WorkflowTemplates_LibraryId",
-                schema: "UptimeAPI",
-                table: "WorkflowTemplates",
-                column: "LibraryId");
         }
 
         /// <inheritdoc />
@@ -463,19 +378,11 @@ namespace Uptime.Workflows.Core.Data.Migrations
                 schema: "UptimeAPI");
 
             migrationBuilder.DropTable(
-                name: "Documents",
-                schema: "UptimeAPI");
-
-            migrationBuilder.DropTable(
                 name: "WorkflowPrincipals",
                 schema: "UptimeAPI");
 
             migrationBuilder.DropTable(
                 name: "WorkflowTemplates",
-                schema: "UptimeAPI");
-
-            migrationBuilder.DropTable(
-                name: "Libraries",
                 schema: "UptimeAPI");
         }
     }

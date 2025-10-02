@@ -3,7 +3,6 @@ using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
-using Uptime.Workflows.Core.Services;
 
 namespace Uptime.Workflows.Application.Commands;
 
@@ -13,7 +12,7 @@ public record CreateWorkflowTemplateCommand : IRequest<Result<WorkflowTemplateId
     public required string TemplateName { get; init; }
     public required string WorkflowName { get; init; }
     public required string WorkflowBaseId { get; init; }
-    public required LibraryId LibraryId { get; init; }
+    public required Guid LibraryId { get; init; }
     public required string AssociationDataJson { get; init; }
     public required string SourceSiteUrl { get; init; }
 }
@@ -35,7 +34,7 @@ public class CreateWorkflowTemplateCommandHandler(WorkflowDbContext db, IPrincip
             WorkflowName = request.WorkflowName,
             WorkflowBaseId = request.WorkflowBaseId,
             AssociationDataJson = request.AssociationDataJson,
-            LibraryId = request.LibraryId.Value,
+            LibraryId = request.LibraryId,
             SiteUrl = normalized,
             CreatedAtUtc = now,
             CreatedByPrincipalId = executor.Id.Value,

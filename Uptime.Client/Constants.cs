@@ -1,11 +1,12 @@
-﻿using System.Collections.Immutable;
-using Uptime.Client.Application.DTOs;
+﻿using Uptime.Client.Application.DTOs;
 using Uptime.Client.Presentation.Dialogs;
 
 namespace Uptime.Client;
 
 public static class Constants
 {
+    public static Guid ContractsLibraryId = new("0bf3e0bb-450b-4ea1-9c6f-167c5a27308d");
+
     public static class ButtonAction
     {
         public const string Signing = "Signing";
@@ -35,13 +36,7 @@ public static class Constants
         public const string WorkflowId = "WorkflowId";
         public const string ModificationContext = "ModificationContext";
     }
-
-    public static readonly ImmutableDictionary<string, int> Libraries =
-        ImmutableDictionary.CreateRange(StringComparer.OrdinalIgnoreCase, [
-            new KeyValuePair<string, int>("Contracts", 1),
-            new KeyValuePair<string, int>("Letters", 2)
-        ]);
-
+    
     public static class PageRoutes
     {
         public const string WorkflowSettings = "workflow-settings";

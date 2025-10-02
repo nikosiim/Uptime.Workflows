@@ -12,6 +12,7 @@ public record WorkflowTaskDetails
     public DateTimeOffset? EndDate { get; init; }
     public string? StorageJson { get; init; }
     public string? Document { get; init; }
+    public int DocumentId { get; init; }
     public int WorkflowId { get; init; }
     public string? Status { get; init; }
     public string? PhaseId { get; init; }
