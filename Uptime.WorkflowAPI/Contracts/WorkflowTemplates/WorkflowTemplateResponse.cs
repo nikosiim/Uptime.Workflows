@@ -1,4 +1,4 @@
-﻿namespace Uptime.Shared.Models.WorkflowTemplates;
+﻿namespace Uptime.Workflows.Api.Contracts;
 
 public record WorkflowTemplateResponse
 {
@@ -6,5 +6,5 @@ public record WorkflowTemplateResponse
     public string Name { get; init; } = null!;
     public string WorkflowBaseId { get; init; } = null!;
     public string? AssociationDataJson { get; init; }
-    public DateTime Created { get; init; }
+    public DateTimeOffset Created { get; init; }
 }

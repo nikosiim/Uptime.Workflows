@@ -24,7 +24,7 @@ public class GetWorkflowTemplateQueryHandler(WorkflowDbContext db)
                 Name = wt.TemplateName,
                 AssociationDataJson = wt.AssociationDataJson,
                 WorkflowBaseId = wt.WorkflowBaseId,
-                Created = wt.Created
+                CreatedAtUtc = wt.CreatedAtUtc
             })
             .FirstOrDefaultAsync(ct);
 

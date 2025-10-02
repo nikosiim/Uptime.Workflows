@@ -10,8 +10,8 @@ namespace Uptime.Workflows.Application.Commands;
 
 public record ModifyWorkflowCommand : IRequest<Result<Unit>>, IRequiresPrincipal
 {
-    public required WorkflowId WorkflowId { get; init; }
     public required PrincipalSid ExecutorSid { get; init; }
+    public required WorkflowId WorkflowId { get; init; }
     public string? InputContext { get; init; }
 };
 

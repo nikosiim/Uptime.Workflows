@@ -2,12 +2,16 @@
 using Uptime.Workflows.Application.Messaging;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
+using Uptime.Workflows.Core.Interfaces;
+using Uptime.Workflows.Core.Models;
+using Uptime.Workflows.Core.Services;
 using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.Workflows.Application.Commands;
 
-public record UpdateWorkflowTemplateCommand : IRequest<Result<Unit>>
+public record UpdateWorkflowTemplateCommand : IRequest<Result<Unit>>, IRequiresPrincipal
 {
+    public required PrincipalSid ExecutorSid { get; init; }
     public WorkflowTemplateId TemplateId { get; init; }
     public string TemplateName { get; init; } = null!;
     public string WorkflowName { get; init; } = null!;
@@ -15,7 +19,7 @@ public record UpdateWorkflowTemplateCommand : IRequest<Result<Unit>>
     public string? AssociationDataJson { get; init; }
 }
 
-public class UpdateWorkflowTemplateCommandHandler(WorkflowDbContext db)
+public class UpdateWorkflowTemplateCommandHandler(WorkflowDbContext db, IPrincipalResolver principalResolver)
     : IRequestHandler<UpdateWorkflowTemplateCommand, Result<Unit>>
 {
     public async Task<Result<Unit>> Handle(UpdateWorkflowTemplateCommand request, CancellationToken ct)
@@ -23,19 +27,22 @@ public class UpdateWorkflowTemplateCommandHandler(WorkflowDbContext db)
         if (ct.IsCancellationRequested)
             return Result<Unit>.Cancelled();
 
-        WorkflowTemplate? workflowTemplate = await db.WorkflowTemplates
+        WorkflowTemplate? template = await db.WorkflowTemplates
             .FirstOrDefaultAsync(wt => wt.Id == request.TemplateId.Value, ct);
 
-        if (workflowTemplate is null)
-            return Result<Unit>.Failure(ErrorCode.NotFound);
+        if (template is null)
+            return Result<Unit>.Failure(ErrorCode.NotFound, "Workflow template not found.");
 
-        workflowTemplate.TemplateName = request.TemplateName;
-        workflowTemplate.WorkflowName = request.WorkflowName;
-        workflowTemplate.WorkflowBaseId = request.WorkflowBaseId;
-        workflowTemplate.AssociationDataJson = request.AssociationDataJson;
-        workflowTemplate.Modified = DateTime.UtcNow;
+        Principal executor = await principalResolver.ResolveBySidAsync(request.ExecutorSid, ct);
 
-        db.WorkflowTemplates.Update(workflowTemplate);
+        template.TemplateName = request.TemplateName;
+        template.WorkflowName = request.WorkflowName;
+        template.WorkflowBaseId = request.WorkflowBaseId;
+        template.AssociationDataJson = request.AssociationDataJson;
+        template.UpdatedAtUtc = DateTimeOffset.UtcNow;
+        template.UpdatedByPrincipalId = executor.Id.Value;
+
+        db.WorkflowTemplates.Update(template);
         await db.SaveChangesAsync(ct);
 
         return Result<Unit>.Success(new Unit());

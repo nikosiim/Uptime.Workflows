@@ -59,7 +59,7 @@ public abstract class ActivityWorkflowBase<TContext>(
                 storageJson: payload.StorageJson);
 
             await OnTaskAlteredAsync(action, context, payload.ExecutorSid, payload.InputData, ct);
-            await SaveWorkflowStateAsync(ct);
+            await SaveWorkflowStateAsync(payload.ExecutorSid, ct);
         }
         catch (Exception ex)
         {

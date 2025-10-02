@@ -25,7 +25,7 @@ public class GetDocumentWorkflowTasksQueryHandler(WorkflowDbContext db)
                 TaskId = task.Id,
                 WorkflowId = task.WorkflowId,
                 AssignedTo = task.AssignedTo.Name, // Not needed include as .Select over navigation properties will handle it.
-                Status = task.Status,
+                Status = task.InternalStatus.ToString(),
                 WorkflowTaskStatus = task.InternalStatus,
                 TaskDescription = task.Description,
                 DueDate = task.DueDate,

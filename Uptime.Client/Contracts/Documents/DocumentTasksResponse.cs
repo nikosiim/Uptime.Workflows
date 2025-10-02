@@ -7,6 +7,6 @@ public record DocumentTasksResponse
     public string? AssignedTo { get; init; }
     public required string WorkflowTaskStatus { get; init; }
     public string? TaskDescription { get; init; }
-    public DateTime? DueDate { get; init; }
-    public DateTime? EndDate { get; init; }
+    public DateTimeOffset? DueDate { get; init; }
+    public DateTimeOffset? EndDate { get; init; }
 }

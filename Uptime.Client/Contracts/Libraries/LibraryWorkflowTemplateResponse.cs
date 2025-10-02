@@ -6,5 +6,5 @@ public record LibraryWorkflowTemplateResponse
     public string Name { get; set; } = null!;
     public string WorkflowBaseId { get; set; } = null!;
     public string? AssociationDataJson { get; set; }
-    public DateTime Created { get; set; }
+    public DateTimeOffset Created { get; set; }
 }

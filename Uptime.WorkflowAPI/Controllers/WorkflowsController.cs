@@ -123,11 +123,16 @@ public class WorkflowsController(ISender mediator) : ControllerBase
     }
 
     [HttpDelete("{workflowId:int}/delete-workflow")]
-    public async Task<ActionResult> DeleteWorkflow(int workflowId, CancellationToken ct)
+    public async Task<ActionResult> DeleteWorkflow(int workflowId, [FromBody] WorkflowDeleteRequest request, CancellationToken ct)
     {
-        var cmd = new DeleteWorkflowCommand((WorkflowId)workflowId);
-        await mediator.Send(cmd, ct);
+        var cmd = new DeleteWorkflowCommand
+        {
+            WorkflowId = (WorkflowId)workflowId,
+            ExecutorSid = (PrincipalSid)request.ExecutorSid
+        };
 
-        return NoContent();
+        Result<Unit> result = await mediator.Send(cmd, ct);
+
+        return this.ToActionResult(result);
     }
 }

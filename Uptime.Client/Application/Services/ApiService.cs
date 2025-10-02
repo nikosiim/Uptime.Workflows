@@ -189,6 +189,37 @@ public class ApiService(IHttpClientFactory httpClientFactory, CancellationTokenS
         }
     }
 
+    public async Task<Result<bool>> DeleteAsync<T>(string url, T payload, CancellationToken token)
+    {
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Delete, url)
+            {
+                Content = JsonContent.Create(payload)
+            };
+            using HttpResponseMessage response = await _httpClient.SendAsync(request, token);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string errorMessage = await response.Content.ReadAsStringAsync(token);
+                return Result<bool>.Failure($"Error {response.StatusCode}: {errorMessage}");
+            }
+            return Result<bool>.Success(true);
+        }
+        catch (OperationCanceledException)
+        {
+            return Result<bool>.Cancelled();
+        }
+        catch (HttpRequestException ex)
+        {
+            return Result<bool>.Failure($"Request failed: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            return Result<bool>.Failure($"Unexpected error: {ex.Message}");
+        }
+    }
+
     public CancellationToken GetLinkedCancellationToken(CancellationToken? requestToken = null)
     {
         return CancellationTokenSource.CreateLinkedTokenSource(globalCancellationTokenSource.Token, requestToken ?? CancellationToken.None).Token;

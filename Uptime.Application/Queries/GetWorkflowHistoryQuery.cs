@@ -23,7 +23,7 @@ public class GetWorkflowHistoryQueryHandler(WorkflowDbContext db)
                 Event = history.Event,
                 Occurred = history.Occurred,
                 Comment = history.Comment,
-                ExecutedBy = history.PerformedByPrincipal.Name
+                ExecutedBy = history.PerformedBy.Name
             })
             .ToListAsync(ct);
     }

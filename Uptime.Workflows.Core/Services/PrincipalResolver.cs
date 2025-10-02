@@ -2,34 +2,10 @@
 using Microsoft.Extensions.Logging;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
+using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
 
 namespace Uptime.Workflows.Core.Services;
-
-/// <summary>
-/// Resolves Principal records by SID, creating placeholder entries as needed.
-/// </summary>
-public interface IPrincipalResolver
-{
-    Task<Principal?> TryResolveBySidAsync(PrincipalSid sid, CancellationToken ct);
-
-    /// <summary>
-    /// Ensures the principal for the given SID exists in the DB (and cache) and returns it.
-    /// </summary>
-    Task<Principal> ResolveBySidAsync(PrincipalSid sid, CancellationToken ct);
-
-    /// <summary>
-    /// Ensures all principals for the given SIDs exist in the DB (and cache).
-    /// Does not return data; use for cache-priming before mass task creation.
-    /// </summary>
-    Task EnsurePrincipalsCachedAsync(IEnumerable<PrincipalSid> sids, CancellationToken ct);
-
-    /// <summary>
-    /// Ensures all principals for the given SIDs exist in the DB (and cache), and returns their DTOs.
-    /// Use for logging, notifications, or recipient list scenarios.
-    /// </summary>
-    Task<IReadOnlyList<Principal>> GetPrincipalsBySidAsync(IEnumerable<PrincipalSid> sids, CancellationToken ct);
-}
 
 /// <summary>
 /// Implements IPrincipalResolver using EF Core and a per-request memory cache.
@@ -56,7 +32,7 @@ public sealed class PrincipalResolver : IPrincipalResolver
             return cached;
 
         await using WorkflowDbContext db = await _factory.CreateDbContextAsync(ct);
-        WorkflowPrincipal? entity = await db.Set<WorkflowPrincipal>()
+        WorkflowPrincipal? entity = await db.WorkflowPrincipals
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.ExternalId == key, ct);
 
@@ -104,8 +80,7 @@ public sealed class PrincipalResolver : IPrincipalResolver
         if (sidList.Count == 0)
             return;
 
-        // Try get all from DB
-        List<WorkflowPrincipal> foundEntities = await db.Set<WorkflowPrincipal>()
+        List<WorkflowPrincipal> foundEntities = await db.WorkflowPrincipals
             .AsNoTracking()
             .Where(p => sidList.Contains(p.ExternalId))
             .ToListAsync(ct);
@@ -122,7 +97,7 @@ public sealed class PrincipalResolver : IPrincipalResolver
         List<string> missingSids = sidList.Where(sid => !foundSids.Contains(sid)).ToList();
         foreach (string sid in missingSids)
         {
-            Principal principal = await CreatePrincipalIfNotExistsAsync(sid, db, ct);
+            _ = await CreatePrincipalIfNotExistsAsync(sid, db, ct);
             // Already added to cache inside helper
         }
     }

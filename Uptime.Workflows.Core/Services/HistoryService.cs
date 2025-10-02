@@ -21,7 +21,7 @@ public class HistoryService(IDbContextFactory<WorkflowDbContext> factory, IPrinc
             Description = description,
             Comment = comment,
             WorkflowId = workflowId.Value,
-            PerformedByPrincipalId = executor.Id.Value
+            PerformedById = executor.Id.Value
         };
         
         await using WorkflowDbContext db = await factory.CreateDbContextAsync(ct);

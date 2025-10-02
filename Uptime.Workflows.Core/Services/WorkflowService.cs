@@ -14,7 +14,7 @@ public class WorkflowService(IDbContextFactory<WorkflowDbContext> factory, IPrin
     {
         PrincipalSid initiatorSid = context.GetInitiatorSid();
         Principal initiator = await principalResolver.ResolveBySidAsync(initiatorSid, ct);
-
+        
         var instance = new Workflow
         {
             IsActive = true,
@@ -23,7 +23,10 @@ public class WorkflowService(IDbContextFactory<WorkflowDbContext> factory, IPrin
             StartDate = DateTime.UtcNow,
             DocumentId = context.GetDocumentId().Value,
             WorkflowTemplateId = context.GetWorkflowTemplateId().Value,
-            InitiatedByPrincipalId = initiator.Id.Value
+            InitiatedById = initiator.Id.Value,
+            CreatedAtUtc = DateTimeOffset.UtcNow,
+            CreatedByPrincipalId = initiator.Id.Value,
+            IsDeleted = false
         };
 
         await using WorkflowDbContext db = await factory.CreateDbContextAsync(ct);
@@ -34,25 +37,27 @@ public class WorkflowService(IDbContextFactory<WorkflowDbContext> factory, IPrin
         return (WorkflowId)instance.Id;
     }
 
-    public async Task MarkAsInvalidAsync(WorkflowId workflowId, CancellationToken ct)
+    public async Task MarkAsInvalidAsync(WorkflowId workflowId, PrincipalSid actorSid, CancellationToken ct)
     {
         await using WorkflowDbContext db = await factory.CreateDbContextAsync(ct);
 
         Workflow? instance = await db.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId.Value, ct);
         if (instance == null)
-        {
             throw new InvalidOperationException($"Workflow with ID {workflowId} not found.");
-        }
+
+        Principal actor = await principalResolver.ResolveBySidAsync(actorSid, ct);
 
         instance.IsActive = false;
         instance.Outcome = WorkflowOutcome.Invalid.Value;
         instance.Phase = BaseState.Invalid.Value;
         instance.EndDate = DateTime.UtcNow;
+        instance.UpdatedAtUtc = DateTimeOffset.UtcNow;
+        instance.UpdatedByPrincipalId = actor.Id.Value;
 
         await db.SaveChangesAsync(ct);
     }
 
-    public async Task UpdateStateAsync<TContext>(TContext workflowContext, BaseState phase, CancellationToken ct) 
+    public async Task UpdateStateAsync<TContext>(TContext workflowContext, BaseState phase, PrincipalSid actorSid, CancellationToken ct) 
         where TContext : IWorkflowContext, new()
     {
         int workflowId = workflowContext.GetWorkflowId().Value;
@@ -61,13 +66,13 @@ public class WorkflowService(IDbContextFactory<WorkflowDbContext> factory, IPrin
 
         Workflow? instance = await db.Workflows.FirstOrDefaultAsync(x => x.Id == workflowId, ct);
         if (instance == null)
-        {
             throw new InvalidOperationException($"Workflow with ID {workflowId} not found.");
-        }
+
+        Principal actor = await principalResolver.ResolveBySidAsync(actorSid, ct);
 
         var existingContext = BaseWorkflowContext.Deserialize<TContext>(instance.StorageJson);
         existingContext.Storage.MergeWith(workflowContext.Storage);
-
+        
         instance.Phase = phase.Value;
         instance.StorageJson = JsonSerializer.Serialize(workflowContext);
         instance.Outcome = workflowContext.Outcome.Value;
@@ -77,6 +82,9 @@ public class WorkflowService(IDbContextFactory<WorkflowDbContext> factory, IPrin
             instance.EndDate = DateTime.UtcNow;
             instance.IsActive = false;
         }
+
+        instance.UpdatedAtUtc = DateTimeOffset.UtcNow;
+        instance.UpdatedByPrincipalId = actor.Id.Value;
 
         await db.SaveChangesAsync(ct);
     }

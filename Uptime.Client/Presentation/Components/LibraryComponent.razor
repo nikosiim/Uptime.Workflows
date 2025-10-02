@@ -1,5 +1,4 @@
 ﻿@inject NavigationManager Navigation
-@inject IMediator Mediator
 
 <MudTable Items="@_documents" Hover="true" Bordered="true" Striped="true" Loading="@_loading">
     <ToolBarContent>
@@ -33,20 +32,22 @@
     [Parameter, EditorRequired]
     public string Name { get; set; } = null!;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await base.OnInitializedAsync();
-
         _loading = true;
-        
-        Result<List<LibraryDocument>> result = await Mediator.Send(new GetLibraryDocumentsQuery(Name));
-        if (result.Succeeded)
+
+        int libraryId = Name switch
         {
-            _documents = result.Value;
-        }
-        else
+            "Library1" => 1,
+            "Library2" => 2,
+            _ => 1
+        };
+
+        _documents = DocumentSeedData.AllDocuments.Where(doc => doc.LibraryId == libraryId).ToList();
+
+        if (_documents.Count == 0)
         {
-            _contentMessage = "Dokumentide laadimine ebaõnnestus";
+            _contentMessage = "Dokumente ei leitud";
         }
 
         _loading = false;

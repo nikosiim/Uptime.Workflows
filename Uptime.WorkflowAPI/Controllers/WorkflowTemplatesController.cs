@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Uptime.Shared.Models.WorkflowTemplates;
 using Uptime.Workflows.Api.Contracts;
 using Uptime.Workflows.Api.Extensions;
 using Uptime.Workflows.Application.Commands;
@@ -33,6 +32,7 @@ public class WorkflowTemplatesController(ISender mediator) : ControllerBase
     {
         var cmd = new CreateWorkflowTemplateCommand
         {
+            ExecutorSid = (PrincipalSid)request.ExecutorSid,
             SourceSiteUrl = request.SourceSiteUrl,
             TemplateName = request.TemplateName,
             WorkflowName = request.WorkflowName,
@@ -50,6 +50,7 @@ public class WorkflowTemplatesController(ISender mediator) : ControllerBase
     {
         var cmd = new UpdateWorkflowTemplateCommand
         {
+            ExecutorSid = (PrincipalSid)request.ExecutorSid,
             TemplateId = (WorkflowTemplateId)templateId,
             TemplateName = request.TemplateName,
             WorkflowName = request.WorkflowName,
@@ -63,9 +64,14 @@ public class WorkflowTemplatesController(ISender mediator) : ControllerBase
     }
 
     [HttpDelete("{templateId:int}")]
-    public async Task<ActionResult> DeleteWorkflowTemplate(int templateId, CancellationToken ct)
+    public async Task<ActionResult> DeleteWorkflowTemplate(int templateId, [FromBody] WorkflowTemplateDeleteRequest request, CancellationToken ct)
     {
-        var cmd = new DeleteWorkflowTemplateCommand((WorkflowTemplateId)templateId);
+        var cmd = new DeleteWorkflowTemplateCommand
+        {
+            ExecutorSid = (PrincipalSid)request.ExecutorSid,
+            TemplateId = (WorkflowTemplateId)templateId
+        };
+
         Result<Unit> result = await mediator.Send(cmd, ct);
 
         return this.ToActionResult(result);

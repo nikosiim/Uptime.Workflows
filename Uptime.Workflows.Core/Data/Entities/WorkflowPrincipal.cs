@@ -3,34 +3,25 @@ using Uptime.Workflows.Core.Enums;
 
 namespace Uptime.Workflows.Core.Data;
 
-public sealed class WorkflowPrincipal : BaseEntity
+public sealed class WorkflowPrincipal : IEntity
 {
+    public int Id { get; init; }
+
     /// <summary>
-    /// A stable, unique ID for this principal (Azure AD oid, Windows SID, or fallback Name).
+    /// A stable, unique ID for this principal (Azure AD oid, Windows SID)
     /// </summary>
-    [Required, MaxLength(200)]
+    [Required, MaxLength(256)]
     public string ExternalId { get; set; } = null!;
-
-    /// <summary>
-    /// A human‐readable name (displayName, UPN, or DOMAIN\username).
-    /// </summary>
-    [Required, MaxLength(100)]
+    [Required, MaxLength(128)]
     public string Name { get; set; } = null!;
-
-    /// <summary>
-    /// User | SharePointGroup | AdGroup
-    /// </summary>
-    public PrincipalType Type { get; set; }
-
-    /// <summary>
-    /// Which auth source this came from: "AzureAD" or "Windows".
-    /// </summary>
-    [Required, MaxLength(50)]
-    public string Source { get; set; } = null!;
-
-    /// <summary>
-    /// Optional email or UPN if present in the token/claims.
-    /// </summary>
-    [MaxLength(200)] 
+    [MaxLength(64)]
+    public string? LoginName { get; set; }
+    [Required, MaxLength(64)]
+    public string Source { get; set; } = "SharePoint";
+    [MaxLength(128)] 
     public string? Email { get; set; }
+    public PrincipalType Type { get; set; }
+    public DateTimeOffset CreatedAtUtc { get; set; }
+    public DateTimeOffset? SyncedAtUtc { get; set; }
+    public DateTimeOffset? DeactivatedAtUtc { get; set; }
 }

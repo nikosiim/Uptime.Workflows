@@ -3,8 +3,10 @@ using Uptime.Workflows.Core.Enums;
 
 namespace Uptime.Workflows.Core.Data;
 
-public sealed class OutboundNotification : BaseEntity
+public sealed class OutboundNotification : IEntity
 {
+    public int Id { get; init; }
+
     public OutboundEventType EventType { get; set; }
 
     public int WorkflowId { get; set; }

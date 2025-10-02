@@ -24,8 +24,14 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    Created = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                    CreatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    CreatedByPrincipalId = table.Column<int>(type: "int", nullable: true),
+                    UpdatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    UpdatedByPrincipalId = table.Column<int>(type: "int", nullable: true),
+                    DeletedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    DeletedByPrincipalId = table.Column<int>(type: "int", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "varbinary(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -39,11 +45,15 @@ namespace Uptime.Workflows.Core.Data.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ExternalId = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    ExternalId = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    LoginName = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
+                    Source = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
                     Type = table.Column<int>(type: "int", nullable: false),
-                    Source = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true)
+                    CreatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    SyncedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    DeactivatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -59,10 +69,15 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Title = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: true),
-                    CreatedBy = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
-                    Created = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LibraryId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    CreatedByPrincipalId = table.Column<int>(type: "int", nullable: true),
+                    UpdatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    UpdatedByPrincipalId = table.Column<int>(type: "int", nullable: true),
+                    DeletedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    DeletedByPrincipalId = table.Column<int>(type: "int", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    LibraryId = table.Column<int>(type: "int", nullable: false)
+                    RowVersion = table.Column<byte[]>(type: "varbinary(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -88,10 +103,15 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     WorkflowBaseId = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     SiteUrl = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: false),
                     AssociationDataJson = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: true),
-                    Created = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Modified = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LibraryId = table.Column<int>(type: "int", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                    CreatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    CreatedByPrincipalId = table.Column<int>(type: "int", nullable: true),
+                    UpdatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    UpdatedByPrincipalId = table.Column<int>(type: "int", nullable: true),
+                    DeletedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    DeletedByPrincipalId = table.Column<int>(type: "int", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "varbinary(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -113,15 +133,22 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     Outcome = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
                     Phase = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
-                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    StartDate = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    EndDate = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     StorageJson = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: true),
                     DocumentId = table.Column<int>(type: "int", nullable: false),
-                    InitiatedByPrincipalId = table.Column<int>(type: "int", nullable: false),
-                    WorkflowTemplateId = table.Column<int>(type: "int", nullable: false)
+                    InitiatedById = table.Column<int>(type: "int", nullable: false),
+                    WorkflowTemplateId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    CreatedByPrincipalId = table.Column<int>(type: "int", nullable: true),
+                    UpdatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    UpdatedByPrincipalId = table.Column<int>(type: "int", nullable: true),
+                    DeletedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    DeletedByPrincipalId = table.Column<int>(type: "int", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "varbinary(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -134,8 +161,8 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Workflows_WorkflowPrincipals_InitiatedByPrincipalId",
-                        column: x => x.InitiatedByPrincipalId,
+                        name: "FK_Workflows_WorkflowPrincipals_InitiatedById",
+                        column: x => x.InitiatedById,
                         principalSchema: "UptimeAPI",
                         principalTable: "WorkflowPrincipals",
                         principalColumn: "Id",
@@ -160,16 +187,15 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     Occurred = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: true),
                     Comment = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: true),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     WorkflowId = table.Column<int>(type: "int", nullable: false),
-                    PerformedByPrincipalId = table.Column<int>(type: "int", nullable: false)
+                    PerformedById = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_WorkflowHistories", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_WorkflowHistories_WorkflowPrincipals_PerformedByPrincipalId",
-                        column: x => x.PerformedByPrincipalId,
+                        name: "FK_WorkflowHistories_WorkflowPrincipals_PerformedById",
+                        column: x => x.PerformedById,
                         principalSchema: "UptimeAPI",
                         principalTable: "WorkflowPrincipals",
                         principalColumn: "Id",
@@ -192,30 +218,36 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     TaskGuid = table.Column<Guid>(type: "uniqueidentifier", nullable: false, defaultValueSql: "NEWSEQUENTIALID()"),
                     InternalStatus = table.Column<int>(type: "int", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
-                    DueDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DueDate = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    EndDate = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: true),
                     StorageJson = table.Column<string>(type: "nvarchar(max)", maxLength: 4096, nullable: true),
                     PhaseId = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: true),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
                     WorkflowId = table.Column<int>(type: "int", nullable: false),
-                    AssignedToPrincipalId = table.Column<int>(type: "int", nullable: false),
-                    AssignedByPrincipalId = table.Column<int>(type: "int", nullable: false)
+                    AssignedToId = table.Column<int>(type: "int", nullable: false),
+                    AssignedById = table.Column<int>(type: "int", nullable: false),
+                    CreatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    CreatedByPrincipalId = table.Column<int>(type: "int", nullable: true),
+                    UpdatedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    UpdatedByPrincipalId = table.Column<int>(type: "int", nullable: true),
+                    DeletedAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    DeletedByPrincipalId = table.Column<int>(type: "int", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "varbinary(max)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_WorkflowTasks", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_WorkflowTasks_WorkflowPrincipals_AssignedByPrincipalId",
-                        column: x => x.AssignedByPrincipalId,
+                        name: "FK_WorkflowTasks_WorkflowPrincipals_AssignedById",
+                        column: x => x.AssignedById,
                         principalSchema: "UptimeAPI",
                         principalTable: "WorkflowPrincipals",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_WorkflowTasks_WorkflowPrincipals_AssignedToPrincipalId",
-                        column: x => x.AssignedToPrincipalId,
+                        name: "FK_WorkflowTasks_WorkflowPrincipals_AssignedToId",
+                        column: x => x.AssignedToId,
                         principalSchema: "UptimeAPI",
                         principalTable: "WorkflowPrincipals",
                         principalColumn: "Id",
@@ -275,57 +307,29 @@ namespace Uptime.Workflows.Core.Data.Migrations
 
             migrationBuilder.InsertData(
                 schema: "UptimeAPI",
-                table: "Libraries",
-                columns: new[] { "Id", "Created", "IsDeleted", "Name" },
-                values: new object[,]
-                {
-                    { 1, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), false, "Lepingud" },
-                    { 2, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), false, "Kirjavahetus" }
-                });
-
-            migrationBuilder.InsertData(
-                schema: "UptimeAPI",
                 table: "WorkflowPrincipals",
-                columns: new[] { "Id", "Email", "ExternalId", "Name", "Source", "Type" },
+                columns: new[] { "Id", "CreatedAtUtc", "DeactivatedAtUtc", "Email", "ExternalId", "LoginName", "Name", "Source", "SyncedAtUtc", "Type" },
                 values: new object[,]
                 {
-                    { 1, "klient1@example.com", "S-1-5-21-10001", "Klient Üks", "Windows", 0 },
-                    { 2, "klient2@example.com", "S-1-5-21-10002", "Klient Kaks", "Windows", 0 },
-                    { 3, "klient3@example.com", "S-1-5-21-10003", "Klient Kolm", "Windows", 0 },
-                    { 4, "klient4@example.com", "S-1-5-21-10004", "Klient Neli", "Windows", 0 },
-                    { 5, "klient5@example.com", "S-1-5-21-10005", "Klient Viis", "Windows", 0 },
-                    { 6, "marika.oja@example.com", "S-1-5-21-10006", "Marika Oja", "Windows", 0 },
-                    { 7, "jana.parn@example.com", "S-1-5-21-10007", "Jana Pärn", "Windows", 0 },
-                    { 8, "piia.saar@example.com", "S-1-5-21-10008", "Piia Saar", "Windows", 0 },
-                    { 9, "urve.oja@example.com", "S-1-5-21-10009", "Urve Oja", "Windows", 0 },
-                    { 10, "peeter.sepp@example.com", "S-1-5-21-10010", "Peeter Sepp", "Windows", 0 },
-                    { 11, "markus.lepik@example.com", "S-1-5-21-10011", "Markus Lepik", "Windows", 0 },
-                    { 12, "marta.laine@example.com", "S-1-5-21-10012", "Marta Laine", "Windows", 0 },
-                    { 13, "anton.rebane@example.com", "S-1-5-21-10013", "Anton Rebane", "Windows", 0 },
-                    { 14, "signe.kask@example.com", "S-1-5-21-10014", "Signe Kask", "Windows", 0 },
-                    { 15, "riin.koppel@example.com", "S-1-5-21-10015", "Riin Koppel", "Windows", 0 },
-                    { 16, "lauri.saar@example.com", "S-1-5-21-10016", "Lauri Saar", "Windows", 0 },
-                    { 17, "viljar.laine@example.com", "S-1-5-21-10017", "Viljar Laine", "Windows", 0 },
-                    { 18, "kristina.kroon@example.com", "S-1-5-21-10018", "Kristina Kroon", "Windows", 0 },
-                    { 19, "system@example.srv", "S-1-5-21-10000", "System", "Windows", 0 }
-                });
-
-            migrationBuilder.InsertData(
-                schema: "UptimeAPI",
-                table: "Documents",
-                columns: new[] { "Id", "Created", "CreatedBy", "Description", "IsDeleted", "LibraryId", "Title" },
-                values: new object[,]
-                {
-                    { 1, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Lauri Saar", "Sofia Kuperštein", false, 1, "Teabenõue" },
-                    { 2, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Riin Koppel", "Vello Lauri", false, 1, "LISA_13.01.2025_7-4.2_277-3" },
-                    { 3, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Jana Pärn", "SK_25.02.2025_9-11_25_59-4", false, 2, "Pöördumine" },
-                    { 4, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Markus Lepik", "AS GoTravel", false, 1, "LEPING_AS GoTravel_18.12.2024_7-4.2_281" },
-                    { 5, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Emma Carter", "Fifth document", false, 2, "IdeaLog" },
-                    { 6, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Marta Laine", "Rethinkers OÜ", false, 1, "LEPING_14.02.2025_7-4.2_293" },
-                    { 7, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Klient Kaks", "Rethinkers OÜ", false, 2, "FastSummary" },
-                    { 8, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Viljar Laine", "PZU Kindlustus", false, 1, "2024 inventuuri lõppakt" },
-                    { 9, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Signe Kask", "Riigi IKT Keskus", false, 2, "Intervjuu tervisekassaga" },
-                    { 10, new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified), "Anton Rebane", "Kaitseministeerium", false, 2, "Juurdepääsupiirangu muutumine" }
+                    { 1, new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "klient1@example.com", "S-1-5-21-10001", null, "Klient Üks", "Windows", null, 0 },
+                    { 2, new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "klient2@example.com", "S-1-5-21-10002", null, "Klient Kaks", "Windows", null, 0 },
+                    { 3, new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "klient3@example.com", "S-1-5-21-10003", null, "Klient Kolm", "Windows", null, 0 },
+                    { 4, new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "klient4@example.com", "S-1-5-21-10004", null, "Klient Neli", "Windows", null, 0 },
+                    { 5, new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "klient5@example.com", "S-1-5-21-10005", null, "Klient Viis", "Windows", null, 0 },
+                    { 6, new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "marika.oja@example.com", "S-1-5-21-10006", null, "Marika Oja", "Windows", null, 0 },
+                    { 7, new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "jana.parn@example.com", "S-1-5-21-10007", null, "Jana Pärn", "Windows", null, 0 },
+                    { 8, new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "piia.saar@example.com", "S-1-5-21-10008", null, "Piia Saar", "Windows", null, 0 },
+                    { 9, new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "urve.oja@example.com", "S-1-5-21-10009", null, "Urve Oja", "Windows", null, 0 },
+                    { 10, new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "peeter.sepp@example.com", "S-1-5-21-10010", null, "Peeter Sepp", "Windows", null, 0 },
+                    { 11, new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "markus.lepik@example.com", "S-1-5-21-10011", null, "Markus Lepik", "Windows", null, 0 },
+                    { 12, new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "marta.laine@example.com", "S-1-5-21-10012", null, "Marta Laine", "Windows", null, 0 },
+                    { 13, new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "anton.rebane@example.com", "S-1-5-21-10013", null, "Anton Rebane", "Windows", null, 0 },
+                    { 14, new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "signe.kask@example.com", "S-1-5-21-10014", null, "Signe Kask", "Windows", null, 0 },
+                    { 15, new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "riin.koppel@example.com", "S-1-5-21-10015", null, "Riin Koppel", "Windows", null, 0 },
+                    { 16, new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "lauri.saar@example.com", "S-1-5-21-10016", null, "Lauri Saar", "Windows", null, 0 },
+                    { 17, new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "viljar.laine@example.com", "S-1-5-21-10017", null, "Viljar Laine", "Windows", null, 0 },
+                    { 18, new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "kristina.kroon@example.com", "S-1-5-21-10018", null, "Kristina Kroon", "Windows", null, 0 },
+                    { 19, new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), null, "system@example.srv", "S-1-5-21-10000", null, "System", "Windows", null, 0 }
                 });
 
             migrationBuilder.CreateIndex(
@@ -372,10 +376,10 @@ namespace Uptime.Workflows.Core.Data.Migrations
                 column: "WorkflowTaskId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WorkflowHistories_PerformedByPrincipalId",
+                name: "IX_WorkflowHistories_PerformedById",
                 schema: "UptimeAPI",
                 table: "WorkflowHistories",
-                column: "PerformedByPrincipalId");
+                column: "PerformedById");
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkflowHistories_WorkflowId",
@@ -390,10 +394,10 @@ namespace Uptime.Workflows.Core.Data.Migrations
                 column: "DocumentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Workflows_InitiatedByPrincipalId",
+                name: "IX_Workflows_InitiatedById",
                 schema: "UptimeAPI",
                 table: "Workflows",
-                column: "InitiatedByPrincipalId");
+                column: "InitiatedById");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Workflows_WorkflowTemplateId",
@@ -402,16 +406,16 @@ namespace Uptime.Workflows.Core.Data.Migrations
                 column: "WorkflowTemplateId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WorkflowTasks_AssignedByPrincipalId",
+                name: "IX_WorkflowTasks_AssignedById",
                 schema: "UptimeAPI",
                 table: "WorkflowTasks",
-                column: "AssignedByPrincipalId");
+                column: "AssignedById");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WorkflowTasks_AssignedToPrincipalId_InternalStatus",
+                name: "IX_WorkflowTasks_AssignedToId_InternalStatus",
                 schema: "UptimeAPI",
                 table: "WorkflowTasks",
-                columns: new[] { "AssignedToPrincipalId", "InternalStatus" });
+                columns: new[] { "AssignedToId", "InternalStatus" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkflowTasks_PhaseId",

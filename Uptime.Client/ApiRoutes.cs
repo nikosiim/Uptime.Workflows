@@ -7,8 +7,6 @@ public static class ApiRoutes
     public static class Libraries
     {
         private const string Base = "api/libraries";
-        public const string GetLibrary = $"{Base}/{{libraryId}}";
-        public const string GetDocuments = $"{Base}/{{libraryId}}/documents";
         public const string GetWorkflowTemplates = $"{Base}/{{libraryId}}/workflow-templates";
     }
 

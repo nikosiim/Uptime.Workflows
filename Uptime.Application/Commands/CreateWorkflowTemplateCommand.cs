@@ -1,11 +1,15 @@
 ﻿using Uptime.Workflows.Application.Messaging;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
+using Uptime.Workflows.Core.Interfaces;
+using Uptime.Workflows.Core.Models;
+using Uptime.Workflows.Core.Services;
 
 namespace Uptime.Workflows.Application.Commands;
 
-public record CreateWorkflowTemplateCommand : IRequest<Result<WorkflowTemplateId>>
+public record CreateWorkflowTemplateCommand : IRequest<Result<WorkflowTemplateId>>, IRequiresPrincipal
 {
+    public required PrincipalSid ExecutorSid { get; init; }
     public required string TemplateName { get; init; }
     public required string WorkflowName { get; init; }
     public required string WorkflowBaseId { get; init; }
@@ -14,14 +18,16 @@ public record CreateWorkflowTemplateCommand : IRequest<Result<WorkflowTemplateId
     public required string SourceSiteUrl { get; init; }
 }
 
-public class CreateWorkflowTemplateCommandHandler(WorkflowDbContext db)
+public class CreateWorkflowTemplateCommandHandler(WorkflowDbContext db, IPrincipalResolver principalResolver)
     : IRequestHandler<CreateWorkflowTemplateCommand, Result<WorkflowTemplateId>>
 {
     public async Task<Result<WorkflowTemplateId>> Handle(CreateWorkflowTemplateCommand request, CancellationToken ct)
     {
         string normalized = SiteUrlValidator.Normalize(request.SourceSiteUrl);
-
         await SiteUrlValidator.EnsureHostResolvesAsync(normalized, ct);
+
+        Principal executor = await principalResolver.ResolveBySidAsync(request.ExecutorSid, ct);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
 
         var template = new WorkflowTemplate
         {
@@ -29,10 +35,13 @@ public class CreateWorkflowTemplateCommandHandler(WorkflowDbContext db)
             WorkflowName = request.WorkflowName,
             WorkflowBaseId = request.WorkflowBaseId,
             AssociationDataJson = request.AssociationDataJson,
-            Created = DateTime.UtcNow,
-            Modified = DateTime.UtcNow,
             LibraryId = request.LibraryId.Value,
-            SiteUrl = normalized
+            SiteUrl = normalized,
+            CreatedAtUtc = now,
+            CreatedByPrincipalId = executor.Id.Value,
+            UpdatedAtUtc = null,
+            UpdatedByPrincipalId = null,
+            IsDeleted = false
         };
 
         db.WorkflowTemplates.Add(template);

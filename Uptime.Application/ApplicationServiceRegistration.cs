@@ -59,7 +59,6 @@ public static class ApplicationServiceRegistration
         });
 
         services.AddScoped<IOutboundNotificationService, OutboundNotificationService>();
-        //services.AddSingleton<IWorkflowOutboundNotifier, LoggingWorkflowNotifier>();
 
         // Workflow factory
         services.AddScoped<IWorkflowFactory>(sp =>

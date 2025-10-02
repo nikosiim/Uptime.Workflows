@@ -19,18 +19,15 @@ public class TaskService(IDbContextFactory<WorkflowDbContext> factory) : ITaskSe
         {
             throw new InvalidOperationException($"Workflow with ID {workflowId} does not exist.");
         }
-
-        const WorkflowTaskStatus status = WorkflowTaskStatus.NotStarted;
-
+        
         var workflowTask = new WorkflowTask
         {
             WorkflowId = workflowId.Value,
-            AssignedToPrincipalId = assignedTo.Value,
-            AssignedByPrincipalId = assignedBy.Value,
+            AssignedToId = assignedTo.Value,
+            AssignedById = assignedBy.Value,
             DueDate = context.DueDate,
             Description = context.Description,
-            Status = status.ToString(),
-            InternalStatus = status,
+            InternalStatus = WorkflowTaskStatus.NotStarted,
             PhaseId = context.PhaseId,
             StorageJson = JsonSerializer.Serialize(context.Storage)
         };
@@ -51,9 +48,7 @@ public class TaskService(IDbContextFactory<WorkflowDbContext> factory) : ITaskSe
             throw new KeyNotFoundException($"Task {context.TaskGuid} not found.");
         }
 
-        WorkflowTaskStatus status = context.GetTaskStatus();
-        task.Status = status.ToString();
-        task.InternalStatus = status;
+        task.InternalStatus = context.GetTaskStatus();
         task.StorageJson = JsonSerializer.Serialize(context.Storage);
 
         await db.SaveChangesAsync(ct);
@@ -71,7 +66,6 @@ public class TaskService(IDbContextFactory<WorkflowDbContext> factory) : ITaskSe
 
         foreach (WorkflowTask task in tasks)
         {
-            task.Status = status.ToString();
             task.InternalStatus = status;
             task.EndDate = DateTime.UtcNow;
         }

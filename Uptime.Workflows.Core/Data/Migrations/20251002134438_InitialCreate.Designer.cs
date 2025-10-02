@@ -12,7 +12,7 @@ using Uptime.Workflows.Core.Data;
 namespace Uptime.Workflows.Core.Data.Migrations
 {
     [DbContext(typeof(WorkflowDbContext))]
-    [Migration("20251001152650_InitialCreate")]
+    [Migration("20251002134438_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -34,12 +34,17 @@ namespace Uptime.Workflows.Core.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                    b.Property<int?>("CreatedByPrincipalId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("DeletedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("DeletedByPrincipalId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .HasMaxLength(512)
@@ -51,118 +56,26 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     b.Property<int>("LibraryId")
                         .HasColumnType("int");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("UpdatedByPrincipalId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("LibraryId");
 
                     b.ToTable("Documents", "UptimeAPI");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "Lauri Saar",
-                            Description = "Sofia Kuperštein",
-                            IsDeleted = false,
-                            LibraryId = 1,
-                            Title = "Teabenõue"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "Riin Koppel",
-                            Description = "Vello Lauri",
-                            IsDeleted = false,
-                            LibraryId = 1,
-                            Title = "LISA_13.01.2025_7-4.2_277-3"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "Jana Pärn",
-                            Description = "SK_25.02.2025_9-11_25_59-4",
-                            IsDeleted = false,
-                            LibraryId = 2,
-                            Title = "Pöördumine"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "Markus Lepik",
-                            Description = "AS GoTravel",
-                            IsDeleted = false,
-                            LibraryId = 1,
-                            Title = "LEPING_AS GoTravel_18.12.2024_7-4.2_281"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "Emma Carter",
-                            Description = "Fifth document",
-                            IsDeleted = false,
-                            LibraryId = 2,
-                            Title = "IdeaLog"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "Marta Laine",
-                            Description = "Rethinkers OÜ",
-                            IsDeleted = false,
-                            LibraryId = 1,
-                            Title = "LEPING_14.02.2025_7-4.2_293"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "Klient Kaks",
-                            Description = "Rethinkers OÜ",
-                            IsDeleted = false,
-                            LibraryId = 2,
-                            Title = "FastSummary"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "Viljar Laine",
-                            Description = "PZU Kindlustus",
-                            IsDeleted = false,
-                            LibraryId = 1,
-                            Title = "2024 inventuuri lõppakt"
-                        },
-                        new
-                        {
-                            Id = 9,
-                            Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "Signe Kask",
-                            Description = "Riigi IKT Keskus",
-                            IsDeleted = false,
-                            LibraryId = 2,
-                            Title = "Intervjuu tervisekassaga"
-                        },
-                        new
-                        {
-                            Id = 10,
-                            Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            CreatedBy = "Anton Rebane",
-                            Description = "Kaitseministeerium",
-                            IsDeleted = false,
-                            LibraryId = 2,
-                            Title = "Juurdepääsupiirangu muutumine"
-                        });
                 });
 
             modelBuilder.Entity("Uptime.Workflows.Core.Data.Library", b =>
@@ -173,8 +86,17 @@ namespace Uptime.Workflows.Core.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("CreatedByPrincipalId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("DeletedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("DeletedByPrincipalId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -184,25 +106,19 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("UpdatedByPrincipalId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.ToTable("Libraries", "UptimeAPI");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            IsDeleted = false,
-                            Name = "Lepingud"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Created = new DateTime(2015, 5, 15, 13, 45, 0, 0, DateTimeKind.Unspecified),
-                            IsDeleted = false,
-                            Name = "Kirjavahetus"
-                        });
                 });
 
             modelBuilder.Entity("Uptime.Workflows.Core.Data.OutboundNotification", b =>
@@ -300,13 +216,25 @@ namespace Uptime.Workflows.Core.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("CreatedByPrincipalId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("DeletedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("DeletedByPrincipalId")
+                        .HasColumnType("int");
+
                     b.Property<int>("DocumentId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset?>("EndDate")
+                        .HasColumnType("datetimeoffset");
 
-                    b.Property<int>("InitiatedByPrincipalId")
+                    b.Property<int>("InitiatedById")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
@@ -324,12 +252,22 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTimeOffset>("StartDate")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("StorageJson")
                         .HasMaxLength(4096)
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("UpdatedByPrincipalId")
+                        .HasColumnType("int");
 
                     b.Property<int>("WorkflowTemplateId")
                         .HasColumnType("int");
@@ -338,7 +276,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
 
                     b.HasIndex("DocumentId");
 
-                    b.HasIndex("InitiatedByPrincipalId");
+                    b.HasIndex("InitiatedById");
 
                     b.HasIndex("WorkflowTemplateId");
 
@@ -364,13 +302,10 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     b.Property<int>("Event")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<DateTime>("Occurred")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("PerformedByPrincipalId")
+                    b.Property<int>("PerformedById")
                         .HasColumnType("int");
 
                     b.Property<int>("WorkflowId")
@@ -378,7 +313,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PerformedByPrincipalId");
+                    b.HasIndex("PerformedById");
 
                     b.HasIndex("WorkflowId");
 
@@ -393,24 +328,37 @@ namespace Uptime.Workflows.Core.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("DeactivatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<string>("Email")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("ExternalId")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("LoginName")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("Source")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTimeOffset?>("SyncedAtUtc")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<int>("Type")
                         .HasColumnType("int");
@@ -423,6 +371,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         new
                         {
                             Id = 1,
+                            CreatedAtUtc = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "klient1@example.com",
                             ExternalId = "S-1-5-21-10001",
                             Name = "Klient Üks",
@@ -432,6 +381,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         new
                         {
                             Id = 2,
+                            CreatedAtUtc = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "klient2@example.com",
                             ExternalId = "S-1-5-21-10002",
                             Name = "Klient Kaks",
@@ -441,6 +391,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         new
                         {
                             Id = 3,
+                            CreatedAtUtc = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "klient3@example.com",
                             ExternalId = "S-1-5-21-10003",
                             Name = "Klient Kolm",
@@ -450,6 +401,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         new
                         {
                             Id = 4,
+                            CreatedAtUtc = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "klient4@example.com",
                             ExternalId = "S-1-5-21-10004",
                             Name = "Klient Neli",
@@ -459,6 +411,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         new
                         {
                             Id = 5,
+                            CreatedAtUtc = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "klient5@example.com",
                             ExternalId = "S-1-5-21-10005",
                             Name = "Klient Viis",
@@ -468,6 +421,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         new
                         {
                             Id = 6,
+                            CreatedAtUtc = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "marika.oja@example.com",
                             ExternalId = "S-1-5-21-10006",
                             Name = "Marika Oja",
@@ -477,6 +431,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         new
                         {
                             Id = 7,
+                            CreatedAtUtc = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "jana.parn@example.com",
                             ExternalId = "S-1-5-21-10007",
                             Name = "Jana Pärn",
@@ -486,6 +441,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         new
                         {
                             Id = 8,
+                            CreatedAtUtc = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "piia.saar@example.com",
                             ExternalId = "S-1-5-21-10008",
                             Name = "Piia Saar",
@@ -495,6 +451,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         new
                         {
                             Id = 9,
+                            CreatedAtUtc = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "urve.oja@example.com",
                             ExternalId = "S-1-5-21-10009",
                             Name = "Urve Oja",
@@ -504,6 +461,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         new
                         {
                             Id = 10,
+                            CreatedAtUtc = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "peeter.sepp@example.com",
                             ExternalId = "S-1-5-21-10010",
                             Name = "Peeter Sepp",
@@ -513,6 +471,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         new
                         {
                             Id = 11,
+                            CreatedAtUtc = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "markus.lepik@example.com",
                             ExternalId = "S-1-5-21-10011",
                             Name = "Markus Lepik",
@@ -522,6 +481,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         new
                         {
                             Id = 12,
+                            CreatedAtUtc = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "marta.laine@example.com",
                             ExternalId = "S-1-5-21-10012",
                             Name = "Marta Laine",
@@ -531,6 +491,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         new
                         {
                             Id = 13,
+                            CreatedAtUtc = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "anton.rebane@example.com",
                             ExternalId = "S-1-5-21-10013",
                             Name = "Anton Rebane",
@@ -540,6 +501,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         new
                         {
                             Id = 14,
+                            CreatedAtUtc = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "signe.kask@example.com",
                             ExternalId = "S-1-5-21-10014",
                             Name = "Signe Kask",
@@ -549,6 +511,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         new
                         {
                             Id = 15,
+                            CreatedAtUtc = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "riin.koppel@example.com",
                             ExternalId = "S-1-5-21-10015",
                             Name = "Riin Koppel",
@@ -558,6 +521,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         new
                         {
                             Id = 16,
+                            CreatedAtUtc = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "lauri.saar@example.com",
                             ExternalId = "S-1-5-21-10016",
                             Name = "Lauri Saar",
@@ -567,6 +531,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         new
                         {
                             Id = 17,
+                            CreatedAtUtc = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "viljar.laine@example.com",
                             ExternalId = "S-1-5-21-10017",
                             Name = "Viljar Laine",
@@ -576,6 +541,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         new
                         {
                             Id = 18,
+                            CreatedAtUtc = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "kristina.kroon@example.com",
                             ExternalId = "S-1-5-21-10018",
                             Name = "Kristina Kroon",
@@ -585,6 +551,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         new
                         {
                             Id = 19,
+                            CreatedAtUtc = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Email = "system@example.srv",
                             ExternalId = "S-1-5-21-10000",
                             Name = "System",
@@ -601,21 +568,33 @@ namespace Uptime.Workflows.Core.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("AssignedByPrincipalId")
+                    b.Property<int>("AssignedById")
                         .HasColumnType("int");
 
-                    b.Property<int>("AssignedToPrincipalId")
+                    b.Property<int>("AssignedToId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("CreatedByPrincipalId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("DeletedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("DeletedByPrincipalId")
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .HasMaxLength(2048)
                         .HasColumnType("nvarchar(2048)");
 
-                    b.Property<DateTime?>("DueDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset?>("DueDate")
+                        .HasColumnType("datetimeoffset");
 
-                    b.Property<DateTime?>("EndDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset?>("EndDate")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<int>("InternalStatus")
                         .HasColumnType("int");
@@ -627,10 +606,9 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
-                    b.Property<string>("Status")
+                    b.Property<byte[]>("RowVersion")
                         .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
+                        .HasColumnType("varbinary(max)");
 
                     b.Property<string>("StorageJson")
                         .HasMaxLength(4096)
@@ -641,19 +619,25 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("NEWSEQUENTIALID()");
 
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("UpdatedByPrincipalId")
+                        .HasColumnType("int");
+
                     b.Property<int>("WorkflowId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AssignedByPrincipalId");
+                    b.HasIndex("AssignedById");
 
                     b.HasIndex("PhaseId");
 
                     b.HasIndex("TaskGuid")
                         .IsUnique();
 
-                    b.HasIndex("AssignedToPrincipalId", "InternalStatus");
+                    b.HasIndex("AssignedToId", "InternalStatus");
 
                     b.HasIndex("WorkflowId", "InternalStatus");
 
@@ -672,8 +656,17 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         .HasMaxLength(2048)
                         .HasColumnType("nvarchar(2048)");
 
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("CreatedByPrincipalId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("DeletedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("DeletedByPrincipalId")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -681,8 +674,9 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     b.Property<int>("LibraryId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("Modified")
-                        .HasColumnType("datetime2");
+                    b.Property<byte[]>("RowVersion")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
 
                     b.Property<string>("SiteUrl")
                         .IsRequired()
@@ -693,6 +687,12 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("UpdatedByPrincipalId")
+                        .HasColumnType("int");
 
                     b.Property<string>("WorkflowBaseId")
                         .IsRequired()
@@ -748,9 +748,9 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Uptime.Workflows.Core.Data.WorkflowPrincipal", "InitiatedByPrincipal")
+                    b.HasOne("Uptime.Workflows.Core.Data.WorkflowPrincipal", "InitiatedBy")
                         .WithMany()
-                        .HasForeignKey("InitiatedByPrincipalId")
+                        .HasForeignKey("InitiatedById")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -762,16 +762,16 @@ namespace Uptime.Workflows.Core.Data.Migrations
 
                     b.Navigation("Document");
 
-                    b.Navigation("InitiatedByPrincipal");
+                    b.Navigation("InitiatedBy");
 
                     b.Navigation("WorkflowTemplate");
                 });
 
             modelBuilder.Entity("Uptime.Workflows.Core.Data.WorkflowHistory", b =>
                 {
-                    b.HasOne("Uptime.Workflows.Core.Data.WorkflowPrincipal", "PerformedByPrincipal")
+                    b.HasOne("Uptime.Workflows.Core.Data.WorkflowPrincipal", "PerformedBy")
                         .WithMany()
-                        .HasForeignKey("PerformedByPrincipalId")
+                        .HasForeignKey("PerformedById")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -781,7 +781,7 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("PerformedByPrincipal");
+                    b.Navigation("PerformedBy");
 
                     b.Navigation("Workflow");
                 });
@@ -790,13 +790,13 @@ namespace Uptime.Workflows.Core.Data.Migrations
                 {
                     b.HasOne("Uptime.Workflows.Core.Data.WorkflowPrincipal", "AssignedBy")
                         .WithMany()
-                        .HasForeignKey("AssignedByPrincipalId")
+                        .HasForeignKey("AssignedById")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Uptime.Workflows.Core.Data.WorkflowPrincipal", "AssignedTo")
                         .WithMany()
-                        .HasForeignKey("AssignedToPrincipalId")
+                        .HasForeignKey("AssignedToId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

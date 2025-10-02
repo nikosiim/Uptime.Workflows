@@ -8,8 +8,8 @@ public record WorkflowTaskResponse
     public string Status { get; init; } = null!;
     public int InternalStatus { get; init; }
     public string? Description { get; init; }
-    public DateTime? DueDate { get; init; }
-    public DateTime? EndDate { get; init; }
+    public DateTimeOffset? DueDate { get; init; }
+    public DateTimeOffset? EndDate { get; init; }
     public string? StorageJson { get; init; }
     public string? Document { get; init; }
     public int WorkflowId { get; init; }

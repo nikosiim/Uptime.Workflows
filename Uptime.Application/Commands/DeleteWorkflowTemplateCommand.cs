@@ -3,13 +3,20 @@ using Microsoft.Extensions.Logging;
 using Uptime.Workflows.Application.Messaging;
 using Uptime.Workflows.Core.Common;
 using Uptime.Workflows.Core.Data;
+using Uptime.Workflows.Core.Interfaces;
+using Uptime.Workflows.Core.Models;
+using Uptime.Workflows.Core.Services;
 using Unit = Uptime.Workflows.Core.Common.Unit;
 
 namespace Uptime.Workflows.Application.Commands;
 
-public record DeleteWorkflowTemplateCommand(WorkflowTemplateId TemplateId) : IRequest<Result<Unit>>;
+public record DeleteWorkflowTemplateCommand : IRequest<Result<Unit>>, IRequiresPrincipal
+{
+    public required PrincipalSid ExecutorSid { get; init; }
+    public required WorkflowTemplateId TemplateId { get; init; }
+}
 
-public class DeleteWorkflowTemplateCommandHandler(WorkflowDbContext db, ILogger<DeleteWorkflowTemplateCommand> logger)
+public class DeleteWorkflowTemplateCommandHandler(WorkflowDbContext db, IPrincipalResolver principalResolver, ILogger<DeleteWorkflowTemplateCommand> logger)
     : IRequestHandler<DeleteWorkflowTemplateCommand, Result<Unit>>
 {
     public async Task<Result<Unit>> Handle(DeleteWorkflowTemplateCommand request, CancellationToken ct)
@@ -19,15 +26,21 @@ public class DeleteWorkflowTemplateCommandHandler(WorkflowDbContext db, ILogger<
 
         WorkflowTemplate? template = await db.WorkflowTemplates.FirstOrDefaultAsync(t => t.Id == request.TemplateId.Value, ct);
         if (template == null)
-            return Result<Unit>.Failure(ErrorCode.NotFound);
+            return Result<Unit>.Failure(ErrorCode.NotFound, "Workflow template not found.");
 
         bool inUse = await db.Workflows.AnyAsync(w => w.WorkflowTemplateId == request.TemplateId.Value && w.IsActive, ct);
         if (inUse)
-        {
             return Result<Unit>.Failure(ErrorCode.Conflict, "Cannot delete template: it’s used by existing workflows.");
-        }
+
+        Principal executor = await principalResolver.ResolveBySidAsync(request.ExecutorSid, ct);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
 
         template.IsDeleted = true;
+        template.DeletedAtUtc = now;
+        template.DeletedByPrincipalId = executor.Id.Value;
+        template.UpdatedAtUtc = now;
+        template.UpdatedByPrincipalId = executor.Id.Value;
+
         await db.SaveChangesAsync(ct);
 
         logger.LogInformation("Workflow template with ID {TemplateId} deleted.", request.TemplateId.Value);

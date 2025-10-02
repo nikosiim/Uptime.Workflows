@@ -1,5 +1,4 @@
-﻿using Uptime.Shared.Models.WorkflowTemplates;
-using Uptime.Workflows.Api.Contracts;
+﻿using Uptime.Workflows.Api.Contracts;
 using Uptime.Workflows.Application.DTOs;
 using DomainWorkflowDefinition = Uptime.Workflows.Core.WorkflowDefinition;
 using DomainWorkflowEventType = Uptime.Workflows.Core.Enums.WorkflowEventType;
@@ -118,7 +117,7 @@ public static class Mapper
             Name = dto.Name,
             WorkflowBaseId = dto.WorkflowBaseId,
             AssociationDataJson = dto.AssociationDataJson,
-            Created = dto.Created
+            Created = dto.CreatedAtUtc
         };
     }
 }

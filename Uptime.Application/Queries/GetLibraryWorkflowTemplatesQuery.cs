@@ -21,7 +21,7 @@ public class GetLibraryWorkflowTemplatesQueryHandler(WorkflowDbContext db)
                 Name = w.TemplateName,
                 WorkflowBaseId = w.WorkflowBaseId,
                 AssociationDataJson = w.AssociationDataJson,
-                Created = w.Created
+                Created = w.CreatedAtUtc.UtcDateTime
             })
             .ToListAsync(ct);
     }

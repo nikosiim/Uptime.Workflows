@@ -1,7 +1,9 @@
-﻿using MediatR;
+﻿using Fluxor;
+using MediatR;
 using Uptime.Client.Application.Common;
 using Uptime.Client.Application.Services;
 using Uptime.Client.Contracts;
+using Uptime.Client.StateManagement.Workflow;
 
 namespace Uptime.Client.Application.Commands;
 
@@ -14,13 +16,16 @@ public record CreateWorkflowTemplateCommand : IRequest<Result<int>>
     public string? AssociationDataJson { get; init; }
 }
 
-public class CreateWorkflowTemplateCommandHandler(IApiService apiService)
+public class CreateWorkflowTemplateCommandHandler(IApiService apiService, IState<WorkflowState> workflowState)
     : IRequestHandler<CreateWorkflowTemplateCommand, Result<int>>
 {
-    public async Task<Result<int>> Handle(CreateWorkflowTemplateCommand request, CancellationToken cancellationToken)
+    public async Task<Result<int>> Handle(CreateWorkflowTemplateCommand request, CancellationToken ct)
     {
+        User executor = User.OrSystemAccount(workflowState.Value.CurrentUser);
+
         var createRequest = new WorkflowTemplateCreateRequest {
-            SourceSiteUrl = "https://uptimesharepoint",
+            ExecutorSid = executor.Sid,
+            SourceSiteUrl = "https://uptimesharepoint", // TODO: get real site URL
             TemplateName = request.TemplateName,
             WorkflowName = request.WorkflowName,
             WorkflowBaseId = request.WorkflowBaseId,
@@ -29,7 +34,7 @@ public class CreateWorkflowTemplateCommandHandler(IApiService apiService)
         };
 
         Result<CreateWorkflowTemplateResponse> result = await apiService.CreateAsync<object, CreateWorkflowTemplateResponse>(
-            ApiRoutes.WorkflowTemplates.CreateTemplate, createRequest, cancellationToken);
+            ApiRoutes.WorkflowTemplates.CreateTemplate, createRequest, ct);
       
         return result.Succeeded
             ? Result<int>.Success(result.Value?.Id ?? 0)

@@ -7,7 +7,7 @@ namespace Uptime.Workflows.Core;
 
 public static class WorkflowActivityContextFactory
 {
-    public static WorkflowActivityContext CreateNew(string? phaseId, PrincipalSid assignedToSid, string? description, DateTime? dueDate)
+    public static WorkflowActivityContext CreateNew(string? phaseId, PrincipalSid assignedToSid, string? description, DateTimeOffset? dueDate)
     {
         var ctx = new WorkflowActivityContext
         {
@@ -24,7 +24,7 @@ public static class WorkflowActivityContextFactory
     }
 
     public static WorkflowActivityContext FromDatabase(Guid taskGuid, string? phaseId, string? description,
-        PrincipalSid assignedToSid, DateTime? dueDate, string? storageJson)
+        PrincipalSid assignedToSid, DateTimeOffset? dueDate, string? storageJson)
     {
         return new WorkflowActivityContext
         {

@@ -19,84 +19,80 @@ public class WorkflowDbContext(DbContextOptions options) : DbContext(options)
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.HasDefaultSchema("UptimeAPI");
-
-        // Library -> Documents (Cascade delete)
+        
+        // --- Library -> Documents (Cascade delete)
         modelBuilder.Entity<Document>()
             .HasOne(d => d.Library)
             .WithMany(l => l.Documents)
             .HasForeignKey(d => d.LibraryId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Library -> WorkflowTemplates (Cascade delete)
+        // --- Library -> WorkflowTemplates (Cascade delete)
         modelBuilder.Entity<WorkflowTemplate>()
             .HasOne(wt => wt.Library)
             .WithMany(l => l.WorkflowTemplates)
             .HasForeignKey(wt => wt.LibraryId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Document -> Workflows (Cascade delete)
+        // --- Document -> Workflows (Cascade delete)
         modelBuilder.Entity<Workflow>()
             .HasOne(w => w.Document)
             .WithMany(d => d.Workflows)
             .HasForeignKey(w => w.DocumentId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // WorkflowTemplate -> Workflows (No cascade, restrict delete)
+        // --- WorkflowTemplate -> Workflows (Restrict delete)
         modelBuilder.Entity<Workflow>()
             .HasOne(w => w.WorkflowTemplate)
             .WithMany(wt => wt.Workflows)
             .HasForeignKey(w => w.WorkflowTemplateId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Workflow -> WorkflowTasks (Cascade delete)
+        // --- Workflow -> WorkflowTasks (Cascade delete)
         modelBuilder.Entity<WorkflowTask>()
             .HasOne(t => t.Workflow)
             .WithMany(w => w.WorkflowTasks)
             .HasForeignKey(t => t.WorkflowId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Workflow -> WorkflowHistories (Cascade delete)
+        // --- Workflow -> WorkflowHistories (Cascade delete)
         modelBuilder.Entity<WorkflowHistory>()
             .HasOne(h => h.Workflow)
             .WithMany(w => w.WorkflowHistories)
             .HasForeignKey(h => h.WorkflowId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // WorkflowTask -> WorkflowPrincipal (AssignedTo, Restrict delete)
+        // --- WorkflowTask -> WorkflowPrincipal (AssignedTo, Restrict)
         modelBuilder.Entity<WorkflowTask>()
             .HasOne(t => t.AssignedTo)
             .WithMany()
-            .HasForeignKey(t => t.AssignedToPrincipalId)
+            .HasForeignKey(t => t.AssignedToId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // WorkflowTask -> WorkflowPrincipal (AssignedBy, Restrict delete)
+        // --- WorkflowTask -> WorkflowPrincipal (AssignedBy, Restrict)
         modelBuilder.Entity<WorkflowTask>()
             .HasOne(t => t.AssignedBy)
             .WithMany()
-            .HasForeignKey(t => t.AssignedByPrincipalId)
+            .HasForeignKey(t => t.AssignedById)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Workflow -> WorkflowPrincipal (InitiatedBy, Restrict delete)
+        // --- Workflow -> WorkflowPrincipal (InitiatedBy, Restrict)
         modelBuilder.Entity<Workflow>()
-            .HasOne(w => w.InitiatedByPrincipal)
+            .HasOne(w => w.InitiatedBy)
             .WithMany()
-            .HasForeignKey(w => w.InitiatedByPrincipalId)
+            .HasForeignKey(w => w.InitiatedById)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // WorkflowHistory -> WorkflowPrincipal (PerformedBy, Restrict delete, nullable FK)
+        // --- WorkflowHistory -> WorkflowPrincipal (PerformedBy, Restrict, nullable FK)
         modelBuilder.Entity<WorkflowHistory>()
-            .HasOne(h => h.PerformedByPrincipal)
+            .HasOne(h => h.PerformedBy)
             .WithMany()
-            .HasForeignKey(h => h.PerformedByPrincipalId)
+            .HasForeignKey(h => h.PerformedById)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // WorkflowTask model configuration (TaskGuid as external ID)
+        // --- WorkflowTask model configuration (TaskGuid as external ID)
         modelBuilder.Entity<WorkflowTask>(b =>
         {
-            // PK stays Id (clustered by default)
-            b.HasKey(t => t.Id);
-
-            // TaskGuid: required, generated on insert if not set, immutable after save
             b.Property(t => t.TaskGuid)
                 .IsRequired()
                 .ValueGeneratedOnAdd()
@@ -104,15 +100,13 @@ public class WorkflowDbContext(DbContextOptions options) : DbContext(options)
             b.Property(t => t.TaskGuid).Metadata.SetAfterSaveBehavior(
                 Microsoft.EntityFrameworkCore.Metadata.PropertySaveBehavior.Throw);
 
-            // Alternate key for public lookups
             b.HasIndex(t => t.TaskGuid).IsUnique();
-
-            // Helpful query indexes (tune as needed)
-            b.HasIndex(t => new { t.AssignedToPrincipalId, t.InternalStatus });
+            b.HasIndex(t => new { t.AssignedToId, t.InternalStatus });
             b.HasIndex(t => new { t.WorkflowId, t.InternalStatus });
             b.HasIndex(t => t.PhaseId);
         });
 
+        // --- OutboundNotification (system/outbox table)
         modelBuilder.Entity<OutboundNotification>(b =>
         {
             b.HasKey(n => n.Id);
@@ -136,16 +130,14 @@ public class WorkflowDbContext(DbContextOptions options) : DbContext(options)
                 .OnDelete(DeleteBehavior.SetNull);
 
             // Helpful indexes
-            b.HasIndex(n => n.UniqueKey).IsUnique(); // <--- Only declare once!
+            b.HasIndex(n => n.UniqueKey).IsUnique();
             b.HasIndex(n => new { n.WorkflowId, n.EventType, n.Status });
             b.HasIndex(n => n.TaskGuid);
             b.HasIndex(n => n.PhaseId);
             b.HasIndex(n => n.CreatedAtUtc);
         });
 
-        // Apply configurations if any (e.g., for seeding or property configs)
-        modelBuilder.ApplyConfiguration(new DocumentConfiguration());
-        modelBuilder.ApplyConfiguration(new LibraryConfiguration());
+        // --- Apply per-entity configurations (if you keep them)
         modelBuilder.ApplyConfiguration(new WorkflowPrincipalConfiguration());
     }
 }

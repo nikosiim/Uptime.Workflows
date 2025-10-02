@@ -24,7 +24,7 @@ public class GetWorkflowTasksQueryHandler(WorkflowDbContext db)
                 TaskGuid = task.TaskGuid,
                 AssignedTo = task.AssignedTo.Name,
                 AssignedBy = task.AssignedBy.Name,
-                DisplayStatus = task.Status,
+                DisplayStatus = task.InternalStatus.ToString(),
                 InternalStatus = task.InternalStatus,
                 Description = task.Description,
                 DueDate = task.DueDate,

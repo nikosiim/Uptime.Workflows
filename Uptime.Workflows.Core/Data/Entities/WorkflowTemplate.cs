@@ -14,12 +14,9 @@ public sealed class WorkflowTemplate : BaseEntity
     public string SiteUrl { get; set; } = null!;
     [StringLength(2048)]
     public string? AssociationDataJson { get; set; }
-    public DateTime Created { get; set; }
-    public DateTime Modified { get; set; }
-    public int LibraryId { get; set; }
-    public bool IsDeleted { get; set; }
 
     // Navigation properties
+    public int LibraryId { get; set; }
     public Library Library { get; set; } = null!;
     public ICollection<Workflow>? Workflows { get; set; }
 }

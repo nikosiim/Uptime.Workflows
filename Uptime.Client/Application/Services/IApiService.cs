@@ -10,4 +10,5 @@ public interface IApiService
     Task<Result<bool>> PostAsJsonAsync<T>(string url, T payload, CancellationToken token);
     Task<Result<bool>> UpdateAsync<T>(string url, T payload, CancellationToken token);
     Task<Result<bool>> DeleteAsync(string url, CancellationToken token);
+    Task<Result<bool>> DeleteAsync<T>(string url, T payload, CancellationToken token);
 }

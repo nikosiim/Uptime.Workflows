@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Stateless;
 using Uptime.Workflows.Core.Common;
-using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Extensions;
 using Uptime.Workflows.Core.Interfaces;
@@ -116,7 +115,7 @@ public abstract class WorkflowBase<TContext>(
 
             await Machine.FireAsync(WorkflowTrigger.Start);
             await OnWorkflowStartedAsync(token);
-            await SaveWorkflowStateAsync(token);
+            await SaveWorkflowStateAsync(payload.ExecutorSid, token);
         }
         catch (WorkflowValidationException vex)
         {
@@ -156,7 +155,7 @@ public abstract class WorkflowBase<TContext>(
         {
             if (await OnWorkflowModifiedAsync(payload, token))
             {
-                await SaveWorkflowStateAsync(token);
+                await SaveWorkflowStateAsync(payload.ExecutorSid, token);
             }
 
             logger.LogModified(WorkflowDefinition, WorkflowId, AssociationName);
@@ -223,7 +222,7 @@ public abstract class WorkflowBase<TContext>(
 
             await CancelAllTasksAsync(token);
             await Machine.FireAsync(WorkflowTrigger.Cancel);
-            await SaveWorkflowStateAsync(token);
+            await SaveWorkflowStateAsync(payload.ExecutorSid, token);
         }
         catch (Exception ex)
         {
@@ -336,12 +335,12 @@ public abstract class WorkflowBase<TContext>(
     protected internal Task TriggerTransitionAsync(WorkflowTrigger trigger, CancellationToken ct, bool autoCommit = true)
     {
         return _transitionQueue!.EnqueueTriggerAsync(trigger, ct)
-            .ContinueWith(async _ => { if (autoCommit) await SaveWorkflowStateAsync(ct); }, ct,
+            .ContinueWith(async _ => { if (autoCommit) await SaveWorkflowStateAsync(Principal.SystemSid, ct); }, ct,
                 TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default).Unwrap();
     }
-    protected async Task SaveWorkflowStateAsync(CancellationToken ct)
+    protected async Task SaveWorkflowStateAsync(PrincipalSid actorSid, CancellationToken ct)
     {
-        await workflowService.UpdateStateAsync(WorkflowContext, Machine.State, ct);
+        await workflowService.UpdateStateAsync(WorkflowContext, Machine.State, actorSid, ct);
     }
     protected async Task CancelAllTasksAsync(CancellationToken ct)
     {
@@ -429,7 +428,7 @@ public abstract class WorkflowBase<TContext>(
         {
             logger.LogError(ex, "An error occurred while starting the workflow.");
             
-            await workflowService.MarkAsInvalidAsync(WorkflowId, ct);
+            await workflowService.MarkAsInvalidAsync(WorkflowId, Principal.SystemSid, ct);
             await taskService.CancelActiveTasksAsync(workflowId, ct);
 
             await historyService.CreateAsync(

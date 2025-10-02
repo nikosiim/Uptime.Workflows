@@ -6,5 +6,5 @@ public record WorkflowTemplateResponse
     public required string Name { get; init; }
     public required string WorkflowBaseId { get; init; }
     public string? AssociationDataJson { get; init; }
-    public DateTime Created { get; init; }
+    public DateTimeOffset Created { get; init; }
 }

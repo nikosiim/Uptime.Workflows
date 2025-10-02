@@ -1,3 +1,3 @@
-﻿namespace Uptime.Shared.Models.WorkflowTemplates;
+﻿namespace Uptime.Workflows.Api.Contracts;
 
 public record CreateWorkflowTemplateResponse(int Id);

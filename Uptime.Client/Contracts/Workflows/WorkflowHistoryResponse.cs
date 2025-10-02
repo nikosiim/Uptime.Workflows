@@ -7,7 +7,7 @@ public record WorkflowHistoryResponse
     public required string Event { get; init; }
     public string? User { get; init; }
     public string? Comment { get; init; }
-    public DateTime Occurred { get; init; }
+    public DateTimeOffset Occurred { get; init; }
     public string? Description { get; init; }
     public int WorkflowId { get; init; }
 }

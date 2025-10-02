@@ -2,6 +2,7 @@
 
 public record WorkflowTemplateCreateRequest
 {
+    public required string ExecutorSid { get; init; }
     public required string SourceSiteUrl { get; init; }
     public required string TemplateName { get; init; }
     public required string WorkflowName { get; init; }
