@@ -20,6 +20,7 @@ public sealed class ApprovalWorkflow(
     : ReplicatorWorkflowBase<ApprovalWorkflowContext>(workflowService, taskService, historyService, principalResolver, notifier, logger)
 {
     private readonly IPrincipalResolver _principalResolver = principalResolver;
+    private readonly IHistoryService _historyService = historyService;
 
     protected override IWorkflowDefinition WorkflowDefinition => new ApprovalWorkflowDefinition();
 
@@ -255,7 +256,7 @@ public sealed class ApprovalWorkflow(
             ApprovalTasks = activeItems.Select(activeItem
                 => new ApprovalTask
                 {
-                    AssignedToSid = activeItem.ActivityContext.AssignedToSid,
+                    AssignedToSid = activeItem.ActivityContext.AssignedToSid.Value,
                     TaskGuid = activeItem.TaskGuid.ToString()
                 }).ToList()
         };
@@ -263,31 +264,38 @@ public sealed class ApprovalWorkflow(
         return JsonSerializer.Serialize(context);
     }
 
-    protected override Task<bool> OnWorkflowModifiedAsync(ModificationPayload payload, CancellationToken ct)
+    protected override async Task<bool> OnWorkflowModifiedAsync(ModificationPayload payload, CancellationToken ct)
     {
         if (!WorkflowContext.ReplicatorStates.TryGetValue(Machine.State.Value, out ReplicatorState? replicatorState))
-            return Task.FromResult(false);
+            return false;
 
         ReplicatorItem? inProgressItem = replicatorState.Items.FirstOrDefault(item => item.Status == ReplicatorItemStatus.InProgress);
         if (inProgressItem == null || string.IsNullOrWhiteSpace(payload.ModificationContext))
-            return Task.FromResult(false);
+            return false;
 
         var modificationContext = JsonSerializer.Deserialize<ApprovalModificationContext>(payload.ModificationContext);
         if (modificationContext == null)
-            return Task.FromResult(true);
+            return true;
 
         WorkflowActivityContext activityContext = inProgressItem.ActivityContext;
+
+        // ---- Diff old/new assignees (before modifying)
+        HashSet<PrincipalSid> oldSids = replicatorState.Items
+            .Where(item => item.Status is ReplicatorItemStatus.NotStarted or ReplicatorItemStatus.InProgress)
+            .Select(item => item.ActivityContext.AssignedToSid)
+            .ToHashSet();
 
         replicatorState.Items.RemoveAll(item => item.Status == ReplicatorItemStatus.NotStarted);
 
         foreach (ApprovalTask task in modificationContext.ApprovalTasks)
         {
-            if (task.AssignedToSid == activityContext.AssignedToSid) continue;
+            var assignedTo = (PrincipalSid)task.AssignedToSid;
+            if (assignedTo == activityContext.AssignedToSid) continue;
 
             WorkflowActivityContext newActivityContext =
                 WorkflowActivityContextFactory.CreateNew(
                     phaseId: activityContext.PhaseId,
-                    assignedToSid: task.AssignedToSid,
+                    assignedToSid: assignedTo,
                     description: activityContext.Description,
                     dueDate: activityContext.DueDate
                 );
@@ -295,7 +303,14 @@ public sealed class ApprovalWorkflow(
             replicatorState.Items.Add(new ReplicatorItem(newActivityContext));
         }
 
-        return Task.FromResult(true);
+        HashSet<PrincipalSid> newSids = replicatorState.Items
+            .Where(item => item.Status is ReplicatorItemStatus.NotStarted or ReplicatorItemStatus.InProgress)
+            .Select(item => item.ActivityContext.AssignedToSid)
+            .ToHashSet();
+
+        await LogApprovalAssignmentChangesAsync(oldSids, newSids, payload.ExecutorSid, ct);
+
+        return true;
     }
 
     protected override Task OnWorkflowCompletedAsync(CancellationToken ct)
@@ -304,5 +319,45 @@ public sealed class ApprovalWorkflow(
         WorkflowCompletedHistoryDescription = $"{AssociationName} on lõpetatud.";
 
         return Task.CompletedTask;
+    }
+
+    private async Task LogApprovalAssignmentChangesAsync(
+        HashSet<PrincipalSid> oldSids,
+        HashSet<PrincipalSid> newSids,
+        PrincipalSid executorSid,
+        CancellationToken ct)
+    {
+        List<PrincipalSid> added = newSids.Except(oldSids).ToList();
+        List<PrincipalSid> removed = oldSids.Except(newSids).ToList();
+
+        if (added.Count == 0 && removed.Count == 0)
+            return;
+
+        Principal executor = await _principalResolver.ResolveBySidAsync(executorSid, ct);
+
+        HashSet<PrincipalSid> allChangedSids = added.Concat(removed).ToHashSet();
+        await _principalResolver.EnsurePrincipalsCachedAsync(allChangedSids, ct);
+
+        Principal?[] addedPrincipals = await Task.WhenAll(added.Select(sid => _principalResolver.TryResolveBySidAsync(sid, ct)));
+        Principal?[] removedPrincipals = await Task.WhenAll(removed.Select(sid => _principalResolver.TryResolveBySidAsync(sid, ct)));
+
+        List<string?> addedNames = addedPrincipals.Where(p => p != null).Select(p => p!.Name).ToList();
+        List<string?> removedNames = removedPrincipals.Where(p => p != null).Select(p => p!.Name).ToList();
+
+        var changes = new List<string>();
+        if (addedNames.Count > 0)
+            changes.Add($"Lisatud: {string.Join(", ", addedNames)}");
+        if (removedNames.Count > 0)
+            changes.Add($"Eemaldatud: {string.Join(", ", removedNames)}");
+
+        var description = $"Kinnitaja muudatused: {string.Join(". ", changes)}.";
+
+        await _historyService.CreateAsync(
+            WorkflowId,
+            WorkflowEventType.WorkflowComment,
+            executor.Sid,
+            description: description,
+            ct: ct
+        );
     }
 }

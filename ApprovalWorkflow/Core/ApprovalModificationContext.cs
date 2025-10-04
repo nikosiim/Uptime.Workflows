@@ -1,6 +1,4 @@
-﻿using Uptime.Workflows.Core.Common;
-
-namespace ApprovalWorkflow;
+﻿namespace ApprovalWorkflow;
 
 public record ApprovalModificationContext
 {
@@ -9,6 +7,6 @@ public record ApprovalModificationContext
 
 public record ApprovalTask
 {
-    public required PrincipalSid AssignedToSid { get; init; }
+    public required string AssignedToSid { get; init; }
     public required string TaskGuid { get; init; }
 }

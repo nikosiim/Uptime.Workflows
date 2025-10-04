@@ -38,7 +38,7 @@
         if (context != null)
         {
             Context = context;
-            _selectedUsers = context.ApprovalTasks.Select(x => x.AssignedTo).ToList();
+            _selectedUsers = context.ApprovalTasks.Select(x => x.AssignedToSid).ToList();
         }
     }
 
@@ -48,18 +48,18 @@
 
         if (Form.IsValid)
         {
-            List<string> existingUserNames = Context.ApprovalTasks.Select(t => t.AssignedTo).ToList();
+            List<string> existingUserNames = Context.ApprovalTasks.Select(t => t.AssignedToSid).ToList();
             List<string> removedUsers = existingUserNames.Except(_selectedUsers).ToList();
 
             List<string> addedUsers = _selectedUsers.Except(existingUserNames).ToList();
 
-            Context.ApprovalTasks.RemoveAll(task => removedUsers.Contains(task.AssignedTo));
+            Context.ApprovalTasks.RemoveAll(task => removedUsers.Contains(task.AssignedToSid));
 
             foreach (string newUser in addedUsers)
             {
                 Context.ApprovalTasks.Add(new ApprovalTask
                 {
-                    AssignedTo = newUser,
+                    AssignedToSid = newUser,
                     TaskGuid = Guid.Empty.ToString()
                 });
             }
