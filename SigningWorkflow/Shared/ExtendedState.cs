@@ -1,4 +1,4 @@
-﻿using Uptime.Workflows.Core.Common;
+﻿using Workflows.Core.Common;
 
 namespace SigningWorkflow;
 

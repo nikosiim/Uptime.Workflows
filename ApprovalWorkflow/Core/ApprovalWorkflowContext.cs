@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
-using Uptime.Workflows.Core;
-using Uptime.Workflows.Core.Interfaces;
+using Workflows.Core;
+using Workflows.Core.Interfaces;
 
 namespace ApprovalWorkflow;
 

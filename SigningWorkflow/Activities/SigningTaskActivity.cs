@@ -1,10 +1,9 @@
-﻿using Uptime.Workflows.Core;
-using Uptime.Workflows.Core.Common;
-using Uptime.Workflows.Core.Enums;
-using Uptime.Workflows.Core.Extensions;
-using Uptime.Workflows.Core.Interfaces;
-using Uptime.Workflows.Core.Models;
-using Uptime.Workflows.Core.Services;
+﻿using Workflows.Core.Activities;
+using Workflows.Core.Common;
+using Workflows.Core.Enums;
+using Workflows.Core.Extensions;
+using Workflows.Core.Interfaces;
+using Workflows.Core.Models;
 
 namespace SigningWorkflow;
 

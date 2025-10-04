@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
-using Uptime.Workflows.Core.Common;
-using Uptime.Workflows.Core.Interfaces;
+using Workflows.Core.Common;
+using Workflows.Core.Interfaces;
 
 namespace SigningWorkflow;
 

@@ -11,8 +11,8 @@
     <Compile Remove="Core\ApprovalWorkflowActivityProvider.cs" />
   </ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\Uptime.Workflows.Core\Uptime.Workflows.Core.csproj" />
-	</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Workflows.Core\Workflows.Core.csproj" />
+  </ItemGroup>
 
 </Project>

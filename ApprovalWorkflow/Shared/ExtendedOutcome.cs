@@ -1,4 +1,4 @@
-﻿using Uptime.Workflows.Core;
+﻿using Workflows.Core;
 
 namespace ApprovalWorkflow;
 

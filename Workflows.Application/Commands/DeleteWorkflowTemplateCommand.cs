@@ -1,0 +1,50 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Workflows.Application.Messaging;
+using Workflows.Core.Common;
+using Workflows.Core.Data;
+using Workflows.Core.Interfaces;
+using Workflows.Core.Models;
+using Workflows.Core.Services;
+using Unit = Workflows.Core.Common.Unit;
+
+namespace Workflows.Application.Commands;
+
+public record DeleteWorkflowTemplateCommand : IRequest<Result<Unit>>, IRequiresPrincipal
+{
+    public required PrincipalSid ExecutorSid { get; init; }
+    public required WorkflowTemplateId TemplateId { get; init; }
+}
+
+public class DeleteWorkflowTemplateCommandHandler(WorkflowDbContext db, IPrincipalResolver principalResolver, ILogger<DeleteWorkflowTemplateCommand> logger)
+    : IRequestHandler<DeleteWorkflowTemplateCommand, Result<Unit>>
+{
+    public async Task<Result<Unit>> Handle(DeleteWorkflowTemplateCommand request, CancellationToken ct)
+    {
+        if (ct.IsCancellationRequested)
+            return Result<Unit>.Cancelled();
+
+        WorkflowTemplate? template = await db.WorkflowTemplates.FirstOrDefaultAsync(t => t.Id == request.TemplateId.Value, ct);
+        if (template == null)
+            return Result<Unit>.Failure(ErrorCode.NotFound, "Workflow template not found.");
+
+        bool inUse = await db.Workflows.AnyAsync(w => w.WorkflowTemplateId == request.TemplateId.Value && w.IsActive, ct);
+        if (inUse)
+            return Result<Unit>.Failure(ErrorCode.Conflict, "Cannot delete template: it’s used by existing workflows.");
+
+        Principal executor = await principalResolver.ResolveBySidAsync(request.ExecutorSid, ct);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+
+        template.IsDeleted = true;
+        template.DeletedAtUtc = now;
+        template.DeletedByPrincipalId = executor.Id.Value;
+        template.UpdatedAtUtc = now;
+        template.UpdatedByPrincipalId = executor.Id.Value;
+
+        await db.SaveChangesAsync(ct);
+
+        logger.LogInformation("Workflow template with ID {TemplateId} deleted.", request.TemplateId.Value);
+        
+        return Result<Unit>.Success(new Unit());
+    }
+}

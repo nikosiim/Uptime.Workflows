@@ -1,0 +1,98 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Workflows.Api.Contracts;
+using Workflows.Api.Contracts.WorkflowTemplates;
+using Workflows.Api.Extensions;
+using Workflows.Application.Commands;
+using Workflows.Application.DTOs;
+using Workflows.Application.Messaging;
+using Workflows.Application.Queries;
+using Workflows.Core.Common;
+
+namespace Workflows.Api.Controllers;
+
+/// <summary>
+/// API Requires client credentials token from SharePoint Gateway.
+/// End user authentication is handled by the gateway.
+/// </summary>
+[ApiController]
+[Route("api/workflow-templates")]
+[Authorize(Policy = "TrustedApp")]
+public class WorkflowTemplatesController(ISender mediator) : ControllerBase
+{
+    [HttpGet("{templateId:int}")]
+    public async Task<ActionResult<WorkflowTemplateResponse>> GetWorkflowTemplate(int templateId, CancellationToken ct)
+    {
+        Result<WorkflowTemplateDto> result = await mediator.Send(new GetWorkflowTemplateQuery((WorkflowTemplateId)templateId), ct);
+        
+        return this.ToActionResult(result, Mapper.MapToWorkflowTemplateResponse);
+    }
+    
+    [HttpGet("by-library/{libraryId:guid}")]
+    public async Task<ActionResult<List<LibraryWorkflowTemplateResponse>>> GetWorkflowTemplatesByLibrary(Guid libraryId, CancellationToken ct)
+    {
+        var query = new GetLibraryWorkflowTemplatesQuery(libraryId);
+        List<LibraryWorkflowTemplateDto> templates = await mediator.Send(query, ct);
+
+        List<LibraryWorkflowTemplateResponse> result = templates.Select(dto => new LibraryWorkflowTemplateResponse
+        {
+            Id = dto.Id,
+            Name = dto.Name,
+            WorkflowBaseId = dto.WorkflowBaseId,
+            AssociationDataJson = dto.AssociationDataJson,
+            Created = dto.Created
+        }).ToList();
+
+        return Ok(result);
+    }
+
+    [HttpPost("")]
+    public async Task<ActionResult<CreateWorkflowTemplateResponse>> CreateWorkflowTemplate([FromBody] WorkflowTemplateCreateRequest request, CancellationToken ct)
+    {
+        var cmd = new CreateWorkflowTemplateCommand
+        {
+            ExecutorSid = (PrincipalSid)request.ExecutorSid,
+            SourceSiteUrl = request.SourceSiteUrl,
+            TemplateName = request.TemplateName,
+            WorkflowName = request.WorkflowName,
+            WorkflowBaseId = request.WorkflowBaseId,
+            LibraryId = request.LibraryId,
+            AssociationDataJson = request.AssociationDataJson
+        };
+
+        Result<WorkflowTemplateId> result = await mediator.Send(cmd, ct);
+        return this.ToActionResult(result);
+    }
+
+    [HttpPost("{templateId:int}")]
+    public async Task<ActionResult> UpdateWorkflowTemplate(int templateId, [FromBody] WorkflowTemplateUpdateRequest request, CancellationToken ct)
+    {
+        var cmd = new UpdateWorkflowTemplateCommand
+        {
+            ExecutorSid = (PrincipalSid)request.ExecutorSid,
+            TemplateId = (WorkflowTemplateId)templateId,
+            TemplateName = request.TemplateName,
+            WorkflowName = request.WorkflowName,
+            WorkflowBaseId = request.WorkflowBaseId,
+            AssociationDataJson = request.AssociationDataJson
+        };
+
+        Result<Unit> result = await mediator.Send(cmd, ct);
+
+        return this.ToActionResult(result);
+    }
+
+    [HttpDelete("{templateId:int}")]
+    public async Task<ActionResult> DeleteWorkflowTemplate(int templateId, [FromBody] WorkflowTemplateDeleteRequest request, CancellationToken ct)
+    {
+        var cmd = new DeleteWorkflowTemplateCommand
+        {
+            ExecutorSid = (PrincipalSid)request.ExecutorSid,
+            TemplateId = (WorkflowTemplateId)templateId
+        };
+
+        Result<Unit> result = await mediator.Send(cmd, ct);
+
+        return this.ToActionResult(result);
+    }
+}
