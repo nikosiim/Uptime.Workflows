@@ -26,7 +26,7 @@ public class ReplicatorPhaseBuilder(Dictionary<string, ReplicatorPhaseConfigurat
         {
             var phase = new ReplicatorPhase
             {
-                PhaseName = phaseName,
+                PhaseId = phaseName,
                 Type = config.ReplicatorType(context),
                 TaskContext = config.ActivityData(context).ToList()
             };

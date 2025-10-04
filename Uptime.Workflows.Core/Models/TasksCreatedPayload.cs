@@ -11,8 +11,8 @@ public sealed record TasksCreatedPayload : IOutboundNotificationPayload
     public required string SourceSiteUrl { get; init; }
     public required WorkflowId WorkflowId { get; init; }
     public required string WorkflowType { get; init; }
-    public string? PhaseName { get; init; }
+    public string? PhaseId { get; init; }
     public IReadOnlyList<TaskProjection> Tasks { get; init; } = new List<TaskProjection>();
 }
 
-public sealed record TaskProjection(Guid TaskGuid, string PhaseName, PrincipalSid AssignedToSid);
+public sealed record TaskProjection(Guid TaskGuid, PrincipalSid AssignedToSid);

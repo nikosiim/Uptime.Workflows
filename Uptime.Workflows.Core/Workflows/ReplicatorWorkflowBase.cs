@@ -222,7 +222,7 @@ public abstract class ReplicatorWorkflowBase<TContext>(
         List<ReplicatorPhase> replicatorPhases = builder.BuildPhases(WorkflowContext);
 
         WorkflowContext.ReplicatorStates = replicatorPhases.ToDictionary(
-            phase => phase.PhaseName,
+            phase => phase.PhaseId,
             phase => new ReplicatorState
             {
                 ReplicatorType = phase.Type,
@@ -356,7 +356,7 @@ public abstract class ReplicatorWorkflowBase<TContext>(
                 _createdBuffer[phaseId] = list;
             }
 
-            list.Add(new TaskProjection(context.TaskGuid, phaseId, context.AssignedToSid));
+            list.Add(new TaskProjection(context.TaskGuid, context.AssignedToSid));
         }
 
 

@@ -77,14 +77,14 @@ public sealed class SigningWorkflow(
         return Task.FromResult<IOutboundNotificationPayload?>(payload);
     }
 
-    protected override Task<IOutboundNotificationPayload?> BuildTasksCreatedPayloadAsync(string phaseName, List<TaskProjection> tasks, CancellationToken ct)
+    protected override Task<IOutboundNotificationPayload?> BuildTasksCreatedPayloadAsync(string phaseId, List<TaskProjection> tasks, CancellationToken ct)
     {
         var payload = new TasksCreatedPayload
         {
             OccurredAtUtc = DateTimeOffset.UtcNow,
             WorkflowId = WorkflowId,
             WorkflowType = GetType().Name,
-            PhaseName = phaseName,
+            PhaseId = phaseId,
             Tasks = tasks,
             SourceSiteUrl = WorkflowContext.GetSiteUrl()
         };
@@ -145,7 +145,7 @@ public sealed class SigningWorkflow(
     {
         var tasks = new List<TaskProjection>
         {
-            new(activityContext.TaskGuid, ExtendedState.Signing.Value, activityContext.AssignedToSid)
+            new(activityContext.TaskGuid, activityContext.AssignedToSid)
         };
 
         await NotifyTasksCreatedAsync(ExtendedState.Signing.Value, tasks, ct);

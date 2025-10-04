@@ -75,7 +75,7 @@ public abstract class ActivityWorkflowBase<TContext>(
 
     #region Protected Hooks
 
-    protected virtual Task<IOutboundNotificationPayload?> BuildTasksCreatedPayloadAsync(string phaseName, List<TaskProjection> tasks, CancellationToken ct)
+    protected virtual Task<IOutboundNotificationPayload?> BuildTasksCreatedPayloadAsync(string phaseId, List<TaskProjection> tasks, CancellationToken ct)
     {
         /*
         var payload = new TasksCreatedPayload
@@ -83,7 +83,7 @@ public abstract class ActivityWorkflowBase<TContext>(
             OccurredAtUtc = DateTimeOffset.UtcNow,
             WorkflowId = WorkflowId,
             WorkflowType = GetType().Name,
-            PhaseName = phaseName,
+            PhaseId = phaseId,
             Tasks = tasks,
             SourceSiteUrl = WorkflowContext.GetSiteUrl()
         };

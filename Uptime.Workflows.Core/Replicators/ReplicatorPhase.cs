@@ -8,6 +8,6 @@ namespace Uptime.Workflows.Core;
 public class ReplicatorPhase
 {
     public required ReplicatorType Type { get; init; }
-    public required string PhaseName { get; init; }
+    public required string PhaseId { get; init; }
     public required List<WorkflowActivityContext> TaskContext { get; init; }
 }

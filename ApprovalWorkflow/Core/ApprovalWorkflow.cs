@@ -74,14 +74,14 @@ public sealed class ApprovalWorkflow(
         return Task.FromResult<IOutboundNotificationPayload?>(payload);
     }
 
-    protected override Task<IOutboundNotificationPayload?> BuildTasksCreatedPayloadAsync(string phaseName, List<TaskProjection> tasks, CancellationToken ct)
+    protected override Task<IOutboundNotificationPayload?> BuildTasksCreatedPayloadAsync(string phaseId, List<TaskProjection> tasks, CancellationToken ct)
     {
         var payload = new TasksCreatedPayload
         {
             OccurredAtUtc = DateTimeOffset.UtcNow,
             WorkflowId = WorkflowId,
             WorkflowType = GetType().Name,
-            PhaseName = phaseName,
+            PhaseId = phaseId,
             Tasks = tasks,
             SourceSiteUrl = WorkflowContext.GetSiteUrl()
         };

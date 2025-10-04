@@ -15,4 +15,4 @@ public sealed record WorkflowStartedPayload : IOutboundNotificationPayload
     public IReadOnlyList<AssigneeProjection> Assignees { get; init; } = new List<AssigneeProjection>();
 }
 
-public sealed record AssigneeProjection(string PhaseName, PrincipalSid Sid);
+public sealed record AssigneeProjection(string PhaseId, PrincipalSid Sid);
