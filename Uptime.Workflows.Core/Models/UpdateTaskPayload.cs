@@ -3,7 +3,7 @@ using Uptime.Workflows.Core.Interfaces;
 
 namespace Uptime.Workflows.Core.Models;
 
-public record AlterTaskPayload : IUserActionPayload
+public record UpdateTaskPayload : IUserActionPayload
 {
     public required Guid TaskGuid { get; init; }
     public required PrincipalSid ExecutorSid { get; init; }

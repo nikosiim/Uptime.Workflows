@@ -5,6 +5,7 @@ namespace Uptime.Client;
 
 public static class Constants
 {
+    public const string SharePointUrl = "https://membership-validation-service.azurewebsites.net";
     public static Guid ContractsLibraryId = new("0bf3e0bb-450b-4ea1-9c6f-167c5a27308d");
 
     public static class ButtonAction
@@ -44,7 +45,6 @@ public static class Constants
         public const string Workflow = "workflow";
         public const string WorkflowTask = "workflow-task";
         public const string Contracts = "contracts";
-        public const string Letters = "letters";
     }
     
     public static class StorageKeys

@@ -25,7 +25,7 @@ public class CreateWorkflowTemplateCommandHandler(IApiService apiService, IState
 
         var createRequest = new WorkflowTemplateCreateRequest {
             ExecutorSid = executor.Sid,
-            SourceSiteUrl = "https://uptimesharepoint", // TODO: get real site URL
+            SourceSiteUrl = Constants.SharePointUrl,
             TemplateName = request.TemplateName,
             WorkflowName = request.WorkflowName,
             WorkflowBaseId = request.WorkflowBaseId,

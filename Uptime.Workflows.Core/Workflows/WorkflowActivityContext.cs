@@ -13,6 +13,17 @@ public class WorkflowActivityContext : IWorkflowActivityContext
 
     // Only storage for business/task fields (private/protected/internal set)
 
-    [Obsolete("Use strongly-typed extension methods instead.")]
+    /// <summary>
+    /// Internal key-value storage for activity-specific state.
+    /// <para>
+    /// ⚠️ Do not access this dictionary directly.  
+    /// Always use strongly-typed extension methods (e.g., <c>SetTaskOutcome()</c>, <c>GetTaskStatus()</c>)  
+    /// from <c>ActivityContextExtensionsCore</c> to read/write data.
+    /// </para>
+    /// <para>
+    /// This storage is persisted between workflow invocations.
+    /// Keys must be stable across versions.
+    /// </para>
+    /// </summary>
     public Dictionary<string, string?> Storage { get; init; } = new();
 }

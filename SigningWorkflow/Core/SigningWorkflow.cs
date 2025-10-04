@@ -36,6 +36,83 @@ public sealed class SigningWorkflow(
         Machine.Configure(BaseState.Completed);
     }
 
+    #region Notifications
+
+    protected override Task<IOutboundNotificationPayload?> BuildWorkflowStartedPayloadAsync(CancellationToken ct)
+    {
+        List<string> signerSids = WorkflowContext.GetTaskSids();
+        List<AssigneeProjection> assignees = signerSids
+            .Select(s => new AssigneeProjection(ExtendedState.Signing.Value, (PrincipalSid)s))
+            .ToList();
+
+        var payload = new WorkflowStartedPayload
+        {
+            OccurredAtUtc = DateTimeOffset.UtcNow,
+            WorkflowId = WorkflowId,
+            WorkflowType = GetType().Name,
+            StartedBySid = WorkflowContext.GetInitiatorSid(),
+            Assignees = assignees,
+            SourceSiteUrl = WorkflowContext.GetSiteUrl()
+        };
+
+        return Task.FromResult<IOutboundNotificationPayload?>(payload);
+    }
+
+    protected override Task<IOutboundNotificationPayload?> BuildWorkflowCompletedPayloadAsync(CancellationToken ct)
+    {
+        List<AssigneeProjection> assignees = WorkflowContext.GetTaskSids()
+            .Select(sid => new AssigneeProjection(ExtendedState.Signing.Value, (PrincipalSid)sid))
+            .ToList();
+        
+        var payload = new WorkflowCompletedPayload
+        {
+            OccurredAtUtc = DateTimeOffset.UtcNow,
+            WorkflowId = WorkflowId,
+            WorkflowType = GetType().Name,
+            Outcome = WorkflowContext.Outcome.ToString(),
+            Assignees = assignees,
+            SourceSiteUrl = WorkflowContext.GetSiteUrl()
+        };
+
+        return Task.FromResult<IOutboundNotificationPayload?>(payload);
+    }
+
+    protected override Task<IOutboundNotificationPayload?> BuildTasksCreatedPayloadAsync(string phaseName, List<TaskProjection> tasks, CancellationToken ct)
+    {
+        var payload = new TasksCreatedPayload
+        {
+            OccurredAtUtc = DateTimeOffset.UtcNow,
+            WorkflowId = WorkflowId,
+            WorkflowType = GetType().Name,
+            PhaseName = phaseName,
+            Tasks = tasks,
+            SourceSiteUrl = WorkflowContext.GetSiteUrl()
+        };
+
+        return Task.FromResult<IOutboundNotificationPayload?>(payload);
+    }
+
+    protected override Task<IOutboundNotificationPayload?> BuildTaskUpdatedPayloadAsync(
+        IWorkflowActivityContext ctx, PrincipalSid executorSid, CancellationToken ct)
+    {
+        var payload = new TaskUpdatedPayload
+        {
+            OccurredAtUtc = DateTimeOffset.UtcNow,
+            SourceSiteUrl = WorkflowContext.GetSiteUrl(),
+            WorkflowId = WorkflowId,
+            WorkflowType = GetType().Name,
+            TaskGuid = ctx.TaskGuid,
+            AssignedToSid = ctx.AssignedToSid,
+            ExecutorSid = executorSid,
+            Outcome = ctx.GetTaskOutcome(),
+            Status = ctx.GetTaskStatus().ToString()
+        };
+
+        return Task.FromResult<IOutboundNotificationPayload?>(payload);
+    }
+
+    #endregion
+
     protected override async Task OnWorkflowActivatedAsync(CancellationToken ct)
     {
         await base.OnWorkflowActivatedAsync(ct);
@@ -71,31 +148,11 @@ public sealed class SigningWorkflow(
             new(activityContext.TaskGuid, ExtendedState.Signing.Value, activityContext.AssignedToSid)
         };
 
-        await NotifyTasksCreatedAsync(ExtendedState.Signing.Value, isParallel: false, tasks, ct);
+        await NotifyTasksCreatedAsync(ExtendedState.Signing.Value, tasks, ct);
         _logger.LogSigningTaskCreated(WorkflowDefinition, WorkflowId, AssociationName);
     }
 
-    protected override Task<WorkflowStartedPayload> BuildWorkflowStartedPayloadAsync(CancellationToken ct)
-    {
-        List<string> signerSids = WorkflowContext.GetTaskSids();
-        List<AssigneeProjection> assignees = signerSids
-            .Select(s => new AssigneeProjection(ExtendedState.Signing.Value, (PrincipalSid)s))
-            .ToList();
-
-        var payload = new WorkflowStartedPayload
-        {
-            OccurredAtUtc = DateTimeOffset.UtcNow,
-            WorkflowId = WorkflowId,
-            WorkflowType = GetType().Name,
-            StartedBySid = WorkflowContext.GetInitiatorSid(),
-            Assignees = assignees,
-            SourceSiteUrl = WorkflowContext.GetSiteUrl()
-        };
-
-        return Task.FromResult(payload);
-    }
-
-    protected override async Task OnTaskAlteredAsync(WorkflowEventType action, WorkflowActivityContext activityContext,
+    protected override async Task OnTaskAlteredAsync(WorkflowEventType action, IWorkflowActivityContext activityContext,
         PrincipalSid executorSid, Dictionary<string, string?> inputData, CancellationToken ct)
     {
         var activity = activator.Create<SigningTaskActivity>(WorkflowContext);

@@ -46,7 +46,7 @@ public sealed class AlterTaskCommandHandler(WorkflowDbContext db, IWorkflowFacto
         if (!rehydrationResult.Succeeded)
             return rehydrationResult;
         
-        var input = new AlterTaskPayload
+        var input = new UpdateTaskPayload
         {
             TaskGuid = task.TaskGuid,
             ExecutorSid = request.ExecutorSid,

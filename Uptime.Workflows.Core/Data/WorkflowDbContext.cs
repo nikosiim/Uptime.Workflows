@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Uptime.Workflows.Core.Data.Seeding;
 
 namespace Uptime.Workflows.Core.Data;
@@ -17,7 +18,19 @@ public class WorkflowDbContext(DbContextOptions options) : DbContext(options)
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.HasDefaultSchema("UptimeAPI");
-        
+
+        foreach (IMutableEntityType entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            if (typeof(BaseEntity).IsAssignableFrom(entityType.ClrType))
+            {
+                modelBuilder.Entity(entityType.ClrType)
+                    .Property<byte[]>("RowVersion")
+                    .IsRowVersion()
+                    .IsConcurrencyToken()
+                    .ValueGeneratedOnAddOrUpdate();
+            }
+        }
+
         // --- WorkflowTemplate -> Workflows (Restrict delete)
         modelBuilder.Entity<Workflow>()
             .HasOne(w => w.WorkflowTemplate)
@@ -87,30 +100,17 @@ public class WorkflowDbContext(DbContextOptions options) : DbContext(options)
         modelBuilder.Entity<OutboundNotification>(b =>
         {
             b.HasKey(n => n.Id);
-            b.Property(n => n.EventType).IsRequired();
+            b.Property(n => n.EventName).IsRequired();
             b.Property(n => n.Status).IsRequired();
-            b.Property(n => n.EndpointPath).HasMaxLength(256).IsRequired();
             b.Property(n => n.PayloadJson).IsRequired();
             b.Property(n => n.ResponseBody);
             b.Property(n => n.LastError).HasMaxLength(1024);
             b.Property(n => n.CreatedAtUtc).IsRequired();
             b.Property(n => n.AttemptCount).HasDefaultValue(0);
-
-            b.HasOne(n => n.Workflow)
-                .WithMany()
-                .HasForeignKey(n => n.WorkflowId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            b.HasOne(n => n.WorkflowTask)
-                .WithMany()
-                .HasForeignKey(n => n.WorkflowTaskId)
-                .OnDelete(DeleteBehavior.SetNull);
-
+            
             // Helpful indexes
             b.HasIndex(n => n.UniqueKey).IsUnique();
-            b.HasIndex(n => new { n.WorkflowId, n.EventType, n.Status });
-            b.HasIndex(n => n.TaskGuid);
-            b.HasIndex(n => n.PhaseId);
+            b.HasIndex(n => new { EventType = n.EventName, n.Status });
             b.HasIndex(n => n.CreatedAtUtc);
         });
 

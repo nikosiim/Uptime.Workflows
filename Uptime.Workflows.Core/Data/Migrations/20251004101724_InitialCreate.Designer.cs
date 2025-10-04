@@ -12,7 +12,7 @@ using Uptime.Workflows.Core.Data;
 namespace Uptime.Workflows.Core.Data.Migrations
 {
     [DbContext(typeof(WorkflowDbContext))]
-    [Migration("20251002143538_InitialCreate")]
+    [Migration("20251004101724_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -42,13 +42,10 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("EndpointPath")
+                    b.Property<string>("EventName")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<int>("EventType")
-                        .HasColumnType("int");
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<int>("HttpStatusCode")
                         .HasColumnType("int");
@@ -62,11 +59,8 @@ namespace Uptime.Workflows.Core.Data.Migrations
 
                     b.Property<string>("PayloadJson")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhaseId")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
 
                     b.Property<string>("ResponseBody")
                         .HasMaxLength(4000)
@@ -75,16 +69,8 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     b.Property<DateTimeOffset?>("SentAtUtc")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("SourceSiteUrl")
-                        .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
-
-                    b.Property<Guid?>("TaskGuid")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("UniqueKey")
                         .HasColumnType("uniqueidentifier");
@@ -92,23 +78,14 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     b.Property<int>("WorkflowId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("WorkflowTaskId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedAtUtc");
 
-                    b.HasIndex("PhaseId");
-
-                    b.HasIndex("TaskGuid");
-
                     b.HasIndex("UniqueKey")
                         .IsUnique();
 
-                    b.HasIndex("WorkflowTaskId");
-
-                    b.HasIndex("WorkflowId", "EventType", "Status");
+                    b.HasIndex("EventName", "Status");
 
                     b.ToTable("OutboundNotifications", "UptimeAPI");
                 });
@@ -158,8 +135,10 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         .HasColumnType("nvarchar(32)");
 
                     b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
                         .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<DateTimeOffset>("StartDate")
                         .HasColumnType("datetimeoffset");
@@ -510,8 +489,10 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         .HasColumnType("nvarchar(32)");
 
                     b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
                         .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<string>("StorageJson")
                         .HasMaxLength(4096)
@@ -578,8 +559,10 @@ namespace Uptime.Workflows.Core.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
                         .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<string>("SiteUrl")
                         .IsRequired()
@@ -610,24 +593,6 @@ namespace Uptime.Workflows.Core.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("WorkflowTemplates", "UptimeAPI");
-                });
-
-            modelBuilder.Entity("Uptime.Workflows.Core.Data.OutboundNotification", b =>
-                {
-                    b.HasOne("Uptime.Workflows.Core.Data.Workflow", "Workflow")
-                        .WithMany()
-                        .HasForeignKey("WorkflowId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Uptime.Workflows.Core.Data.WorkflowTask", "WorkflowTask")
-                        .WithMany()
-                        .HasForeignKey("WorkflowTaskId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Workflow");
-
-                    b.Navigation("WorkflowTask");
                 });
 
             modelBuilder.Entity("Uptime.Workflows.Core.Data.Workflow", b =>

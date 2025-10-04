@@ -1,5 +1,12 @@
 ﻿namespace Uptime.Workflows.Core.Common;
 
+public readonly record struct PhaseId(Guid Value)
+{
+    public static implicit operator Guid(PhaseId id) => id.Value;
+    public static implicit operator PhaseId(Guid v) => new(v);
+    public override string ToString() => Value.ToString("D");
+}
+
 public readonly record struct PrincipalId(int Value)
 {
     public override string ToString() => Value.ToString();

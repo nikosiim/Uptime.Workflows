@@ -38,7 +38,7 @@ public abstract class ActivityWorkflowBase<TContext>(
     /// Entry point for user-initiated task changes (approve/reject/delegate/…).
     /// Reconstructs the task activity, lets the workflow react, and persists state.
     /// </summary>
-    public async Task<Result<Unit>> AlterTaskAsync(WorkflowEventType action, AlterTaskPayload payload, CancellationToken ct)
+    public async Task<Result<Unit>> AlterTaskAsync(WorkflowEventType action, UpdateTaskPayload payload, CancellationToken ct)
     {
         _logger.LogAlterTaskTriggered(WorkflowDefinition, WorkflowId, AssociationName);
 
@@ -60,6 +60,7 @@ public abstract class ActivityWorkflowBase<TContext>(
 
             await OnTaskAlteredAsync(action, context, payload.ExecutorSid, payload.InputData, ct);
             await SaveWorkflowStateAsync(payload.ExecutorSid, ct);
+            await NotifyTaskUpdatedAsync(context, payload.ExecutorSid, ct);
         }
         catch (Exception ex)
         {
@@ -73,27 +74,68 @@ public abstract class ActivityWorkflowBase<TContext>(
     #endregion
 
     #region Protected Hooks
- 
-    protected override Task OnWorkflowActivatedAsync(CancellationToken ct)
-    {
-        return Task.CompletedTask;
-    }
-    protected Task NotifyTasksCreatedAsync(string phaseName, bool isParallel, List<TaskProjection> tasks, CancellationToken ct)
-    {
-        if (Notifier is null) return Task.CompletedTask;
 
+    protected virtual Task<IOutboundNotificationPayload?> BuildTasksCreatedPayloadAsync(string phaseName, List<TaskProjection> tasks, CancellationToken ct)
+    {
+        /*
         var payload = new TasksCreatedPayload
         {
             OccurredAtUtc = DateTimeOffset.UtcNow,
             WorkflowId = WorkflowId,
             WorkflowType = GetType().Name,
             PhaseName = phaseName,
-            IsParallelPhase = isParallel,
             Tasks = tasks,
             SourceSiteUrl = WorkflowContext.GetSiteUrl()
         };
+        */
 
-        return Notifier.NotifyTasksCreatedAsync(payload, ct);
+        return Task.FromResult<IOutboundNotificationPayload?>(null);
+    }
+    protected virtual Task<IOutboundNotificationPayload?> BuildTaskUpdatedPayloadAsync(IWorkflowActivityContext ctx, PrincipalSid executorSid, CancellationToken ct)
+    {
+        /*
+            var payload = new TaskUpdatedPayload
+            {
+                OccurredAtUtc = DateTimeOffset.UtcNow,
+                SourceSiteUrl = WorkflowContext.GetSiteUrl(),
+                WorkflowId = WorkflowId,
+                WorkflowType = GetType().Name,
+                TaskGuid = ctx.TaskGuid,
+                AssignedToSid = ctx.AssignedToSid,
+                ExecutorSid = executorSid,
+                Outcome = ctx.GetTaskOutcome(),
+                Status = ctx.GetTaskStatus().ToString()
+            };
+
+            If you want per-phase filtering for task updates as well, you'd need:
+            if (ctx.PhaseId is not "Phase1" and not "Phase4")
+                return Task.FromResult<IOutboundNotificationPayload?>(null);
+        */
+
+        return Task.FromResult<IOutboundNotificationPayload?>(null);
+    }
+
+    #endregion
+
+    #region Protected Internals 
+
+    protected override Task OnWorkflowActivatedAsync(CancellationToken ct)
+    {
+        return Task.CompletedTask;
+    }
+    protected async Task NotifyTasksCreatedAsync(string phase, List<TaskProjection> tasks, CancellationToken ct)
+    {
+        IOutboundNotificationPayload? payload = await BuildTasksCreatedPayloadAsync(phase, tasks, ct);
+        if (payload is null || Notifier is null) return;
+
+        await Notifier.NotifyAsync(WorkflowEvents.WorkflowTasksCreated, payload, ct);
+    }
+    protected async Task NotifyTaskUpdatedAsync(IWorkflowActivityContext ctx, PrincipalSid executorSid, CancellationToken ct)
+    {
+        IOutboundNotificationPayload? payload = await BuildTaskUpdatedPayloadAsync(ctx, executorSid, ct);
+        if (payload is null || Notifier is null) return;
+
+        await Notifier.NotifyAsync(WorkflowEvents.WorkflowTaskUpdated, payload, ct);
     }
 
     #endregion
@@ -101,9 +143,10 @@ public abstract class ActivityWorkflowBase<TContext>(
     #region Abstract Members
 
     protected abstract Task OnTaskAlteredAsync(
-        WorkflowEventType action, 
-        WorkflowActivityContext activityContext, 
-        PrincipalSid executorSid, Dictionary<string, string?> inputData, 
+        WorkflowEventType action,
+        IWorkflowActivityContext activityContext, 
+        PrincipalSid executorSid, 
+        Dictionary<string, string?> inputData, 
         CancellationToken ct);
 
     #endregion

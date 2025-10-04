@@ -4,7 +4,6 @@ using System.Text.Json;
 using Uptime.Workflows.Core.Data;
 using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Interfaces;
-using Uptime.Workflows.Core.Models;
 
 namespace Uptime.Workflows.Core.Services;
 
@@ -12,12 +11,11 @@ public sealed class OutboundNotificationService(WorkflowDbContext db) : IOutboun
 {
     private readonly JsonSerializerOptions _json = new(JsonSerializerDefaults.Web);
     
-    public async Task LogNotificationAsync<TPayload>(OutboundEventType eventType, string endpointPath,
+    public async Task LogNotificationAsync<TPayload>(string eventName, string endpointPath,
         TPayload payload, HttpStatusCode? statusCode, string? responseBody, Exception? error, CancellationToken ct = default) 
         where TPayload : IOutboundNotificationPayload
     {
-        string? phaseName = payload is TasksCreatedPayload t ? t.PhaseName : null;
-        string payloadJson = JsonSerializer.Serialize(payload, _json);
+        string payloadJson = JsonSerializer.Serialize((object)payload, _json);
 
         OutboundNotificationStatus status = 
             error is null && statusCode.HasValue && (int)statusCode.Value >= 200 && (int)statusCode.Value < 300
@@ -29,13 +27,10 @@ public sealed class OutboundNotificationService(WorkflowDbContext db) : IOutboun
         {
             var notification = new OutboundNotification
             {
-                EventType = eventType,
+                EventName = eventName,
                 WorkflowId = payload.WorkflowId.Value,
-                PhaseId = phaseName,
-                EndpointPath = endpointPath,
                 HttpStatusCode = statusCode.HasValue ? (int)statusCode.Value : 0,
                 Status = status,
-                SourceSiteUrl = payload.SourceSiteUrl,
                 OccurredAtUtc = payload.OccurredAtUtc,
                 PayloadJson = payloadJson,
                 ResponseBody = Truncate(responseBody, 4000),

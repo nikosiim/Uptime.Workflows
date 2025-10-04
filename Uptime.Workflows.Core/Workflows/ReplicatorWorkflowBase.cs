@@ -89,7 +89,7 @@ public abstract class ReplicatorWorkflowBase<TContext>(
 
         InitializeReplicatorManager(ct);
     }
-    protected override async Task OnTaskAlteredAsync(WorkflowEventType action, WorkflowActivityContext activityContext, PrincipalSid executorSid, Dictionary<string, string?> inputData, CancellationToken ct)
+    protected override async Task OnTaskAlteredAsync(WorkflowEventType action, IWorkflowActivityContext activityContext, PrincipalSid executorSid, Dictionary<string, string?> inputData, CancellationToken ct)
     {
         IUserTaskActivity? taskActivity = CreateChildActivity(activityContext);
         if (taskActivity is null)
@@ -131,24 +131,6 @@ public abstract class ReplicatorWorkflowBase<TContext>(
         }
 
         return modificationContext;
-    }
-    protected override Task<WorkflowStartedPayload> BuildWorkflowStartedPayloadAsync(CancellationToken ct)
-    {
-        List<AssigneeProjection> assignees = WorkflowContext.ReplicatorStates
-            .SelectMany(kvp => kvp.Value.Items.Select(i => new AssigneeProjection(kvp.Key, i.ActivityContext.AssignedToSid)))
-            .ToList();
-
-        var payload = new WorkflowStartedPayload
-        {
-            OccurredAtUtc = DateTimeOffset.UtcNow,
-            WorkflowId = WorkflowId,
-            WorkflowType = GetType().Name,
-            StartedBySid = WorkflowContext.GetInitiatorSid(),
-            Assignees = assignees,
-            SourceSiteUrl = WorkflowContext.GetSiteUrl()
-        };
-
-        return Task.FromResult(payload);
     }
 
     #endregion
@@ -201,7 +183,7 @@ public abstract class ReplicatorWorkflowBase<TContext>(
         return new ReplicatorPhaseBuilder(cfg);
     }
 
-    // 1) Primary, flexible API — override if you want to change who/what is returned.
+    // Primary, flexible API — override if you want to change who/what is returned.
     protected virtual async Task<IReadOnlyList<Principal>> GetPhaseParticipantsAsync(string phaseId, CancellationToken ct)
     {
         if (!WorkflowContext.ReplicatorStates.TryGetValue(phaseId, out ReplicatorState? state))
@@ -220,6 +202,16 @@ public abstract class ReplicatorWorkflowBase<TContext>(
 
         return principals;
     }
+    protected virtual async Task DispatchTasksCreatedPayloadAsync(string phaseName, bool isParallel, List<TaskProjection> tasks, CancellationToken ct)
+    {
+        if (Notifier is null) return;
+
+        IOutboundNotificationPayload? payload = await BuildTasksCreatedPayloadAsync(phaseName, tasks, ct);
+        if (payload is null) return;
+
+        await Notifier.NotifyAsync(WorkflowEvents.WorkflowTasksCreated, payload, ct);
+    }
+    protected virtual bool ShouldNotifyOnTasksCreated(string phaseId) => false;
 
     #endregion
 
@@ -313,13 +305,13 @@ public abstract class ReplicatorWorkflowBase<TContext>(
 
         if (state.ReplicatorType == ReplicatorType.Parallel)
         {
-            await NotifyTasksCreatedAsync(phaseName, isParallel: true, tasks: created, ct);
+            await DispatchTasksCreatedPayloadAsync(phaseName, true, created, ct);
         }
         else
         {
             foreach (TaskProjection one in created)
             {
-                await NotifyTasksCreatedAsync(phaseName, isParallel: false, tasks: [one], ct);
+                await DispatchTasksCreatedPayloadAsync(phaseName, false, [one], ct);
             }
         }
 
@@ -356,13 +348,17 @@ public abstract class ReplicatorWorkflowBase<TContext>(
     {
         // Wraps child init: track created items for notifier, then call the workflow hook.
 
-        if (!_createdBuffer.TryGetValue(phaseId, out List<TaskProjection>? list))
+        if (ShouldNotifyOnTasksCreated(phaseId))
         {
-            list = [];
-            _createdBuffer[phaseId] = list;
+            if (!_createdBuffer.TryGetValue(phaseId, out List<TaskProjection>? list))
+            {
+                list = [];
+                _createdBuffer[phaseId] = list;
+            }
+
+            list.Add(new TaskProjection(context.TaskGuid, phaseId, context.AssignedToSid));
         }
 
-        list.Add(new TaskProjection(context.TaskGuid, phaseId, context.AssignedToSid));
 
         OnChildInitialized(phaseId, context, activity);
     }

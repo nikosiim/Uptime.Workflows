@@ -6,7 +6,6 @@ using Uptime.Workflows.Core.Enums;
 using Uptime.Workflows.Core.Extensions;
 using Uptime.Workflows.Core.Interfaces;
 using Uptime.Workflows.Core.Models;
-using Uptime.Workflows.Core.Services;
 
 namespace ApprovalWorkflow;
 
@@ -46,6 +45,90 @@ public sealed class ApprovalWorkflow(
             .OnEntryAsync(() => RunReplicatorAsync(ExtendedState.Signing.Value, ct))
             .Permit(WorkflowTrigger.AllTasksCompleted, BaseState.Completed);
     }
+
+    #region Notifications
+
+    protected override bool ShouldNotifyOnTasksCreated(string phaseId)
+    {
+        return phaseId == ExtendedState.Approval.Value || phaseId == ExtendedState.Signing.Value;
+    }
+
+    protected override Task<IOutboundNotificationPayload?> BuildWorkflowStartedPayloadAsync(CancellationToken ct)
+    {
+        List<AssigneeProjection> assignees = WorkflowContext
+            .ReplicatorStates
+            .SelectMany(r => r.Value.Items)
+            .Select(i => new AssigneeProjection(i.ActivityContext.PhaseId!, i.ActivityContext.AssignedToSid))
+            .ToList();
+
+        var payload = new WorkflowStartedPayload
+        {
+            OccurredAtUtc = DateTimeOffset.UtcNow,
+            WorkflowId = WorkflowId,
+            WorkflowType = GetType().Name,
+            StartedBySid = WorkflowContext.GetInitiatorSid(),
+            Assignees = assignees,
+            SourceSiteUrl = WorkflowContext.GetSiteUrl()
+        };
+
+        return Task.FromResult<IOutboundNotificationPayload?>(payload);
+    }
+
+    protected override Task<IOutboundNotificationPayload?> BuildTasksCreatedPayloadAsync(string phaseName, List<TaskProjection> tasks, CancellationToken ct)
+    {
+        var payload = new TasksCreatedPayload
+        {
+            OccurredAtUtc = DateTimeOffset.UtcNow,
+            WorkflowId = WorkflowId,
+            WorkflowType = GetType().Name,
+            PhaseName = phaseName,
+            Tasks = tasks,
+            SourceSiteUrl = WorkflowContext.GetSiteUrl()
+        };
+
+        return Task.FromResult<IOutboundNotificationPayload?>(payload);
+    }
+
+    protected override Task<IOutboundNotificationPayload?> BuildTaskUpdatedPayloadAsync(IWorkflowActivityContext ctx, PrincipalSid executorSid, CancellationToken ct)
+    {
+        var payload = new TaskUpdatedPayload
+        {
+            OccurredAtUtc = DateTimeOffset.UtcNow,
+            SourceSiteUrl = WorkflowContext.GetSiteUrl(),
+            WorkflowId = WorkflowId,
+            WorkflowType = GetType().Name,
+            TaskGuid = ctx.TaskGuid,
+            AssignedToSid = ctx.AssignedToSid,
+            ExecutorSid = executorSid,
+            Outcome = ctx.GetTaskOutcome(),
+            Status = ctx.GetTaskStatus().ToString()
+        };
+
+        return Task.FromResult<IOutboundNotificationPayload?>(payload);
+    }
+
+    protected override Task<IOutboundNotificationPayload?> BuildWorkflowCompletedPayloadAsync(CancellationToken ct)
+    {
+        List<AssigneeProjection> assignees = WorkflowContext
+            .ReplicatorStates
+            .SelectMany(r => r.Value.Items)
+            .Select(i => new AssigneeProjection(i.ActivityContext.PhaseId!, i.ActivityContext.AssignedToSid))
+            .ToList();
+
+        var payload = new WorkflowCompletedPayload
+        {
+            OccurredAtUtc = DateTimeOffset.UtcNow,
+            WorkflowId = WorkflowId,
+            WorkflowType = GetType().Name,
+            Outcome = WorkflowContext.Outcome.Value,
+            Assignees = assignees,
+            SourceSiteUrl = WorkflowContext.GetSiteUrl()
+        };
+
+        return Task.FromResult<IOutboundNotificationPayload?>(payload);
+    }
+
+    #endregion
 
     protected override async Task OnWorkflowActivatedAsync(CancellationToken ct)
     {

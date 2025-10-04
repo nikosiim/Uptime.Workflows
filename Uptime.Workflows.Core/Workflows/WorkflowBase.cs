@@ -111,11 +111,10 @@ public abstract class WorkflowBase<TContext>(
                 ct: token
             );
 
-            await NotifyWorkflowStartedCoreAsync(token);
-
             await Machine.FireAsync(WorkflowTrigger.Start);
             await OnWorkflowStartedAsync(token);
             await SaveWorkflowStateAsync(payload.ExecutorSid, token);
+            await NotifyWorkflowStartedAsync(token);
         }
         catch (WorkflowValidationException vex)
         {
@@ -223,6 +222,7 @@ public abstract class WorkflowBase<TContext>(
             await CancelAllTasksAsync(token);
             await Machine.FireAsync(WorkflowTrigger.Cancel);
             await SaveWorkflowStateAsync(payload.ExecutorSid, token);
+            await NotifyWorkflowCancelledAsync(token);
         }
         catch (Exception ex)
         {
@@ -301,31 +301,17 @@ public abstract class WorkflowBase<TContext>(
         WorkflowContext.Outcome = WorkflowOutcome.Cancelled;
         return Task.CompletedTask;
     }
-    protected virtual Task<WorkflowStartedPayload> BuildWorkflowStartedPayloadAsync(CancellationToken ct)
+    protected virtual Task<IOutboundNotificationPayload?> BuildWorkflowStartedPayloadAsync(CancellationToken ct)
     {
-        // Default: no assignees. Replicator base will override; simple workflows can override or leave empty.
-        var payload = new WorkflowStartedPayload
-        {
-            OccurredAtUtc = DateTimeOffset.UtcNow,
-            WorkflowId = WorkflowId,
-            WorkflowType = GetType().Name,
-            StartedBySid = WorkflowContext.GetInitiatorSid(),
-            SourceSiteUrl = WorkflowContext.GetSiteUrl()
-        };
-
-        return Task.FromResult(payload);
+        return Task.FromResult<IOutboundNotificationPayload?>(null);
     }
-    protected virtual Task<WorkflowCompletedPayload> BuildWorkflowCompletedPayloadAsync(CancellationToken ct)
+    protected virtual Task<IOutboundNotificationPayload?> BuildWorkflowCompletedPayloadAsync(CancellationToken ct)
     {
-        var payload = new WorkflowCompletedPayload
-        {
-            OccurredAtUtc = DateTimeOffset.UtcNow,
-            WorkflowId = WorkflowId,
-            WorkflowType = GetType().Name,
-            Outcome = WorkflowContext.Outcome,
-            SourceSiteUrl = WorkflowContext.GetSiteUrl()
-        };
-        return Task.FromResult(payload);
+        return Task.FromResult<IOutboundNotificationPayload?>(null);
+    }
+    protected virtual Task<IOutboundNotificationPayload?> BuildWorkflowCancelledPayloadAsync(CancellationToken ct)
+    {
+        return Task.FromResult<IOutboundNotificationPayload?>(null);
     }
 
     #endregion
@@ -346,19 +332,26 @@ public abstract class WorkflowBase<TContext>(
     {
         await taskService.CancelActiveTasksAsync(WorkflowId, ct);
     }
-    protected async Task NotifyWorkflowStartedCoreAsync(CancellationToken ct)
+    protected async Task NotifyWorkflowStartedAsync(CancellationToken ct)
     {
-        if (Notifier is null) return;
+        IOutboundNotificationPayload? payload = await BuildWorkflowStartedPayloadAsync(ct);
+        if (payload is null || Notifier is null) return;
 
-        WorkflowStartedPayload payload = await BuildWorkflowStartedPayloadAsync(ct);
-        await Notifier.NotifyWorkflowStartedAsync(payload, ct);
+        await Notifier.NotifyAsync(WorkflowEvents.WorkflowStarted, payload, ct);
     }
-    protected async Task NotifyWorkflowCompletedCoreAsync(CancellationToken ct)
+    protected async Task NotifyWorkflowCompletedAsync(CancellationToken ct)
     {
-        if (Notifier is null) return;
+        IOutboundNotificationPayload? payload = await BuildWorkflowCompletedPayloadAsync(ct);
+        if (payload is null || Notifier is null) return;
 
-        WorkflowCompletedPayload payload = await BuildWorkflowCompletedPayloadAsync(ct);
-        await Notifier.NotifyWorkflowCompletedAsync(payload, ct);
+        await Notifier.NotifyAsync(WorkflowEvents.WorkflowCompleted, payload, ct);
+    }
+    protected async Task NotifyWorkflowCancelledAsync(CancellationToken ct)
+    {
+        IOutboundNotificationPayload? payload = await BuildWorkflowCancelledPayloadAsync(ct);
+        if (payload is null || Notifier is null) return;
+
+        await Notifier.NotifyAsync(WorkflowEvents.WorkflowCancelled, payload, ct);
     }
 
     #endregion
@@ -403,9 +396,8 @@ public abstract class WorkflowBase<TContext>(
                     ct: ct
                 );
 
-                await NotifyWorkflowCompletedCoreAsync(ct);
-
                 logger.LogCompleted(WorkflowDefinition, WorkflowId, AssociationName);
+                await NotifyWorkflowCompletedAsync(ct);
             }
             else if (transition.Destination.Equals(BaseState.Cancelled))
             {
@@ -437,6 +429,8 @@ public abstract class WorkflowBase<TContext>(
                 Principal.SystemSid,
                 description: $"Workflow marked invalid due to error: {ex.GetType().Name}",
                 ct: ct);
+
+            await NotifyWorkflowCancelledAsync(ct);
         }
         catch (Exception e)
         {

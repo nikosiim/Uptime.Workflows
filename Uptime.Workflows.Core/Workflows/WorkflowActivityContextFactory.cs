@@ -33,9 +33,7 @@ public static class WorkflowActivityContextFactory
             AssignedToSid = assignedToSid,
             DueDate = dueDate,
             Description = description,
-            #pragma warning disable CS0618
             Storage = JsonSerializer.Deserialize<Dictionary<string, string?>>(storageJson ?? "{}") ?? new Dictionary<string, string?>()
-            #pragma warning restore CS0618
         };
     }
 }
